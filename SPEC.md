@@ -148,6 +148,25 @@ Rules:
   sole top-level table is `dataset`, `issue`, or `validation` — but authors
   should always write ` ```toml ergo `.
 
+### Conformance — core format and supplemental affordances
+
+The spec itself splits core from supplemental, so adoption never demands
+the whole apparatus at once:
+
+- **Core** (what makes a valid data page — everything `ergo check` errors
+  on): the manifest with its required fields, issues with id/title/effect/
+  type/status/scope, `handled_by` on mitigated issues. A repo that adopts
+  only this — pages plus an occasional `check` run — is conformant.
+- **Supplemental** (adopt independently, in any order): code anchors and
+  the `--repo` round trip, `[validation]` records, the generated digest and
+  agent-memory pointer, `core`/`misuse`/`instead`/`detect` on issues, the
+  skill, interop exports.
+
+Supplemental affordances are where the compounding value is, but a page
+that documents real issues with correct scopes beats a fully-instrumented
+page with thin content. Start core, grow supplemental. (flip's rule again:
+empty structure is worse than absent structure.)
+
 ### Recommended section arc
 
 Not mandatory — profiles of use differ — but pages converge on:
@@ -273,6 +292,11 @@ proposed upstream (§14).
 | `resolved` | no longer applies (publisher fixed it; era passed out of use) |
 | `monitor` | not currently biting, but watch new releases for it |
 
+`mitigated` covers *enforced invariants* as well as patched defects: a
+design guarantee (a CHECK constraint, a rebuild-from-source rule) that
+actively holds a `context` issue true is a mitigation, and gets anchored
+like one.
+
 Resolved issues stay on the page. They document eras of the data that still
 exist in archives, and they are the record that stops issue rediscovery.
 
@@ -284,13 +308,48 @@ predicate: "subgroups with cohort < 10"), `entities` (prose: "charter
 schools"), or `all = true`. Scope is what lets an agent ask *does this issue
 touch the slice I'm using?* without an LLM call.
 
+### Core issues — `core = true`
+
+Most issues are **supplemental**: they matter when a task's scope touches
+theirs, and an agent filters them by `scope`. A few are **core**: they must
+be loaded before *any* contact with the dataset, whatever the slice —
+usually because exposure is universal (a suppression regime across every
+rate column) or because one misread poisons published work. Mark those
+`core = true`.
+
+Semantics for consumers: read every core issue before touching the data;
+filter the rest by scope. Under context pressure, degrade in this order:
+supplemental issues to their one-line titles first, core issues stay whole,
+the manifest and `bite` never leave. Mark core sparingly — a page where
+half the registry is core has no core (frank-style constitution tiers run
+under 10%); the validator warns past one third.
+
 ### Optional fields
 
-`discovered` (`YYYY-MM`) · `handled_by` (list of `path` or `path#symbol`
-code refs, repo-relative) · `detection` (how to spot it: a symptom, a check,
-a query sketch) · `misuse` (the foreseeable misread — strongly recommended
-for `misleads` and `context`) · `refs` (list: source docs, errata URLs,
-tickets) · `superseded_by` / `supersedes` (issue ids, §13).
+`core` (bool, above) · `discovered` (`YYYY-MM`) · `handled_by` (list of
+`path` or `path#symbol` code refs, repo-relative) · `detection` (how to
+spot it: a symptom, a check, a query sketch) · `misuse` (the foreseeable
+misread — strongly recommended for `misleads` and `context`) · `instead`
+(the sanctioned move that replaces the misuse — one line; a misuse/instead
+pair is a fail/pass example, the shape LLMs follow best) · `refs` (list:
+source docs, errata URLs, tickets) · `superseded_by` / `supersedes` (issue
+ids, §13).
+
+### Structured detection — `[issue.detect]` (optional)
+
+`detection` stays prose. When the symptom is mechanically matchable, add a
+`detect` sub-table so tools and agents can *look* rather than read:
+
+```toml
+[issue.detect]
+regex = ['^(>|<)\d+%$', 'Fewer than 10 (students|valid scores)']  # match raw values/filenames
+query = ["SELECT count(*) FROM grad_rate WHERE rate IS NULL AND raw != ''"]  # sketch, not executed in v0.1
+semantic = ["a rate column parses for some rows and not others"]
+```
+
+The validator compiles each `regex` entry (an invalid pattern is an error)
+and type-checks the rest; executing `query` entries is v0.2 territory
+(§14). All three keys are optional lists.
 
 ## 6. Code linkage — the round trip
 
@@ -365,10 +424,11 @@ pointed.** So the convention has two halves:
 
 Progressive disclosure, three levels: digest (one line per dataset) → page
 manifest + issue titles (a skim) → the issue's section (full story). An
-agent starting work on a dataset reads the digest, opens the page, and loads
-issue sections as their scopes intersect the work. Page authors keep the
-manifest and issue titles carrying enough signal that the skim works;
-`ergo digest --long` emits the per-page issue table for exactly this use.
+agent starting work on a dataset reads the digest, opens the page, reads
+every **core** issue in full (§5), and loads supplemental issue sections as
+their scopes intersect the work. Page authors keep the manifest and issue
+titles carrying enough signal that the skim works; `ergo digest --long`
+emits the per-page issue table (core issues flagged) for exactly this use.
 
 ## 9. Authoring discipline
 
@@ -475,10 +535,26 @@ in a host project may depend on an export that the page can't regenerate.
 
 ## 14. Open questions
 
-- **Executable detection.** `detection` is prose in v0.1. A v0.2 candidate:
-  an optional structured form (a query sketch or expectation à la dbt's
-  `warn_if` / pointblank's threshold tiers) so checks can run, not just
-  read. Held back to keep v0.1 authorable in an afternoon.
+- **Executable detection.** `[issue.detect]` gives detection a structured
+  form (compiled regexes, query sketches) but nothing runs the queries yet.
+  v0.2: execute `query` entries against the host warehouse à la dbt's
+  `warn_if` / pointblank's threshold tiers — a documented issue whose
+  detector stops firing is either resolved or drifted, and both are worth
+  knowing. Held back to keep v0.1 authorable in an afternoon.
+- **Activity routing.** frank's obligation skills route by activity/pass
+  (`pass_invokes`) on top of an always-loaded constitution tier. ergo's
+  `core` + scope filtering is the small-registry version of the same idea;
+  if hosts grow to dozens of datasets and hundreds of issues, a
+  per-activity field (ingest / join / aggregate / compare-years /
+  visualize / write) may earn its ceremony. Not before.
+- **Taxonomy candidates.** `constraint` (restricted-vocabulary/enum rules
+  on curated columns — rights gates, grade letters) came up during the
+  njschooldata conversion and got shoehorned into `coding`. Needs a second
+  independent example (CONTRIBUTING's bar) before joining the taxonomy.
+- **Curated-internal datasets.** A knowledge layer whose source of truth is
+  a seed list in the repo has no honest `source_url`. A profile for
+  internally-curated datasets (publisher = the project, source = a code
+  path) fit awkwardly in v0.1; consider first-classing it.
 - **Cross-project issue sharing.** Two projects ingesting the same NJDOE
   files currently each carry a page. A shared upstream registry (an
   "issues-first awesome list" — the survey found none exists anywhere) is

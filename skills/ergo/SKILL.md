@@ -25,14 +25,18 @@ anchor comments: `# ergo: spr/rate-prose-suppression`.
    the single most likely way to get burned.
 2. **Skim the page** for the dataset you're using: the manifest (keys,
    builders, coverage) and the issue titles.
-3. **Load the issue sections whose scope intersects your task.** Scope
-   fields (`years`, `tables`, `columns`, `rows`, `entities`) are structured
-   for exactly this test. An issue with `effect = "breaks"` or `"corrupts"`
-   constrains ingestion; `"misleads"` and `"context"` constrain analysis
-   and prose.
+3. **Read every `core = true` issue in full before touching the data** —
+   core issues apply regardless of your slice. Then load supplemental
+   issue sections whose scope intersects your task; scope fields (`years`,
+   `tables`, `columns`, `rows`, `entities`) are structured for exactly this
+   test. An issue with `effect = "breaks"` or `"corrupts"` constrains
+   ingestion; `"misleads"` and `"context"` constrain analysis and prose.
+   Under context pressure, drop supplemental issues to their titles first;
+   core issues stay whole; the manifest and `bite` never leave.
 4. **Honor `misuse` fields** when writing analysis, charts, or copy — they
-   name the foreseeable misread. If your draft does the thing a `misuse`
-   field warns about, that is a bug in the draft.
+   name the foreseeable misread, and `instead` names the sanctioned move.
+   If your draft does the thing a `misuse` field warns about, that is a bug
+   in the draft.
 5. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
    means the weird code below it is deliberate; read that issue before
    "fixing" the code.
@@ -86,6 +90,12 @@ Judgment calls:
 - **Effect picking.** Pipeline fails → `breaks`. Numbers silently wrong →
   `corrupts`. Numbers faithful but a natural reading is wrong → `misleads`.
   Not a defect, but background you must hold → `context`.
+- **Core marking.** `core = true` only when exposure is universal or one
+  misread poisons published work — well under a third of the registry, or
+  the flag means nothing (the validator warns). When in doubt, supplemental.
+- **misuse/instead pairs.** Write `misuse` as the fail example, `instead`
+  as the pass. If a foreseeable over-correction exists ("don't drop capped
+  subgroup values entirely"), name it in the prose.
 - **Never delete a resolved issue** — set `status = "resolved"` and keep the
   block. Archives of old vintages keep old issues relevant.
 - **New dataset** → scaffold with `python3 tools/ergo.py new <slug>`, fill

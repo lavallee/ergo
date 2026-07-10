@@ -66,14 +66,21 @@ type = "format"                  # definitional | universe | coverage | suppress
                                  # geography | revision | coding | format | entry |
                                  # linkage | uncertainty | availability | measurement
 status = "open"                  # open | mitigated | resolved | monitor
+# core = true                    # load before ANY contact with the dataset; mark sparingly (SPEC §5)
 discovered = "YYYY-MM"
 # handled_by = ["tools/build_….py#fn"]   # required once mitigated; anchor the code:
 #                                        #   # ergo: my-dataset/first-issue
 detection = "how you'd spot it"
 misuse = "the wrong conclusion a reasonable reader would draw"   # expected for misleads/context
+# instead = "the sanctioned move that replaces the misuse"       # misuse+instead = fail/pass pair
 
 [issue.scope]
 years = "all"                    # or a list; also: tables, columns, rows, entities, all = true
+
+# [issue.detect]                 # optional structured detection (SPEC §5)
+# regex = ['pattern the symptom matches']
+# query = ["SELECT … sketch"]
+# semantic = ["condition an agent can evaluate"]
 ```
 
 How it was found; a concrete example; the numbers that let the next person

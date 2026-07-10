@@ -101,15 +101,21 @@ title = "Rate cells carry % signs, prose suppression sentences, and >90%/<10% pr
 effect = "breaks"
 type = "suppression"
 status = "mitigated"
+core = true
 discovered = "2026-06"
 handled_by = ["tools/build_spr_db.py#rate"]
 detection = "value fails float() after stripping a trailing % — includes '>90%', '<10%', and sentences like 'Fewer than 10 students were in the graduation cohort.'"
 misuse = "Treating suppression NULLs as zero. Capped extremes also go NULL — harmless for All Students, a real loss for small subgroups."
+instead = "Leave suppressed values NULL, exclude them from denominators, and say so in captions for small subgroups."
 
 [issue.scope]
 tables = ["grad_rate", "assessment", "assessment_grade", "absenteeism"]
 columns = ["*Rate*", "*Percent*"]
 years = "all"
+
+[issue.detect]
+regex = ['^(>|<)\\d+(\\.\\d+)?%$', 'Fewer than 10 (students|valid scores)']
+semantic = ["a rate column parses as numeric for some rows and prose for others"]
 ```
 
 Parse rule: a value is a number iff it parses after stripping a trailing
@@ -129,6 +135,7 @@ discovered = "2026-06"
 handled_by = ["tools/build_spr_db.py"]
 detection = "4YrGraduationRateState_District non-empty in 27,115 of 27,201 trend rows; Federal in only 5,423 (≈ one year)"
 misuse = "Drawing the Federal rate as a trend line (it has one point), or comparing a State figure against another state's federal ACGR — NJ's State calc runs higher (SOMSD 2024-25: State 93.2% vs Federal 89.4%)."
+instead = "Plot the State rate as the trend; headline the latest-year Federal ACGR beside it and caption the difference."
 
 [issue.scope]
 tables = ["grad_rate"]
