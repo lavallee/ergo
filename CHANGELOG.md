@@ -18,6 +18,10 @@ severity-ranked context degradation):
   defects; new open questions (activity routing, `constraint` type
   candidate, curated-internal-dataset profile) from the njschooldata
   conversion.
+- `check --repo` on a subset of pages: anchors naming datasets outside the
+  checked set downgrade from error to warning (unknown ids within a
+  checked dataset still error) — a full-directory run remains the
+  authoritative gate. Surfaced twice during the njschooldata conversion.
 
 - SPEC.md v0.1: the data page (markdown + fenced `toml ergo` blocks), the
   `[dataset]` manifest, the `[issue]` registry (effect/type/status

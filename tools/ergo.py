@@ -260,10 +260,16 @@ def check_repo(pages, root):
                 anchors.setdefault((m.group(1), m.group(2)), []).append((f, n))
 
     problems_err, problems_warn = [], []
+    known_slugs = {slug for slug, _ in known}
     for key, sites in sorted(anchors.items()):
-        if key not in known:
-            for f, n in sites:
+        if key in known:
+            continue
+        for f, n in sites:
+            if key[0] in known_slugs:
                 problems_err.append(f"{f.relative_to(root)}:{n}: anchor 'ergo: {key[0]}/{key[1]}' names an unknown issue")
+            else:
+                problems_warn.append(
+                    f"{f.relative_to(root)}:{n}: anchor 'ergo: {key[0]}/{key[1]}' names a dataset not among the checked pages — run check on the full pages directory to verify it")
 
     for page in pages:
         d = page.dataset or {}
