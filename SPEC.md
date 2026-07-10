@@ -485,6 +485,11 @@ removing internal process material:
   the output still looks internal (script invocations, tool paths, raw-
   cache paths) — wrap or reword until the warnings are gone or deliberate.
 
+A projection is a render, not a canonical page: it is not expected to
+re-validate under `check` (a `mitigated` issue whose `handled_by` was
+stripped would fail §5) — `check` governs sources, `publish` governs what
+ships.
+
 The test for what stays public is the same as §9's registry test, applied
 to prose: *would this sentence help someone rebuilding from the source
 files with none of our code?* Issue prose describing **what** the
