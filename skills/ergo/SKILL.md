@@ -94,6 +94,13 @@ Register the issue in the same change as the workaround:
    `index.json`), republish it in the same change:
    `python3 tools/ergo.py publish <pages-dir> --dir <bundle-dir> --base-url <url>`
    — and re-run any generator that renders ergo panels into public pages.
+   The served copy is a **public projection**: wrap internal-only sections
+   (rebuild runbooks, our-surfaces methodology, loading inventories) in
+   `<!-- ergo:internal -->` … `<!-- /ergo:internal -->`; `handled_by`,
+   `evidence`, and `access.builders/raw/feeds` are stripped automatically;
+   chase publish's internal-smell warnings to zero-or-deliberate. Write
+   issue prose so the *what* of a workaround is public ("non-numeric →
+   NULL") and only the *how-we-run-ours* sits inside internal markers.
 
 Judgment calls:
 

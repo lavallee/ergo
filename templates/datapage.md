@@ -14,6 +14,7 @@ bite = "One sentence: the single most likely way this data bites someone who tou
 status = "acquiring"             # live | acquiring | dormant | archived
 confidence = "?"                 # A authoritative primary · B official doc · C secondary · ? unjudged
 updated = "YYYY-MM-DD"           # last substantive page edit
+# implementation = "https://…"   # public URL of your code — the one repo pointer the served projection keeps
 
 [dataset.coverage]
 years = "1998-99 → 2025-26"      # in the source's own year labels
@@ -104,6 +105,13 @@ evidence = "path-or-ref"
 
 Latest vintage in hand, fetch dates, the publisher's revision/errata
 behavior, re-pull procedure.
+
+<!-- ergo:internal -->
+## Rebuild
+
+Internal runbook — script names, commands, local paths. Everything between
+the internal markers is dropped from the served public projection.
+<!-- /ergo:internal -->
 
 ## Changelog
 

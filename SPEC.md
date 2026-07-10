@@ -216,6 +216,10 @@ Field notes:
   scale (A authoritative primary we extracted ourselves · B official
   document, figures read directly · C reporting/secondary · ? not yet
   judged). Same scale as flip's source ledger.
+- **`implementation`** (optional) — a public URL for the project's code
+  (the repo). This is the one pointer a served page keeps to *our*
+  implementation: everything else that names internal paths, scripts, or
+  runbooks stays out of the public projection (§8).
 - `coverage` and `access` keys are recommended, not exhaustive; add what the
   dataset needs (`grain`, `disaggregation`, `cadence`, …). Unknown keys are
   legal everywhere in ergo blocks — validators warn on unknown *top-level*
@@ -445,13 +449,49 @@ verbatim:
 <base>/index.json      # the directory: every dataset's manifest facts,
                        # issue list (id/title/effect/type/status/core),
                        # counts, updated date, and page URL
-<base>/<slug>.md       # each data page, byte-for-byte the canonical file
+<base>/<slug>.md       # each data page's PUBLIC PROJECTION
 ```
 
 `index.json` is the middle disclosure tier over HTTP (what the page skim is
 locally); the served `.md` is the full tier. The bundle is deterministic —
 same pages in, same bytes out — so it can live in generated-site output
 without churn.
+
+### The public projection
+
+The served page is for someone **building their own implementation** on the
+same dataset — its job is to spare them the pitfalls, not to document your
+pipeline. `publish` therefore derives it from the canonical page by
+removing internal process material:
+
+- **Marked regions.** Wrap internal-only sections (rebuild runbooks, how
+  your own surfaces consume the data, editorial leads, loading inventories)
+  in markdown comments; whole lines between them are dropped:
+
+  ```markdown
+  <!-- ergo:internal -->
+  ## Rebuild
+  …commands, script names, local paths…
+  <!-- /ergo:internal -->
+  ```
+
+- **Repo-pointing fields.** `handled_by` (issues), `evidence`
+  (validations), and `access.builders` / `access.raw` / `access.feeds`
+  (manifest) are stripped from the projected blocks. A `mitigated` status
+  survives — it tells a reimplementer the issue is tractable — while the
+  *where* stays with the repo. The manifest's `implementation` URL is the
+  sanctioned pointer for readers who want the code.
+- **A smell check.** After projection, `publish` warns line-by-line where
+  the output still looks internal (script invocations, tool paths, raw-
+  cache paths) — wrap or reword until the warnings are gone or deliberate.
+
+The test for what stays public is the same as §9's registry test, applied
+to prose: *would this sentence help someone rebuilding from the source
+files with none of our code?* Issue prose describing **what** the
+workaround does ("non-numeric rate values parse to NULL") is exactly what
+they need; **how we run ours** ("rerun build_x.py") is not. `check` errors
+on unbalanced markers; `export` (the in-repo machine view) is never
+projected.
 
 Three rules make it findable and trustworthy:
 
@@ -520,9 +560,9 @@ python3 tools/ergo.py new     SLUG [--dir DIR]
 - **export** — everything machine-readable as one JSON document (datasets,
   issues, validations, changes, with page paths and section line numbers),
   for downstream renders and interop.
-- **publish** — write the servable bundle (§8): `index.json` plus a
-  verbatim `<slug>.md` per page, deterministic, into a directory the host
-  site serves.
+- **publish** — write the servable bundle (§8): `index.json` plus each
+  page's public projection as `<slug>.md`, deterministic, into a directory
+  the host site serves; warns where projected output still smells internal.
 - **new** — scaffold a fresh page from the template.
 
 ## 11. Skills — teaching agents the format

@@ -389,17 +389,93 @@ def export(pages):
     return json.dumps(doc, indent=2, default=str, ensure_ascii=False) + "\n"
 
 
+INTERNAL_BEGIN, INTERNAL_END = "<!-- ergo:internal -->", "<!-- /ergo:internal -->"
+# Fields that point into the host repo — stripped from the public projection.
+INTERNAL_FIELDS = {"issue": {"handled_by"}, "validation": {"evidence"},
+                   "dataset.access": {"builders", "raw", "feeds"}}
+INTERNAL_SMELLS = re.compile(r"\btools/|\bpython3\b|\bdata/raw\b")
+
+
+def project_public(text, name="page"):
+    """The public projection of a page: internal regions and repo-pointing
+    fields removed. Returns (text, warnings)."""
+    out, warnings = [], []
+    depth = 0
+    in_block = table = None
+    skip_until_balanced = 0
+    for n, line in enumerate(text.split("\n"), 1):
+        s = line.strip()
+        if s == INTERNAL_BEGIN:
+            depth += 1
+            continue
+        if s == INTERNAL_END:
+            depth = max(0, depth - 1)
+            continue
+        if depth:
+            continue
+        m = FENCE.match(line)
+        if m and in_block is None and "toml" in m.group(2):
+            in_block, table = True, None
+        elif m and in_block:
+            in_block, table = None, None
+        elif in_block:
+            if skip_until_balanced > 0:
+                skip_until_balanced += line.count("[") + line.count("{")
+                skip_until_balanced -= line.count("]") + line.count("}")
+                continue
+            t = re.match(r"\[([a-z.]+)\]", s)
+            if t:
+                table = t.group(1)
+            key = re.match(r"([A-Za-z_]+)\s*=", s)
+            if key and table and key.group(1) in INTERNAL_FIELDS.get(table, ()):
+                opens = line.count("[") + line.count("{")
+                closes = line.count("]") + line.count("}")
+                if opens > closes:
+                    skip_until_balanced = opens - closes
+                continue
+        out.append(line)
+    projected = re.sub(r"\n{3,}", "\n\n", "\n".join(out))
+    for n, line in enumerate(projected.split("\n"), 1):
+        if INTERNAL_SMELLS.search(line):
+            warnings.append(f"{name}:{n}: published text still looks internal: {line.strip()[:90]}")
+    return projected, warnings
+
+
+def check_internal_markers(text):
+    """Return an error string if internal markers are unbalanced, else None."""
+    depth = 0
+    for n, line in enumerate(text.split("\n"), 1):
+        s = line.strip()
+        if s == INTERNAL_BEGIN:
+            depth += 1
+        elif s == INTERNAL_END:
+            depth -= 1
+            if depth < 0:
+                return f"line {n}: {INTERNAL_END} without a matching {INTERNAL_BEGIN}"
+    if depth:
+        return f"unclosed {INTERNAL_BEGIN}"
+    return None
+
+
 def publish(pages, out_dir, base_url=None):
-    """Write the servable bundle: index.json + a verbatim <slug>.md per page."""
+    """Write the servable bundle: index.json + the public projection of each
+    page as <slug>.md."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     base = (base_url.rstrip("/") + "/") if base_url else None
     datasets = []
+    all_warnings = []
     for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
         d = page.dataset or {}
         slug = d.get("slug") or page.path.stem
         dest = out / f"{slug}.md"
-        dest.write_bytes(page.path.read_bytes())
+        src = page.path.read_text(encoding="utf-8")
+        marker_err = check_internal_markers(src)
+        if marker_err:
+            sys.exit(f"{page.path}: {marker_err}")
+        projected, warns = project_public(src, name=str(dest))
+        all_warnings += warns
+        dest.write_text(projected, encoding="utf-8")
         counts = effect_counts(page)
         changes = [b.data["change"] for b in page.changes()]
         latest = max((str(c.get("date") or "") for c in changes), default="")
@@ -410,6 +486,7 @@ def publish(pages, out_dir, base_url=None):
             "status": d.get("status", ""),
             "confidence": d.get("confidence", ""),
             "updated": page.updated(),
+            "implementation": d.get("implementation", ""),
             "bite": d.get("bite", ""),
             "coverage": d.get("coverage", {}),
             "counts": {"issues": sum(counts.values()), "core": core_count(page),
@@ -433,7 +510,7 @@ def publish(pages, out_dir, base_url=None):
         index["base_url"] = base
     (out / "index.json").write_text(
         json.dumps(index, indent=2, default=str, ensure_ascii=False) + "\n", encoding="utf-8")
-    return len(datasets)
+    return len(datasets), all_warnings
 
 
 TEMPLATE = '''# {title}
@@ -584,14 +661,20 @@ def main(argv=None):
         return 0
 
     if args.cmd == "publish":
-        n = publish(pages, args.dir, base_url=args.base_url)
-        print(f"published {n} page(s) + index.json -> {args.dir}")
+        n, warns = publish(pages, args.dir, base_url=args.base_url)
+        for w in warns:
+            print(f"warning: {w}")
+        print(f"published {n} page(s) + index.json -> {args.dir}"
+              + (f" ({len(warns)} internal-smell warning(s))" if warns else ""))
         return 0
 
     # check
     n_err = n_warn = 0
     for page, lines in parsed:
         check_page(page, lines)
+        marker_err = check_internal_markers("\n".join(lines))
+        if marker_err:
+            page.errors.append((1, f"internal markers unbalanced: {marker_err}"))
         for line, msg in sorted(page.errors):
             print(f"{page.path}:{line}: error: {msg}")
         for line, msg in sorted(page.warnings):

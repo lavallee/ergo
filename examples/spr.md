@@ -17,6 +17,7 @@ bite = "NJ publishes two 4-year graduation rates; only the State calculation has
 status = "live"
 confidence = "A"
 updated = "2026-07-10"
+implementation = "https://github.com/lavallee/njschooldata"
 
 [dataset.coverage]
 years = "2015-16 → 2024-25 (trend tabs post-COVID only)"

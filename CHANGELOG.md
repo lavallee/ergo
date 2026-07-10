@@ -36,6 +36,13 @@ Second same-day amendment — serving and versioning:
   date (checked). Digest and bundle carry `updated`/`latest_change`.
 - Directory-of-bundles vision added to §14 (decentralized maintenance,
   centralized discovery).
+- **Public projection** (SPEC §8): the served `.md` is derived, not
+  verbatim — `<!-- ergo:internal -->` regions and repo-pointing fields
+  (`handled_by`, `evidence`, `access.builders/raw/feeds`) are stripped, an
+  internal-smell check warns on what's left, and the new optional manifest
+  field `implementation` is the one sanctioned pointer to the publisher's
+  code. The served page exists so someone else can build their own
+  implementation without our pitfalls — not to document our pipeline.
 
 - SPEC.md v0.1: the data page (markdown + fenced `toml ergo` blocks), the
   `[dataset]` manifest, the `[issue]` registry (effect/type/status
