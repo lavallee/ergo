@@ -23,6 +23,20 @@ severity-ranked context degradation):
   checked dataset still error) — a full-directory run remains the
   authoritative gate. Surfaced twice during the njschooldata conversion.
 
+Second same-day amendment — serving and versioning:
+
+- **Serving convention** (SPEC §8): the bundle — `index.json` (per-dataset
+  facts + issue list) plus each page's verbatim `.md` — published at a
+  stable URL by the new `ergo publish` subcommand, deterministic. Agents
+  fetch documentation over HTTP; they don't spelunk the code host. Human
+  explainer pages render the ergo elements and link to the bundle.
+- **`[change]` blocks** (SPEC §13): the append-only, dated changelog that
+  travels with a served page — `date`, `note`, optional `issues` (validated
+  against the registry). Manifest `updated` must be ≥ the newest change
+  date (checked). Digest and bundle carry `updated`/`latest_change`.
+- Directory-of-bundles vision added to §14 (decentralized maintenance,
+  centralized discovery).
+
 - SPEC.md v0.1: the data page (markdown + fenced `toml ergo` blocks), the
   `[dataset]` manifest, the `[issue]` registry (effect/type/status
   vocabularies, machine-readable scope, `misuse`, `handled_by`), two-way

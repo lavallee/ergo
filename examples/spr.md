@@ -180,3 +180,11 @@ result = "codes are zero-padded TEXT; All-Students label is 'All Students'; supp
 Latest published: 2024-25 (released May 2026); databases downloadable back
 to 2011-12 (legacy years via a separate archive). Working copy fetched
 2026-06; record re-pulls here.
+
+## Changelog
+
+```toml ergo
+[change]
+date = "2026-07-10"
+note = "Page created in ergo format; 5 issues registered from the 2024-25 acquisition notes."
+```

@@ -40,6 +40,11 @@ anchor comments: `# ergo: spr/rate-prose-suppression`.
 5. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
    means the weird code below it is deliberate; read that issue before
    "fixing" the code.
+6. **Working outside the repo?** Projects that serve a bundle expose
+   `<base>/index.json` (every dataset's facts + issue list) and
+   `<base>/<slug>.md` (the full page) over HTTP — fetch those instead of
+   spelunking the code host. Check `updated` and the page's Changelog
+   against when you last read it; the changelog tells you what's new.
 
 ## When you hit something weird in the data
 
@@ -77,9 +82,18 @@ Register the issue in the same change as the workaround:
 3. **Anchor the code**: put `# ergo: <slug>/<id>` in a comment adjacent to
    the workaround. Anchor + one line of "why this looks weird" — never a
    paraphrase of the page.
-4. **Validate**: `python3 tools/ergo.py check <pages-dir> --repo .` must
+4. **Log the change**: anything that alters a consumer's picture of the
+   dataset (new issue, status transition, scope correction, coverage
+   extension) gets a `[change]` record in the page's Changelog section —
+   `date`, `note`, `issues = [ids touched]` — and the manifest `updated`
+   bumps in the same edit. Copyediting doesn't.
+5. **Validate**: `python3 tools/ergo.py check <pages-dir> --repo .` must
    pass. Regenerate the digest if titles/counts changed:
    `python3 tools/ergo.py digest <pages-dir> --write <pages-dir>/INDEX.md`.
+   If the project serves a bundle (a `site/…/ergo/` directory with
+   `index.json`), republish it in the same change:
+   `python3 tools/ergo.py publish <pages-dir> --dir <bundle-dir> --base-url <url>`
+   — and re-run any generator that renders ergo panels into public pages.
 
 Judgment calls:
 

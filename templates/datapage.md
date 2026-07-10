@@ -104,3 +104,16 @@ evidence = "path-or-ref"
 
 Latest vintage in hand, fetch dates, the publisher's revision/errata
 behavior, re-pull procedure.
+
+## Changelog
+
+Append-only, newest last. One record per change that alters a consumer's
+picture of the dataset (new issue, status change, coverage extension) —
+and bump the manifest `updated` in the same edit (the validator checks).
+
+```toml ergo
+[change]
+date = "YYYY-MM-DD"
+note = "Page created."
+# issues = ["ids-touched"]
+```
