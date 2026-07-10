@@ -1,0 +1,488 @@
+#!/usr/bin/env python3
+# ergo.py — validator, digest, and exporter for ergo data pages.
+# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.1 · tool 0.1.0
+# Stdlib only, Python >= 3.11 (tomllib). Vendor this file freely; it has no deps.
+"""
+Usage:
+  python3 ergo.py check  [PATHS...] [--repo ROOT] [--strict]
+  python3 ergo.py digest [PATHS...] [--long] [--write FILE]
+  python3 ergo.py export [PATHS...] [--out FILE]
+  python3 ergo.py new    SLUG [--dir DIR]
+
+PATHS are data-page markdown files or directories containing them
+(default: current directory). INDEX.md files are skipped automatically.
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+FORMAT_VERSIONS = {"0.1"}
+BLOCK_TYPES = {"dataset", "issue", "validation"}
+EFFECTS = ["breaks", "corrupts", "misleads", "context"]
+ISSUE_STATUSES = {"open", "mitigated", "resolved", "monitor"}
+DATASET_STATUSES = {"live", "acquiring", "dormant", "archived"}
+TYPES = {
+    "definitional", "universe", "coverage", "suppression", "geography",
+    "revision", "coding", "format", "entry", "linkage", "uncertainty",
+    "availability", "measurement",
+}
+SCOPE_KEYS = {"years", "tables", "columns", "rows", "entities", "all"}
+DATASET_REQUIRED = ("ergo", "slug", "title", "publisher", "source_url", "bite", "status")
+ISSUE_REQUIRED = ("id", "title", "effect", "type", "status")
+VALIDATION_REQUIRED = ("date", "method", "result")
+
+KEBAB = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+ANCHOR = re.compile(r"ergo:\s*([a-z0-9][a-z0-9-]*)/([a-z0-9][a-z0-9-]*)")
+FENCE = re.compile(r"^(`{3,})(.*)$")
+HEADING = re.compile(r"^#{1,6}\s")
+
+SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", "renders"}
+BINARY_HINT = re.compile(rb"\x00")
+
+
+# ---------- parsing ----------
+
+class Block:
+    def __init__(self, kind, data, line):
+        self.kind, self.data, self.line = kind, data, line
+
+
+class Page:
+    def __init__(self, path):
+        self.path = Path(path)
+        self.blocks = []
+        self.errors = []      # (line, message)
+        self.warnings = []    # (line, message)
+
+    @property
+    def dataset(self):
+        for b in self.blocks:
+            if b.kind == "dataset":
+                return b.data.get("dataset", {})
+        return None
+
+    def issues(self):
+        return [b for b in self.blocks if b.kind == "issue"]
+
+    def validations(self):
+        return [b for b in self.blocks if b.kind == "validation"]
+
+
+def parse_page(path):
+    page = Page(path)
+    text = Path(path).read_text(encoding="utf-8")
+    lines = text.split("\n")
+    i = 0
+    while i < len(lines):
+        m = FENCE.match(lines[i])
+        if not m:
+            i += 1
+            continue
+        ticks, info = m.group(1), m.group(2).strip()
+        start = i
+        i += 1
+        body = []
+        while i < len(lines):
+            close = FENCE.match(lines[i])
+            if close and len(close.group(1)) >= len(ticks) and not close.group(2).strip():
+                break
+            body.append(lines[i])
+            i += 1
+        i += 1  # past the closing fence (or EOF)
+        words = info.split()
+        is_marked = len(words) >= 2 and words[0] == "toml" and words[1] == "ergo"
+        is_plain_toml = words == ["toml"]
+        if not (is_marked or is_plain_toml):
+            continue
+        try:
+            data = tomllib.loads("\n".join(body))
+        except tomllib.TOMLDecodeError as e:
+            if is_marked:
+                page.errors.append((start + 1, f"unparseable ergo block: {e}"))
+            continue
+        tops = set(data.keys())
+        if is_marked:
+            if len(tops) != 1 or not tops <= BLOCK_TYPES:
+                page.errors.append((start + 1,
+                    f"ergo block must contain exactly one of [dataset]/[issue]/[validation], got: {sorted(tops) or 'nothing'}"))
+                continue
+        elif not (len(tops) == 1 and tops <= BLOCK_TYPES):
+            continue  # plain toml block that isn't an ergo table — not ours
+        kind = tops.pop()
+        if is_plain_toml:
+            page.warnings.append((start + 1, f"[{kind}] block fenced as plain `toml` — mark it `toml ergo`"))
+        page.blocks.append(Block(kind, data, start + 1))
+    return page, lines
+
+
+# ---------- validation ----------
+
+def check_page(page, lines):
+    err, warn = page.errors, page.warnings
+    if not page.blocks:
+        err.append((1, "no ergo blocks found — not a data page (or all blocks unparseable)"))
+        return
+    datasets = [b for b in page.blocks if b.kind == "dataset"]
+    if not datasets:
+        err.append((1, "missing [dataset] manifest block"))
+    else:
+        if page.blocks[0].kind != "dataset":
+            err.append((page.blocks[0].line, "first ergo block must be the [dataset] manifest"))
+        if len(datasets) > 1:
+            err.append((datasets[1].line, "more than one [dataset] block"))
+        d = datasets[0].data["dataset"]
+        dl = datasets[0].line
+        for f in DATASET_REQUIRED:
+            if not d.get(f):
+                err.append((dl, f"[dataset] missing required field: {f}"))
+        if d.get("ergo") and str(d["ergo"]) not in FORMAT_VERSIONS:
+            warn.append((dl, f"unknown format version ergo = {d['ergo']!r} (this tool knows {sorted(FORMAT_VERSIONS)})"))
+        if d.get("slug") and not KEBAB.match(str(d["slug"])):
+            err.append((dl, f"slug must be kebab-case: {d['slug']!r}"))
+        if d.get("status") and d["status"] not in DATASET_STATUSES:
+            err.append((dl, f"[dataset] status must be one of {sorted(DATASET_STATUSES)}, got {d['status']!r}"))
+        if d.get("bite") and len(str(d["bite"])) > 300:
+            warn.append((dl, "bite is over 300 characters — it should be one sentence"))
+
+    seen_ids = {}
+    prev_issue_line = None
+    for b in page.issues():
+        iss, il = b.data["issue"], b.line
+        for f in ISSUE_REQUIRED:
+            if not iss.get(f):
+                err.append((il, f"[issue] missing required field: {f}"))
+        iid = iss.get("id", "")
+        if iid:
+            if not KEBAB.match(str(iid)):
+                err.append((il, f"issue id must be kebab-case: {iid!r}"))
+            if iid in seen_ids:
+                err.append((il, f"duplicate issue id {iid!r} (first at line {seen_ids[iid]})"))
+            seen_ids[iid] = il
+        if iss.get("effect") and iss["effect"] not in EFFECTS:
+            err.append((il, f"effect must be one of {EFFECTS}, got {iss['effect']!r}"))
+        if iss.get("status") and iss["status"] not in ISSUE_STATUSES:
+            err.append((il, f"issue status must be one of {sorted(ISSUE_STATUSES)}, got {iss['status']!r}"))
+        if iss.get("type") and iss["type"] not in TYPES:
+            warn.append((il, f"type {iss['type']!r} is outside the recommended taxonomy"))
+        scope = iss.get("scope", {})
+        if not isinstance(scope, dict) or not scope:
+            err.append((il, "issue needs a [issue.scope] table with at least one key (or all = true)"))
+        else:
+            for k in set(scope) - SCOPE_KEYS:
+                warn.append((il, f"scope key {k!r} is outside the recommended set {sorted(SCOPE_KEYS)}"))
+        if iss.get("status") == "mitigated" and not iss.get("handled_by"):
+            err.append((il, f"issue {iid or '?'} is mitigated but has no handled_by"))
+        if iss.get("effect") in ("misleads", "context") and not iss.get("misuse"):
+            warn.append((il, f"issue {iid or '?'} is {iss.get('effect')} but names no misuse"))
+        # placement: expect a heading between consecutive issue blocks
+        if prev_issue_line is not None:
+            between = lines[prev_issue_line:il - 1]
+            if not any(HEADING.match(l) for l in between):
+                warn.append((il, "issue block shares a section with the previous issue — give each issue its own heading"))
+        prev_issue_line = il
+
+    for b in page.validations():
+        v, vl = b.data["validation"], b.line
+        for f in VALIDATION_REQUIRED:
+            if not v.get(f):
+                err.append((vl, f"[validation] missing required field: {f}"))
+
+
+def repo_files(root):
+    root = Path(root)
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files"],
+                             capture_output=True, text=True, check=True)
+        return [root / p for p in out.stdout.splitlines() if p]
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        files = []
+        for p in root.rglob("*"):
+            if p.is_file() and not (set(p.parts) & SKIP_DIRS):
+                files.append(p)
+        return files
+
+
+def check_repo(pages, root):
+    """Cross-checks needing the host repo: handled_by paths/symbols, anchor round trip."""
+    root = Path(root)
+    known = {}   # (slug, issue_id) -> page
+    for page in pages:
+        d = page.dataset or {}
+        slug = d.get("slug")
+        if not slug:
+            continue
+        for b in page.issues():
+            iid = b.data["issue"].get("id")
+            if iid:
+                known[(slug, iid)] = (page, b)
+
+    page_paths = {p.path.resolve() for p in pages}
+    anchors = {}  # (slug, id) -> [(path, line)]
+    for f in repo_files(root):
+        if f.resolve() in page_paths or f.name == "INDEX.md":
+            continue
+        try:
+            raw = f.read_bytes()
+        except OSError:
+            continue
+        if not raw or BINARY_HINT.search(raw[:4096]):
+            continue
+        text = raw.decode("utf-8", errors="replace")
+        if "ergo:" not in text:
+            continue
+        for n, line in enumerate(text.split("\n"), 1):
+            for m in ANCHOR.finditer(line):
+                anchors.setdefault((m.group(1), m.group(2)), []).append((f, n))
+
+    problems_err, problems_warn = [], []
+    for key, sites in sorted(anchors.items()):
+        if key not in known:
+            for f, n in sites:
+                problems_err.append(f"{f.relative_to(root)}:{n}: anchor 'ergo: {key[0]}/{key[1]}' names an unknown issue")
+
+    for page in pages:
+        d = page.dataset or {}
+        slug = d.get("slug", "?")
+        for b in page.issues():
+            iss, il = b.data["issue"], b.line
+            iid = iss.get("id", "?")
+            handled = iss.get("handled_by") or []
+            if isinstance(handled, str):
+                handled = [handled]
+            anchored_files = {f.resolve() for f, _ in anchors.get((slug, iid), [])}
+            for ref in handled:
+                path, _, symbol = str(ref).partition("#")
+                target = root / path
+                if not target.is_file():
+                    problems_err.append(f"{page.path}:{il}: handled_by path not found: {path}")
+                    continue
+                if symbol:
+                    body = target.read_text(encoding="utf-8", errors="replace")
+                    if not re.search(rf"\b{re.escape(symbol)}\b", body):
+                        problems_warn.append(f"{page.path}:{il}: symbol {symbol!r} not found in {path}")
+            if iss.get("status") == "mitigated" and handled:
+                targets = {(root / str(r).partition('#')[0]).resolve() for r in handled}
+                if not (anchored_files & targets):
+                    problems_warn.append(
+                        f"{page.path}:{il}: mitigated issue {slug}/{iid} has no 'ergo: {slug}/{iid}' anchor in its handled_by files")
+    return problems_err, problems_warn
+
+
+# ---------- outputs ----------
+
+def effect_counts(page):
+    counts = {e: 0 for e in EFFECTS}
+    for b in page.issues():
+        e = b.data["issue"].get("effect")
+        if e in counts:
+            counts[e] += 1
+    return counts
+
+
+def digest(pages, long=False):
+    out = ["# Data pages", "",
+           "<!-- generated by ergo.py digest — do not hand-edit -->", "",
+           "| dataset | status | issues | the bite |",
+           "|---|---|---|---|"]
+    for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
+        d = page.dataset or {}
+        counts = effect_counts(page)
+        total = sum(counts.values())
+        parts = " · ".join(f"{v} {k}" for k, v in counts.items() if v)
+        issues = f"{total}" + (f" ({parts})" if parts else "")
+        out.append(f"| [{d.get('title', page.path.stem)}]({page.path.name}) "
+                   f"| {d.get('status', '?')} | {issues} | {d.get('bite', '')} |")
+    if long:
+        for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
+            d = page.dataset or {}
+            out += ["", f"## {d.get('title', page.path.stem)} (`{d.get('slug', '?')}`)", "",
+                    "| issue | effect | status | title |", "|---|---|---|---|"]
+            for b in page.issues():
+                iss = b.data["issue"]
+                out.append(f"| `{d.get('slug', '?')}/{iss.get('id', '?')}` | {iss.get('effect', '?')} "
+                           f"| {iss.get('status', '?')} | {iss.get('title', '')} |")
+    return "\n".join(out) + "\n"
+
+
+def export(pages):
+    doc = {"ergo": "0.1", "pages": []}
+    for page in pages:
+        entry = {"path": str(page.path), "dataset": page.dataset,
+                 "issues": [], "validations": []}
+        for b in page.issues():
+            rec = dict(b.data["issue"])
+            rec["_line"] = b.line
+            entry["issues"].append(rec)
+        for b in page.validations():
+            rec = dict(b.data["validation"])
+            rec["_line"] = b.line
+            entry["validations"].append(rec)
+        doc["pages"].append(entry)
+    return json.dumps(doc, indent=2, default=str, ensure_ascii=False) + "\n"
+
+
+TEMPLATE = '''# {title}
+
+One-paragraph lede: what this dataset is and why the project uses it.
+
+```toml ergo
+[dataset]
+ergo = "0.1"
+slug = "{slug}"
+title = "{title}"
+publisher = ""
+source_url = ""
+bite = ""
+status = "acquiring"
+confidence = "?"
+updated = ""
+
+[dataset.coverage]
+years = ""
+grain = ""
+
+[dataset.access]
+keys = []
+builders = []
+```
+
+## What it is
+
+## Access
+
+## Structure
+
+## Joins
+
+## Issues
+
+### <symptom-first title of the first issue>
+
+```toml ergo
+[issue]
+id = ""
+title = ""
+effect = "corrupts"
+type = "format"
+status = "open"
+
+[issue.scope]
+all = true
+```
+
+The story: how it was found, examples, quantities.
+
+## Validation
+
+```toml ergo
+[validation]
+date = ""
+method = ""
+result = ""
+```
+
+## Provenance
+'''
+
+
+# ---------- CLI ----------
+
+def collect_pages(paths):
+    files = []
+    for p in map(Path, paths or ["."]):
+        if p.is_dir():
+            files += sorted(f for f in p.glob("*.md") if f.name != "INDEX.md")
+        else:
+            files.append(p)
+    parsed = []
+    for f in files:
+        page, lines = parse_page(f)
+        if page.blocks or not f.is_file():
+            parsed.append((page, lines))
+    return parsed
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(prog="ergo.py", description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p_check = sub.add_parser("check")
+    p_check.add_argument("paths", nargs="*")
+    p_check.add_argument("--repo", metavar="ROOT")
+    p_check.add_argument("--strict", action="store_true")
+    p_dig = sub.add_parser("digest")
+    p_dig.add_argument("paths", nargs="*")
+    p_dig.add_argument("--long", action="store_true")
+    p_dig.add_argument("--write", metavar="FILE")
+    p_exp = sub.add_parser("export")
+    p_exp.add_argument("paths", nargs="*")
+    p_exp.add_argument("--out", metavar="FILE")
+    p_new = sub.add_parser("new")
+    p_new.add_argument("slug")
+    p_new.add_argument("--dir", default=".")
+    args = ap.parse_args(argv)
+
+    if args.cmd == "new":
+        if not KEBAB.match(args.slug):
+            sys.exit(f"slug must be kebab-case: {args.slug!r}")
+        dest = Path(args.dir) / f"{args.slug}.md"
+        if dest.exists():
+            sys.exit(f"{dest} already exists")
+        title = args.slug.replace("-", " ").title()
+        dest.write_text(TEMPLATE.format(slug=args.slug, title=title), encoding="utf-8")
+        print(f"scaffolded {dest}")
+        return 0
+
+    parsed = collect_pages(args.paths)
+    if not parsed:
+        sys.exit("no data pages found")
+    pages = [p for p, _ in parsed]
+
+    if args.cmd == "digest":
+        text = digest(pages, long=args.long)
+        if args.write:
+            Path(args.write).write_text(text, encoding="utf-8")
+            print(f"wrote {args.write}")
+        else:
+            sys.stdout.write(text)
+        return 0
+
+    if args.cmd == "export":
+        text = export(pages)
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote {args.out}")
+        else:
+            sys.stdout.write(text)
+        return 0
+
+    # check
+    n_err = n_warn = 0
+    for page, lines in parsed:
+        check_page(page, lines)
+        for line, msg in sorted(page.errors):
+            print(f"{page.path}:{line}: error: {msg}")
+        for line, msg in sorted(page.warnings):
+            print(f"{page.path}:{line}: warning: {msg}")
+        n_err += len(page.errors)
+        n_warn += len(page.warnings)
+    if args.repo:
+        errs, warns = check_repo(pages, args.repo)
+        for m in errs:
+            print(f"error: {m}")
+        for m in warns:
+            print(f"warning: {m}")
+        n_err += len(errs)
+        n_warn += len(warns)
+    total_issues = sum(len(p.issues()) for p in pages)
+    print(f"{len(pages)} page(s), {total_issues} issue(s): {n_err} error(s), {n_warn} warning(s)")
+    return 1 if n_err or (args.strict and n_warn) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
