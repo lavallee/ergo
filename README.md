@@ -48,7 +48,7 @@ Design commitments (shared with ergo's sibling,
 ```bash
 python3 tools/ergo.py new my-dataset --dir docs/data   # scaffold a page
 # …fill it in (see templates/datapage.md and examples/)…
-python3 tools/ergo.py check docs/data --repo .          # validate + code linkage
+python3 tools/ergo.py check docs/data --repo . --require-manifest  # gate the corpus
 python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 ```
 
@@ -56,7 +56,10 @@ Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
 the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
 
 Status: spec draft v0.1, proven against
-[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets.
+[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets and
+Aquifer's multi-publisher source-contract corpus. Use `--require-manifest`
+when a directory is intended to contain only data pages; it prevents a prose
+page with a missing or malformed manifest from disappearing from the check.
 Next: executable detection checks, catalog-format exporters, cross-project
 issue sharing.
 

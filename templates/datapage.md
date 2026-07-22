@@ -65,7 +65,8 @@ title = "<same one-liner as the heading, or sharper>"
 effect = "corrupts"              # breaks | corrupts | misleads | context
 type = "format"                  # definitional | universe | coverage | suppression |
                                  # geography | revision | coding | format | entry |
-                                 # linkage | uncertainty | availability | measurement
+                                 # linkage | uncertainty | availability | measurement |
+                                 # identity | policy
 status = "open"                  # open | mitigated | resolved | monitor
 # core = true                    # load before ANY contact with the dataset; mark sparingly (SPEC §5)
 discovered = "YYYY-MM"

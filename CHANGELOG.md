@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.1 — 2026-07-22
+
+Aquifer dogfood amendment:
+
+- Added `check --require-manifest` after a 24-file source-documentation
+  corpus revealed that pages with no Ergo blocks were silently omitted from
+  the directory check. The default remains permissive for mixed directories.
+- Promoted `identity` and `policy` into the recommended issue taxonomy after
+  independent NJDOE, Census/NCES, and public-library source contracts needed
+  those distinctions without treating them as generic coding problems.
+- Added stdlib regression tests for closed-corpus discovery and the expanded
+  taxonomy; tool version is now 0.1.1 while the page format remains 0.1.
+
 ## 0.1 — 2026-07-10
 
 Initial draft.

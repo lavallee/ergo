@@ -27,6 +27,12 @@ supplemental or is removed.
 and can trace each mitigation from page to code. *Kill:* if the format only
 fits njschooldata, narrow its claim and stop expanding the taxonomy.
 
+Evidence, 2026-07-22: Aquifer's 25-page, 120-issue multi-publisher corpus
+passed strict manifest and code-anchor checks, recovered all 56 migrated
+njschooldata v1 issues, and exposed two semantic regressions that frozen
+output-parity hashes had preserved. It also supplied the independent examples
+that promoted `identity` and `policy` into the recommended taxonomy.
+
 ## Outcome 3 — Add executable detection and interop selectively
 
 - Define a minimal portable detection-check contract for issues whose symptoms
