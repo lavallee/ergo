@@ -284,7 +284,9 @@ anomalous-but-faithfully-reported values) · `linkage` (crosswalk/join
 failures between sources) · `uncertainty` (sampling error, margins of error,
 disclosure-avoidance noise) · `availability` (access quirks, URL weirdness,
 discontinued releases) · `measurement` (how the published number is
-computed; what may not be recomputed or compared).
+computed; what may not be recomputed or compared) · `identity` (publisher
+identifiers do not map cleanly to the consuming system) · `policy`
+(interpretation depends on a publisher rule, threshold, or designation).
 
 Validators warn — not error — on other values; recurring new types should be
 proposed upstream (§14).
@@ -549,7 +551,7 @@ One stdlib-only Python file (≥ 3.11, for `tomllib`). Vendor it by copying
 comment. No install, no dependencies.
 
 ```
-python3 tools/ergo.py check   [PATHS...] [--repo ROOT] [--strict]
+python3 tools/ergo.py check   [PATHS...] [--repo ROOT] [--strict] [--require-manifest]
 python3 tools/ergo.py digest  [PATHS...] [--long] [--write FILE]
 python3 tools/ergo.py export  [PATHS...] [--out FILE]
 python3 tools/ergo.py publish [PATHS...] --dir OUT [--base-url URL]
@@ -560,7 +562,9 @@ python3 tools/ergo.py new     SLUG [--dir DIR]
   required fields, closed vocabularies, id uniqueness and shape, scope
   non-empty, `mitigated ⇒ handled_by`. With `--repo`: `handled_by` paths
   exist, symbols findable, anchor round trip (§6). Errors exit 1; warnings
-  exit 0 unless `--strict`.
+  exit 0 unless `--strict`. For a closed data-page corpus,
+  `--require-manifest` also errors on every Markdown file except `INDEX.md`
+  that contains no Ergo blocks; omit it for mixed documentation directories.
 - **digest** — the `INDEX.md` markdown to stdout (or `--write`).
 - **export** — everything machine-readable as one JSON document (datasets,
   issues, validations, changes, with page paths and section line numbers),
