@@ -8,21 +8,30 @@ for academic-outcome reporting.
 
 ```toml ergo
 [dataset]
-ergo = "0.1"
+ergo = "0.2"
 slug = "spr"
 title = "NJ School Performance Reports"
 publisher = "NJ Dept. of Education, Office of Performance Reports"
-source_url = "https://www.nj.gov/education/spr/"
+source_urls = ["https://www.nj.gov/education/spr/"]
 bite = "NJ publishes two 4-year graduation rates; only the State calculation has a multi-year trend — plotting the Federal rate as a trend (it has one point) is the classic misread."
 status = "live"
+version = "2024-25 edition"
 confidence = "A"
-updated = "2026-07-10"
+updated = "2026-07-26"
 implementation = "https://github.com/lavallee/njschooldata"
+unknowns = [
+  "Pre-2015-16 editions have not been examined; the format eras before that are unknown to us.",
+  "We do not track which NJSLA cut scores changed between editions.",
+]
 
 [dataset.coverage]
 years = "2015-16 → 2024-25 (trend tabs post-COVID only)"
 grain = "school year × entity × student group"
 entities = "every NJ public school, district, and the state"
+
+[dataset.missingness]
+zero_is_missing = false
+source_tokens = ["*", "N", "Fewer than 10 valid scores"]
 
 [dataset.access]
 keys = ["county_code", "district_code", "school_code", "school_year"]
@@ -166,6 +175,52 @@ all = true
 
 Real, not a bug: comparisons across aggregation levels compare different
 grade mixes. Per-grade views (`assessment_grade`) are the honest grain.
+
+## Practices
+
+### A school's headline proficiency comes from the publisher, never from our own aggregation
+
+```toml ergo
+[practice]
+id = "headline-proficiency-as-published"
+title = "Use NJDOE's published school-wide proficiency; do not rebuild it from grade/test rows"
+question = "What share of this school's students met or exceeded expectations?"
+authority = "publisher"
+rule = "Read the school-wide MetExceed value NJDOE publishes at the school grain."
+naive = "Averaging or summing the per-grade, per-test rows in assessment_grade up to a school figure."
+because = "Suppressed cells drop out of a home-grown aggregate silently, and grade/course mix differs by school — one capped Algebra I cohort once inflated a school's rebuilt figure well above its published one."
+addresses = ["rate-prose-suppression", "grade-mix-context"]
+implemented_by = ["tools/build_spr_db.py#headline"]
+residual = "We inherit NJDOE's own inclusions and exclusions, which are not fully documented; our figure matches the published one and is no more transparent than it."
+```
+
+The reader-facing number on NJDOE's own report card is the published one.
+Any figure we compute that disagrees with it will be read as an error in our
+work, and usually is.
+
+### Two graduation calculations stay two measures
+
+```toml ergo
+[practice]
+id = "grad-calcs-stay-separate"
+title = "Report the State and Federal graduation rates as distinct measures, never combined"
+question = "What is this district's four-year graduation rate?"
+authority = "project"
+rule = [
+  "Use the State calculation for any multi-year trend — it is the only one populated across years.",
+  "Report a Federal (ACGR) figure only as a single labelled year.",
+  "Never average, splice, or plot the two in one series.",
+]
+naive = "Plotting whichever rate is present per year, producing one line that silently switches definitions."
+because = "The two use different cohort rules; a spliced series shows a step change that is an artifact of the definition, not of any school's performance."
+addresses = ["grad-state-vs-federal"]
+contested = true
+because_not = "We considered publishing only the Federal rate for cross-state comparability and rejected it: with one populated year it answers almost no question a reader actually asks about NJ."
+```
+
+Cross-state comparison is the one job the Federal rate does better, and it
+is worth saying out loud that another newsroom covering multiple states
+might reasonably invert this call.
 
 ## Validation
 

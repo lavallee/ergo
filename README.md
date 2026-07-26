@@ -19,9 +19,17 @@ columns), the foreseeable misuse it invites, and a link to the code that
 works around it — with a greppable anchor in that code pointing back. Data +
 documented caveats ⇒ justified use. Hence the name.
 
+Alongside it, a **practice registry**: the decisions about what may be
+computed from the data and how. An issue is a defect that would exist
+without you; a practice is a call someone made — sometimes yours, sometimes
+the publisher's. Each names the naive move it replaces, who decided, and
+what it costs. The two are separate blocks because one defect often has
+several handlings, chosen by the question being asked.
+
 **[SPEC.md](SPEC.md)** has the full format: the page, the manifest, the
-issue registry and its taxonomies, code linkage, validation records, the
-index/digest, authoring discipline, tooling, and interop.
+issue registry and its taxonomies, the practice registry, code linkage,
+validation records, the index/digest, authoring discipline, tooling, and
+interop.
 
 Why a new format? A survey of the landscape
 ([docs/survey.md](docs/survey.md)) — metadata standards, ML dataset cards,
@@ -55,10 +63,12 @@ python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
 the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
 
-Status: spec draft v0.1, proven against
-[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets.
-Next: executable detection checks, catalog-format exporters, cross-project
-issue sharing.
+Status: spec draft v0.2, proven against
+[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets
+and a second adopting project. Run the test suite with
+`python3 tests/run.py`. Next: executable detection checks, catalog-format
+exporters, and a directory of served bundles that publishes its own observed
+vocabulary.
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Changes are
 tracked in [CHANGELOG.md](CHANGELOG.md). [MIT licensed](LICENSE).

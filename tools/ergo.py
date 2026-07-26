@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ergo.py — validator, digest, and exporter for ergo data pages.
-# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.1 · tool 0.1.0
+# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.2 · tool 0.2.0
 # Stdlib only, Python >= 3.11 (tomllib). Vendor this file freely; it has no deps.
 """
 Usage:
@@ -22,19 +22,23 @@ import sys
 import tomllib
 from pathlib import Path
 
-FORMAT_VERSIONS = {"0.1"}
-BLOCK_TYPES = {"dataset", "issue", "validation", "change"}
+FORMAT_VERSIONS = {"0.1", "0.2"}
+BLOCK_TYPES = {"dataset", "issue", "practice", "validation", "change"}
 EFFECTS = ["breaks", "corrupts", "misleads", "context"]
 ISSUE_STATUSES = {"open", "mitigated", "resolved", "monitor"}
 DATASET_STATUSES = {"live", "acquiring", "dormant", "archived"}
+AUTHORITIES = {"publisher", "project", "community"}
 TYPES = {
     "definitional", "universe", "coverage", "suppression", "geography",
     "revision", "coding", "format", "entry", "linkage", "uncertainty",
     "availability", "measurement",
 }
 SCOPE_KEYS = {"years", "tables", "columns", "rows", "entities", "all"}
-DATASET_REQUIRED = ("ergo", "slug", "title", "publisher", "source_url", "bite", "status")
+MISSINGNESS_KEYS = {"zero_is_missing", "source_tokens"}
+# source_url(s) handled separately: either form satisfies the requirement.
+DATASET_REQUIRED = ("ergo", "slug", "title", "publisher", "bite", "status")
 ISSUE_REQUIRED = ("id", "title", "effect", "type", "status")
+PRACTICE_REQUIRED = ("id", "title", "question", "authority", "rule", "because")
 VALIDATION_REQUIRED = ("date", "method", "result")
 CHANGE_REQUIRED = ("date", "note")
 
@@ -70,6 +74,9 @@ class Page:
 
     def issues(self):
         return [b for b in self.blocks if b.kind == "issue"]
+
+    def practices(self):
+        return [b for b in self.blocks if b.kind == "practice"]
 
     def validations(self):
         return [b for b in self.blocks if b.kind == "validation"]
@@ -119,7 +126,7 @@ def parse_page(path):
         if is_marked:
             if len(tops) != 1 or not tops <= BLOCK_TYPES:
                 page.errors.append((start + 1,
-                    f"ergo block must contain exactly one of [dataset]/[issue]/[validation], got: {sorted(tops) or 'nothing'}"))
+                    f"ergo block must contain exactly one of {sorted(BLOCK_TYPES)}, got: {sorted(tops) or 'nothing'}"))
                 continue
         elif not (len(tops) == 1 and tops <= BLOCK_TYPES):
             continue  # plain toml block that isn't an ergo table — not ours
@@ -158,6 +165,33 @@ def check_page(page, lines):
             err.append((dl, f"[dataset] status must be one of {sorted(DATASET_STATUSES)}, got {d['status']!r}"))
         if d.get("bite") and len(str(d["bite"])) > 300:
             warn.append((dl, "bite is over 300 characters — it should be one sentence"))
+        # source_url (string, 0.1) or source_urls (list, 0.2) — either satisfies it
+        urls = d.get("source_urls")
+        if urls is not None and not isinstance(urls, list):
+            err.append((dl, f"source_urls must be a list, got {type(urls).__name__} — use source_url for a single string"))
+            urls = None
+        if not [u for u in (urls or []) if str(u).strip()] and not str(d.get("source_url") or "").strip():
+            err.append((dl, "[dataset] missing required field: source_urls"))
+        for f in ("version", "implementation"):
+            if f in d and not isinstance(d[f], str):
+                err.append((dl, f"{f} must be a string, got {d[f]!r}"))
+        unknowns = d.get("unknowns")
+        if unknowns is not None and not (isinstance(unknowns, list)
+                                         and all(isinstance(u, str) for u in unknowns)):
+            err.append((dl, "unknowns must be a list of strings"))
+        miss = d.get("missingness")
+        if miss is not None:
+            if not isinstance(miss, dict):
+                err.append((dl, "[dataset.missingness] must be a table"))
+            else:
+                for k in set(miss) - MISSINGNESS_KEYS:
+                    warn.append((dl, f"missingness key {k!r} is outside the recommended set {sorted(MISSINGNESS_KEYS)}"))
+                if "zero_is_missing" in miss and not isinstance(miss["zero_is_missing"], bool):
+                    err.append((dl, f"missingness.zero_is_missing must be a boolean, got {miss['zero_is_missing']!r}"))
+                toks = miss.get("source_tokens")
+                if toks is not None and not (isinstance(toks, list)
+                                             and all(isinstance(t, str) for t in toks)):
+                    err.append((dl, "missingness.source_tokens must be a list of strings"))
 
     seen_ids = {}
     prev_issue_line = None
@@ -210,6 +244,36 @@ def check_page(page, lines):
                 warn.append((il, "issue block shares a section with the previous issue — give each issue its own heading"))
         prev_issue_line = il
 
+    # practices share the page's id namespace with issues (anchors stay kind-free)
+    issue_ids = set(seen_ids)
+    for b in page.practices():
+        pr, pl = b.data["practice"], b.line
+        for f in PRACTICE_REQUIRED:
+            if not pr.get(f):
+                err.append((pl, f"[practice] missing required field: {f}"))
+        pid = pr.get("id", "")
+        if pid:
+            if not KEBAB.match(str(pid)):
+                err.append((pl, f"practice id must be kebab-case: {pid!r}"))
+            if pid in seen_ids:
+                err.append((pl, f"duplicate id {pid!r} (first at line {seen_ids[pid]}) — issues and practices share one namespace"))
+            seen_ids[pid] = pl
+        if pr.get("authority") and pr["authority"] not in AUTHORITIES:
+            err.append((pl, f"authority must be one of {sorted(AUTHORITIES)}, got {pr['authority']!r}"))
+        rule = pr.get("rule")
+        if rule is not None and not (isinstance(rule, str)
+                                     or (isinstance(rule, list) and all(isinstance(s, str) for s in rule))):
+            err.append((pl, "rule must be a string or a list of strings (ordered steps)"))
+        if "contested" in pr and not isinstance(pr["contested"], bool):
+            err.append((pl, f"contested must be a boolean, got {pr['contested']!r}"))
+        if not pr.get("naive"):
+            warn.append((pl, f"practice {pid or '?'} names no naive alternative — if nothing plausible is being ruled out, this is documentation, not a practice"))
+        if "scope" in pr:
+            warn.append((pl, "practices take no scope — they are reached through `question`; put any narrowing in `rule`"))
+        for ref in pr.get("addresses", []) if isinstance(pr.get("addresses", []), list) else []:
+            if ref not in issue_ids:
+                err.append((pl, f"[practice] addresses unknown issue id {ref!r}"))
+
     issues = page.issues()
     n_core = sum(1 for b in issues if b.data["issue"].get("core") is True)
     if issues and n_core > max(1, len(issues) // 3):
@@ -230,7 +294,7 @@ def check_page(page, lines):
                 err.append((cl, f"[change] missing required field: {f}"))
         for iid in c.get("issues", []) if isinstance(c.get("issues", []), list) else []:
             if iid not in seen_ids:
-                err.append((cl, f"[change] references unknown issue id {iid!r}"))
+                err.append((cl, f"[change] references unknown issue or practice id {iid!r}"))
         latest_change = max(latest_change, str(c.get("date") or ""))
     if latest_change:
         upd = page.updated()
@@ -264,8 +328,8 @@ def check_repo(pages, root):
         slug = d.get("slug")
         if not slug:
             continue
-        for b in page.issues():
-            iid = b.data["issue"].get("id")
+        for b in page.issues() + page.practices():
+            iid = b.data[b.kind].get("id")
             if iid:
                 known[(slug, iid)] = (page, b)
 
@@ -302,10 +366,11 @@ def check_repo(pages, root):
     for page in pages:
         d = page.dataset or {}
         slug = d.get("slug", "?")
-        for b in page.issues():
-            iss, il = b.data["issue"], b.line
+        for b in page.issues() + page.practices():
+            iss, il = b.data[b.kind], b.line
             iid = iss.get("id", "?")
-            handled = iss.get("handled_by") or []
+            # issues point at code with handled_by; practices with implemented_by
+            handled = iss.get("handled_by" if b.kind == "issue" else "implemented_by") or []
             if isinstance(handled, str):
                 handled = [handled]
             anchored_files = {f.resolve() for f, _ in anchors.get((slug, iid), [])}
@@ -319,11 +384,15 @@ def check_repo(pages, root):
                     body = target.read_text(encoding="utf-8", errors="replace")
                     if not re.search(rf"\b{re.escape(symbol)}\b", body):
                         problems_warn.append(f"{page.path}:{il}: symbol {symbol!r} not found in {path}")
-            if iss.get("status") == "mitigated" and handled:
+            # a mitigated issue, or any practice naming code, should carry an anchor
+            expects_anchor = (iss.get("status") == "mitigated") if b.kind == "issue" else True
+            if expects_anchor and handled:
                 targets = {(root / str(r).partition('#')[0]).resolve() for r in handled}
                 if not (anchored_files & targets):
+                    field = "handled_by" if b.kind == "issue" else "implemented_by"
+                    label = f"mitigated issue" if b.kind == "issue" else "practice"
                     problems_warn.append(
-                        f"{page.path}:{il}: mitigated issue {slug}/{iid} has no 'ergo: {slug}/{iid}' anchor in its handled_by files")
+                        f"{page.path}:{il}: {label} {slug}/{iid} has no 'ergo: {slug}/{iid}' anchor in its {field} files")
     return problems_err, problems_warn
 
 
@@ -345,8 +414,8 @@ def core_count(page):
 def digest(pages, long=False):
     out = ["# Data pages", "",
            "<!-- generated by ergo.py digest — do not hand-edit -->", "",
-           "| dataset | status | updated | issues | the bite |",
-           "|---|---|---|---|---|"]
+           "| dataset | status | updated | issues | practices | the bite |",
+           "|---|---|---|---|---|---|"]
     for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
         d = page.dataset or {}
         counts = effect_counts(page)
@@ -356,30 +425,47 @@ def digest(pages, long=False):
         if n_core:
             parts += f" · {n_core} core"
         issues = f"{total}" + (f" ({parts})" if parts else "")
+        prs = page.practices()
+        n_contested = sum(1 for b in prs if b.data["practice"].get("contested") is True)
+        practices = f"{len(prs)}" + (f" ({n_contested} contested)" if n_contested else "")
         out.append(f"| [{d.get('title', page.path.stem)}]({page.path.name}) "
-                   f"| {d.get('status', '?')} | {page.updated() or '?'} | {issues} | {d.get('bite', '')} |")
+                   f"| {d.get('status', '?')} | {page.updated() or '?'} | {issues} | {practices} | {d.get('bite', '')} |")
     if long:
         for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
             d = page.dataset or {}
-            out += ["", f"## {d.get('title', page.path.stem)} (`{d.get('slug', '?')}`)", "",
+            slug = d.get("slug", "?")
+            out += ["", f"## {d.get('title', page.path.stem)} (`{slug}`)", "",
                     "| issue | effect | status | title |", "|---|---|---|---|"]
             for b in page.issues():
                 iss = b.data["issue"]
                 star = " ★core" if iss.get("core") is True else ""
-                out.append(f"| `{d.get('slug', '?')}/{iss.get('id', '?')}`{star} | {iss.get('effect', '?')} "
+                out.append(f"| `{slug}/{iss.get('id', '?')}`{star} | {iss.get('effect', '?')} "
                            f"| {iss.get('status', '?')} | {iss.get('title', '')} |")
+            if page.practices():
+                out += ["", "| practice | authority | question | title |", "|---|---|---|---|"]
+                for b in page.practices():
+                    pr = b.data["practice"]
+                    mark = " ⚑contested" if pr.get("contested") is True else ""
+                    out.append(f"| `{slug}/{pr.get('id', '?')}`{mark} | {pr.get('authority', '?')} "
+                               f"| {pr.get('question', '')} | {pr.get('title', '')} |")
+            for u in d.get("unknowns", []) or []:
+                out.append(f"\n> **Not known:** {u}")
     return "\n".join(out) + "\n"
 
 
 def export(pages):
-    doc = {"ergo": "0.1", "pages": []}
+    doc = {"ergo": "0.2", "pages": []}
     for page in pages:
         entry = {"path": str(page.path), "dataset": page.dataset,
-                 "issues": [], "validations": []}
+                 "issues": [], "practices": [], "validations": []}
         for b in page.issues():
             rec = dict(b.data["issue"])
             rec["_line"] = b.line
             entry["issues"].append(rec)
+        for b in page.practices():
+            rec = dict(b.data["practice"])
+            rec["_line"] = b.line
+            entry["practices"].append(rec)
         for b in page.validations():
             rec = dict(b.data["validation"])
             rec["_line"] = b.line
@@ -391,7 +477,8 @@ def export(pages):
 
 INTERNAL_BEGIN, INTERNAL_END = "<!-- ergo:internal -->", "<!-- /ergo:internal -->"
 # Fields that point into the host repo — stripped from the public projection.
-INTERNAL_FIELDS = {"issue": {"handled_by"}, "validation": {"evidence"},
+INTERNAL_FIELDS = {"issue": {"handled_by"}, "practice": {"implemented_by"},
+                   "validation": {"evidence"},
                    "dataset.access": {"builders", "raw", "feeds"}}
 INTERNAL_SMELLS = re.compile(r"\btools/|\bpython3\b|\bdata/raw\b")
 
@@ -486,10 +573,16 @@ def publish(pages, out_dir, base_url=None):
             "status": d.get("status", ""),
             "confidence": d.get("confidence", ""),
             "updated": page.updated(),
+            "version": d.get("version", ""),
             "implementation": d.get("implementation", ""),
             "bite": d.get("bite", ""),
             "coverage": d.get("coverage", {}),
+            "missingness": d.get("missingness", {}),
+            "unknowns": d.get("unknowns", []),
+            "source_urls": (d.get("source_urls")
+                            or ([d["source_url"]] if d.get("source_url") else [])),
             "counts": {"issues": sum(counts.values()), "core": core_count(page),
+                       "practices": len(page.practices()),
                        "effects": {k: v for k, v in counts.items() if v}},
             "issues": [{
                 "id": b.data["issue"].get("id", ""),
@@ -499,13 +592,17 @@ def publish(pages, out_dir, base_url=None):
                 "status": b.data["issue"].get("status", ""),
                 "core": b.data["issue"].get("core", False) is True,
             } for b in page.issues()],
+            # practices are more public than issues, not less: rule/naive/because
+            # are exactly what a reader needs. Only implemented_by points inward.
+            "practices": [{k: v for k, v in b.data["practice"].items()
+                           if k != "implemented_by"} for b in page.practices()],
             "latest_change": latest,
             "page": f"{slug}.md",
         }
         if base:
             rec["page_url"] = base + f"{slug}.md"
         datasets.append(rec)
-    index = {"ergo": "0.1", "datasets": datasets}
+    index = {"ergo": "0.2", "datasets": datasets}
     if base:
         index["base_url"] = base
     (out / "index.json").write_text(
@@ -519,19 +616,25 @@ One-paragraph lede: what this dataset is and why the project uses it.
 
 ```toml ergo
 [dataset]
-ergo = "0.1"
+ergo = "0.2"
 slug = "{slug}"
 title = "{title}"
 publisher = ""
-source_url = ""
+source_urls = [""]
 bite = ""
 status = "acquiring"
+version = ""
 confidence = "?"
 updated = ""
+unknowns = ["What have you not looked at? Say so — silence reads as a clean bill of health."]
 
 [dataset.coverage]
 years = ""
 grain = ""
+
+[dataset.missingness]
+zero_is_missing = false
+source_tokens = []
 
 [dataset.access]
 keys = []
@@ -563,6 +666,23 @@ all = true
 ```
 
 The story: how it was found, examples, quantities.
+
+## Practices
+
+### <the rule, stated as its conclusion>
+
+```toml ergo
+[practice]
+id = ""
+title = ""
+question = "<the task a reader is doing when they need this>"
+authority = "project"           # publisher | project | community
+rule = ""
+naive = "<the plausible wrong move this replaces — if there is none, delete this block>"
+because = ""
+```
+
+Why this call and not another; what it costs.
 
 ## Validation
 
@@ -690,7 +810,9 @@ def main(argv=None):
         n_err += len(errs)
         n_warn += len(warns)
     total_issues = sum(len(p.issues()) for p in pages)
-    print(f"{len(pages)} page(s), {total_issues} issue(s): {n_err} error(s), {n_warn} warning(s)")
+    total_practices = sum(len(p.practices()) for p in pages)
+    print(f"{len(pages)} page(s), {total_issues} issue(s), {total_practices} practice(s): "
+          f"{n_err} error(s), {n_warn} warning(s)")
     return 1 if n_err or (args.strict and n_warn) else 0
 
 

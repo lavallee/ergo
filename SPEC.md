@@ -1,6 +1,6 @@
 # ergo — the data page format
 
-**Status:** draft v0.1 · 2026-07-10
+**Status:** draft v0.2 · 2026-07-26
 **What this is:** a spec for documenting datasets the way working data
 journalists actually need them documented — schema and provenance, yes, but
 above all a structured, code-linked registry of the **known issues** in the
@@ -103,7 +103,8 @@ or `docs/data-sources/`), alongside the generated `INDEX.md` digest.
 
 A page is ordinary markdown with **ergo blocks**: fenced code blocks whose
 info string is `toml ergo`, each containing exactly one top-level TOML table
-— `[dataset]`, `[issue]`, `[validation]`, or `[change]` (§13).
+— `[dataset]`, `[issue]`, `[practice]` (§6), `[validation]`, or `[change]`
+(§14).
 
 ````markdown
 # NJ School Performance Reports
@@ -137,17 +138,17 @@ id = "rate-prose-suppression"
 Rules:
 
 - The **first** ergo block on the page must be the `[dataset]` manifest.
-- Each `[issue]` block sits **directly under the heading of its own
-  section**; the prose that follows, up to the next heading of the same or
-  higher level, is that issue's narrative. Structured facts go in the block;
-  the story, evidence, and worked examples go in the prose. Never both —
-  facts stated in the block are not restated in the prose.
+- Each `[issue]` and `[practice]` block sits **directly under the heading of
+  its own section**; the prose that follows, up to the next heading of the
+  same or higher level, is that entry's narrative. Structured facts go in the
+  block; the story, evidence, and worked examples go in the prose. Never both
+  — facts stated in the block are not restated in the prose.
 - `[validation]` blocks may appear anywhere but conventionally live in a
-  "Validation" section (§7); `[change]` blocks in a "Changelog" section
-  (§13).
+  "Validation" section (§8); `[change]` blocks in a "Changelog" section
+  (§14).
 - Parsers must accept a plain ` ```toml ` fence as a fallback when the block's
-  sole top-level table is `dataset`, `issue`, or `validation` — but authors
-  should always write ` ```toml ergo `.
+  sole top-level table is `dataset`, `issue`, `practice`, or `validation` —
+  but authors should always write ` ```toml ergo `.
 
 ### Conformance — core format and supplemental affordances
 
@@ -159,8 +160,9 @@ the whole apparatus at once:
   type/status/scope, `handled_by` on mitigated issues. A repo that adopts
   only this — pages plus an occasional `check` run — is conformant.
 - **Supplemental** (adopt independently, in any order): code anchors and
-  the `--repo` round trip, `[validation]` records, `[change]` changelogs,
-  the generated digest and agent-memory pointer, the served bundle (§8),
+  the `--repo` round trip, `[practice]` entries (§6), `[validation]` records,
+  `[change]` changelogs, the generated digest and agent-memory pointer, the
+  served bundle (§9), `missingness`/`unknowns`/`version` on the manifest,
   `core`/`misuse`/`instead`/`detect` on issues, the skill, interop exports.
 
 Supplemental affordances are where the compounding value is, but a page
@@ -176,28 +178,37 @@ Not mandatory — profiles of use differ — but pages converge on:
 it's fetched, URL/format quirks) · **Structure** (the shape after
 normalization; format eras summarized, with the drift itself registered as
 issues) · **Joins** (keys, match rates — quantify them — and join caveats by
-issue reference) · **Issues** (the registry, §5) · **Validation** (§7) ·
-**Provenance** (vintage, fetch history, publisher revision policy) ·
-**Changelog** (dated `[change]` records, §13).
+issue reference) · **Issues** (the registry, §5) · **Practices** (what may be
+computed and how, §6) · **Validation** (§8) · **Provenance** (vintage, fetch
+history, publisher revision policy) · **Changelog** (dated `[change]`
+records, §14).
 
 ## 4. The manifest — `[dataset]`
 
 ```toml
 [dataset]
-ergo = "0.1"                    # format version (required)
+ergo = "0.2"                    # format version (required)
 slug = "spr"                    # kebab id, unique in the project (required)
 title = "NJ School Performance Reports"          # (required)
 publisher = "NJ Dept. of Education, Office of Performance Reports"  # (required)
-source_url = "https://www.nj.gov/education/spr/"                    # (required)
+source_urls = ["https://www.nj.gov/education/spr/"]                 # (required; `source_url` string also accepted)
 bite = "Two graduation-rate calculations are published; only the State one has a trend — plotting Federal as a trend is the classic misread."   # (required)
 status = "live"                 # live | acquiring | dormant | archived (required)
+version = "2024-25 edition"     # the source's own version/edition label, if it has one
 confidence = "A"                # A | B | C | ? — source reliability, flip-style
 updated = "2026-07-10"          # last substantive page edit
+unknowns = [                    # where this page's knowledge stops
+  "Pre-2015-16 editions have not been examined.",
+]
 
 [dataset.coverage]
 years = "2015-16 → 2024-25"     # native year labels of the source
 grain = "school year × entity × student group"
 entities = "every NJ public school, district, and the state"
+
+[dataset.missingness]
+zero_is_missing = true          # the source writes 0 where it means "no value"
+source_tokens = ["*", "N", "Fewer than 10 valid scores"]   # literals that mean "not a number"
 
 [dataset.access]
 keys = ["county_code", "district_code", "school_code", "school_year"]
@@ -209,7 +220,7 @@ feeds = ["grad_rate", "assessment", "absenteeism"]  # tables/pages produced
 Field notes:
 
 - **`bite`** (required) — one sentence: the single thing most likely to bite
-  someone who touches this data cold. It feeds the digest (§8); write it for
+  someone who touches this data cold. It feeds the digest (§9); write it for
   a reader deciding whether they need to open the page. (After Data Is
   Plural's discipline of the one-line caveat.)
 - **`confidence`** — a judgment on the *source*, using the household A/B/C/?
@@ -219,7 +230,46 @@ Field notes:
 - **`implementation`** (optional) — a public URL for the project's code
   (the repo). This is the one pointer a served page keeps to *our*
   implementation: everything else that names internal paths, scripts, or
-  runbooks stays out of the public projection (§8).
+  runbooks stays out of the public projection (§9).
+- **`source_urls`** (required) — a list. A dataset routinely has more than
+  one face: FDA's adverse-event data is published both as a continuously
+  refreshed dashboard and as frozen quarterly extracts, and the two return
+  different counts by design. A single `source_url` string is still accepted
+  and means a one-element list; new pages should use the plural.
+- **`version`** (optional) — the *source's* own version or edition label,
+  not the page's. GHCN-Daily ships `Version 3.34` and asks to be cited by
+  it; IRS 990 filings carry a schema version; a survey has an edition. The
+  `updated` field is a freshness signal for the page — it is not a version
+  of the data, and pages that conflate the two cannot answer "which release
+  did this describe?"
+- **`unknowns`** (optional, list of sentences) — **where this page's
+  knowledge stops.** A page records what we know; without this, silence is
+  indistinguishable from a clean bill of health, and an agent cannot tell
+  "no issues here" from "nobody looked." Write plainly: *"We have not
+  examined the pre-2010 archive," "New codes appear in this column and we do
+  not track them," "Coverage claims stop at format version 3.0."* This is
+  the cheapest honesty in the format; a page with no `unknowns` is claiming
+  a completeness almost nothing deserves.
+
+### Missingness — `[dataset.missingness]` (optional)
+
+The most common defect across surveyed government datasets is not a broken
+file; it is **a zero that means "no value"** and a blank that means something
+specific. FEC leaves `entity_tp` blank for paper filings, NOAA flags values
+"missing presumed zero," NCHS writes zero for a county that ceased to exist,
+NJDOE stored pre-2006 race counts as `0` rather than null. Four publishers,
+four domains, one shape.
+
+| key | form |
+|---|---|
+| `zero_is_missing` | bool — the source writes `0` where it means "no value" |
+| `source_tokens` | list of the literals that mean "not a number" (`"*"`, `"N/A"`, `"Fewer than 10 valid scores"`) |
+
+Both are page-level facts, not per-cell state. ergo says *this dataset does
+this*; typing individual values is a data-plane job and out of scope (§13).
+Where `zero_is_missing` is true, expect an `[issue]` carrying the detail —
+the manifest flag exists so the shape is hard to miss, not to replace the
+issue.
 - `coverage` and `access` keys are recommended, not exhaustive; add what the
   dataset needs (`grain`, `disaggregation`, `cadence`, …). Unknown keys are
   legal everywhere in ergo blocks — validators warn on unknown *top-level*
@@ -251,7 +301,7 @@ years = "all"
 
 | field | values / form |
 |---|---|
-| `id` | kebab-case, stable forever; renames leave a tombstone (§13) |
+| `id` | kebab-case, stable forever; renames leave a tombstone (§14) |
 | `title` | one line, symptom first — what you'd notice, not the diagnosis |
 | `effect` | **closed vocabulary**, below |
 | `type` | recommended vocabulary, below |
@@ -287,7 +337,7 @@ discontinued releases) · `measurement` (how the published number is
 computed; what may not be recomputed or compared).
 
 Validators warn — not error — on other values; recurring new types should be
-proposed upstream (§14).
+proposed upstream (§15).
 
 ### `status` — is it still true (closed)
 
@@ -339,7 +389,7 @@ misread — strongly recommended for `misleads` and `context`) · `instead`
 (the sanctioned move that replaces the misuse — one line; a misuse/instead
 pair is a fail/pass example, the shape LLMs follow best) · `refs` (list:
 source docs, errata URLs, tickets) · `superseded_by` / `supersedes` (issue
-ids, §13).
+ids, §14).
 
 ### Structured detection — `[issue.detect]` (optional)
 
@@ -349,15 +399,159 @@ ids, §13).
 ```toml
 [issue.detect]
 regex = ['^(>|<)\d+%$', 'Fewer than 10 (students|valid scores)']  # match raw values/filenames
-query = ["SELECT count(*) FROM grad_rate WHERE rate IS NULL AND raw != ''"]  # sketch, not executed in v0.1
+query = ["SELECT count(*) FROM grad_rate WHERE rate IS NULL AND raw != ''"]  # sketch, not executed yet
 semantic = ["a rate column parses for some rows and not others"]
 ```
 
 The validator compiles each `regex` entry (an invalid pattern is an error)
-and type-checks the rest; executing `query` entries is v0.2 territory
-(§14). All three keys are optional lists.
+and type-checks the rest; executing `query` entries is later territory
+(§15). All three keys are optional lists.
 
-## 6. Code linkage — the round trip
+## 6. The practice registry — `[practice]`
+
+An issue is a **defect**: something true about the data whether or not you
+exist. A practice is a **handling**: a decision about what may be computed
+from the data, and how. Both belong on the page; conflating them costs
+readers the ability to tell what they may argue with.
+
+Two tests, and they disagree usefully:
+
+- **Deletion.** Would this still be true if we deleted all our code?
+  Yes → issue. No → practice.
+- **Disagreement.** Could a competent team look at the same data and rightly
+  decide otherwise? Yes → practice, and say so with `contested`.
+
+The second catches what the first misses. *"Blank `entity_tp` means a paper
+filing"* survives deleting our code and no competent team disagrees — issue.
+*"We don't fold a donor's LLCs under the person"* has no code to delete and
+reasonable people differ — practice.
+
+### Why this is a separate block
+
+Because the cardinality differs. One defect can have several handlings,
+selected by the question being asked. Conduit contributions are double-counted
+in FEC data — one issue — but for a committee topline you exclude the memo
+lines, and to list the individual donors behind that money you do the
+opposite and drop the conduit's single large check. No `[issue]` can carry
+two opposite handlings, and `instead` is one line.
+
+The reverse also happens: a practice with **no** defect underneath it. Total
+receipts is not a defective field; it is a correct field that answers a
+different question than "how much did they raise from donors?" Filing that as
+an issue mislabels clean data as broken.
+
+```toml ergo
+[practice]
+id = "raised-from-donors"       # kebab; shares the page's id namespace with issues (required)
+title = "Raised from donors is individual contributions, not total receipts"  # (required)
+question = "How much has this candidate raised?"   # the task this serves (required)
+authority = "project"           # publisher | project | community (required)
+rule = "Use ttl_indiv_contrib from the candidate summary."   # (required)
+because = "Reporting receipts as 'raised from supporters' credits donors with money that came from the candidate's own pocket or another committee."   # (required)
+naive = "ttl_receipts, which folds in the candidate's own money, loans, and inter-committee transfers."
+addresses = ["itemization-threshold-200"]     # issue ids this practice answers
+implemented_by = ["queries/candidate_summary.sql#raised"]
+```
+
+### Required fields
+
+| field | values / form |
+|---|---|
+| `id` | kebab-case, unique across issues *and* practices on the page |
+| `title` | one line, stating the rule's conclusion |
+| `question` | the task this serves — practices are found by what you're computing, not by what's broken |
+| `authority` | **closed vocabulary**, below |
+| `rule` | the sanctioned move: a string, or a list of strings for an ordered procedure |
+| `because` | the rationale — what lets a future reader overrule this honestly |
+
+### `authority` — who decided (closed)
+
+| value | meaning | if you disagree |
+|---|---|---|
+| `publisher` | sanctioned upstream; part of what the data *is* | you are departing from the published definition — say so loudly |
+| `project` | our editorial call | reasonable people differ; `contested` and `because` carry the argument |
+| `community` | convention among practitioners, no upstream blessing | the weakest claim; cite who else does it |
+
+Authority is not severity. The useful question is not *how bad is this* but
+*who says so, and in what register* — the distinction the GTFS validator
+draws by deriving ERROR from "must" and WARNING from "should" in its own
+specification.
+
+`authority = "publisher"` is the load-bearing case: it tells a reader **do
+not re-litigate this**. NOAA's precedence order for resolving duplicate
+station-days is a normalization practice we inherit, not one we chose.
+
+### `naive` — the move this replaces
+
+Strongly expected, and it is the honesty check. If there is no plausible
+wrong move a competent person would make instead, this is documentation, not
+a practice — write it in the narrative. A practice earns its block when
+getting it wrong produces a wrong published number. The validator warns on a
+practice with no `naive`.
+
+### Optional fields
+
+| field | holds |
+|---|---|
+| `stops_at` | where **our** automation stops and a human takes over — the recoverable boundary |
+| `irreversible` | what was decided upstream and which input no longer exists — the *un*recoverable case |
+| `residual` | the error we accept, **and its direction** |
+| `because_not` | the rationale for a road not taken, and what it cost |
+| `contested` | bool — reasonable teams differ. Independent of `authority` |
+| `addresses` | issue ids on this page that this practice answers (validated) |
+| `implemented_by` | code refs, same form and anchor round trip as `handled_by` (§7) |
+
+`stops_at` and `irreversible` are different situations and a consumer acts
+differently on each. Compare:
+
+```toml
+# recoverable — go look at the candidates view
+stops_at = "Exact normalized match only. Near-miss names (trigram >= 0.5, same ZIP) surface in a candidates view for a person to judge — never merged silently."
+
+# unrecoverable — nothing to look at, ever
+irreversible = "NCHS bridges multiple-race decedents to one category before publication. The multi-race response is not in the public data and cannot be recovered."
+```
+
+`residual` exists because `status = "mitigated"` on an issue implies the
+problem went away, and it usually hasn't — it was traded for a smaller one.
+Name the trade and its direction: *"we would rather fuse two real donors than
+undercount one, and we show each person's reported employers so a fusion is
+detectable."*
+
+`because_not` holds the expensive knowledge: *"employer and occupation are
+deliberately excluded from the key — hashing them in split one real megadonor
+into several keys and undercounted them."* That is an experiment someone
+actually ran, and it is the first thing a well-meaning successor will redo.
+
+### When the rule is "don't"
+
+Prohibitions are a common shape, especially in health and safety data, and
+they fit without a schema change — `rule` states the prohibition, `naive`
+names the computation being forbidden:
+
+```toml ergo
+[practice]
+id = "no-incidence-rates"
+title = "Report counts cannot be turned into occurrence rates"
+question = "How often does this adverse event happen?"
+authority = "publisher"
+rule = "Do not compute incidence or occurrence rates from these reports. Report counts of reports, described as reports."
+naive = "Dividing report counts by prescription or exposure volume to get a rate."
+because = "The publisher states the data cannot estimate incidence: causality is unproven, reporting is voluntary and incomplete, volume moves with publicity, and duplicates are unremoved."
+addresses = ["duplicate-reports", "no-denominator"]
+```
+
+`implemented_by` is legitimately absent here — a prohibition has nothing to
+implement — and the validator does not ask for it.
+
+### Scope note
+
+Practices take no `scope` table. An issue needs scope because a consumer must
+ask *does this touch my slice?*; a practice is reached through `question`,
+which is the task, not the data. If a practice really applies only to part of
+a dataset, say so in `rule`.
+
+## 7. Code linkage — the round trip
 
 Documentation that doesn't know where its workaround lives goes stale;
 workaround code that doesn't name its issue gets "cleaned up." ergo binds
@@ -386,7 +580,7 @@ The anchor replaces the restated rule: write `# ergo: spr/rate-prose-suppression
 not a paragraph paraphrasing the page (principle 2). One line of *why this
 looks weird* alongside the anchor is good manners; three lines is a fork.
 
-## 7. Validation — `[validation]`
+## 8. Validation — `[validation]`
 
 Dated, methodical records that the page's claims were checked against
 reality. Two shapes matter:
@@ -412,11 +606,11 @@ verified against actual files, with the date and vintage). Both accumulate —
 never edit an old record, add a new one. Prose context (the full
 reconciliation table, say) lives in the surrounding section.
 
-## 8. The index and the agent entry point
+## 9. The index and the agent entry point
 
 A directory of pages carries a generated `INDEX.md`: for each page, one row —
 slug, title, status, last-updated date, issue counts by effect (core
-flagged), and the `bite` line. Regenerate with `ergo digest` (§10); never
+flagged), and the `bite` line. Regenerate with `ergo digest` (§11); never
 hand-edit.
 
 The digest exists because of a blunt finding from the survey: **agents do
@@ -442,7 +636,7 @@ emits the per-page issue table (core issues flagged) for exactly this use.
 Pages that document *published* data should themselves be published. An
 agent working outside the repo must be able to fetch the documentation from
 a stable URL — not spelunk through a code host. The unit is the **bundle**,
-generated by `ergo publish` (§10) into a directory the host site serves
+generated by `ergo publish` (§11) into a directory the host site serves
 verbatim:
 
 ```
@@ -490,7 +684,7 @@ re-validate under `check` (a `mitigated` issue whose `handled_by` was
 stripped would fail §5) — `check` governs sources, `publish` governs what
 ships.
 
-The test for what stays public is the same as §9's registry test, applied
+The test for what stays public is the same as §10's registry test, applied
 to prose: *would this sentence help someone rebuilding from the source
 files with none of our code?* Issue prose describing **what** the
 workaround does ("non-numeric rate values parse to NULL") is exactly what
@@ -516,9 +710,9 @@ Three rules make it findable and trustworthy:
 This is the decentralized half of a larger shape: every publisher serves
 its own bundle; a *directory of bundles* (an index of index.json URLs
 across publishers) is the natural aggregation layer, kept as an open
-question (§14) until more than one bundle exists in the wild.
+question (§15) until more than one bundle exists in the wild.
 
-## 9. Authoring discipline
+## 10. Authoring discipline
 
 - **Register at the moment of discovery.** The workaround commit and the
   issue entry are the same change. An issue discovered but not registered is
@@ -542,7 +736,7 @@ question (§14) until more than one bundle exists in the wild.
   sections and boilerplate erode the trust that makes agents load pages at
   all. (flip's rule: empty structure is worse than absent structure.)
 
-## 10. Tooling — `ergo.py`
+## 11. Tooling — `ergo.py`
 
 One stdlib-only Python file (≥ 3.11, for `tomllib`). Vendor it by copying
 `tools/ergo.py` into the host repo; it carries its version in a header
@@ -556,21 +750,21 @@ python3 tools/ergo.py publish [PATHS...] --dir OUT [--base-url URL]
 python3 tools/ergo.py new     SLUG [--dir DIR]
 ```
 
-- **check** — parses pages, enforces §§3–7: manifest first and singular,
+- **check** — parses pages, enforces §3–7: manifest first and singular,
   required fields, closed vocabularies, id uniqueness and shape, scope
   non-empty, `mitigated ⇒ handled_by`. With `--repo`: `handled_by` paths
-  exist, symbols findable, anchor round trip (§6). Errors exit 1; warnings
+  exist, symbols findable, anchor round trip (§7). Errors exit 1; warnings
   exit 0 unless `--strict`.
 - **digest** — the `INDEX.md` markdown to stdout (or `--write`).
 - **export** — everything machine-readable as one JSON document (datasets,
   issues, validations, changes, with page paths and section line numbers),
   for downstream renders and interop.
-- **publish** — write the servable bundle (§8): `index.json` plus each
+- **publish** — write the servable bundle (§9): `index.json` plus each
   page's public projection as `<slug>.md`, deterministic, into a directory
   the host site serves; warns where projected output still smells internal.
 - **new** — scaffold a fresh page from the template.
 
-## 11. Skills — teaching agents the format
+## 12. Skills — teaching agents the format
 
 The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
 
@@ -584,9 +778,9 @@ The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
   `ergo.py check` before committing.
 
 Host projects reference or copy the skill; the two-line CLAUDE.md pointer
-(§8) is what makes it fire.
+(§9) is what makes it fire.
 
-## 12. Interop (generated, never canonical)
+## 13. Interop (generated, never canonical)
 
 The page is canonical; catalog formats are exports. The manifest maps
 losslessly onto the common standards — and the issue registry mostly maps
@@ -602,7 +796,7 @@ onto *nothing*, which is why ergo exists. Sketch:
 | issues (whole registry) | `dqv:QualityAnnotation` (thin) | — | `rai:dataLimitations` (prose dump) |
 | `bite` + issue titles | `dct:description` (appended) | `description` | `description` |
 
-`ergo export` emits JSON in v0.1; DCAT/Data Package/Croissant emitters are
+`ergo export` emits JSON; DCAT/Data Package/Croissant emitters are
 v0.2 candidates. For variable-level semantics the mapping target is
 DDI-Codebook's `<var>` (whose `<drvcmd>` — actual code attached to a derived
 variable — and `<undocCod>` are the registry's closest formal ancestors);
@@ -610,16 +804,16 @@ SDMX's `OBS_STATUS` flag vocabulary (break-in-series, suppressed,
 provisional, …) is prior art for the `type` taxonomy at cell grain. Nothing
 in a host project may depend on an export that the page can't regenerate.
 
-## 13. Versioning and evolution
+## 14. Versioning and evolution
 
-- The manifest's `ergo = "0.1"` names the format version the page conforms
+- The manifest's `ergo = "0.2"` names the format version the page conforms
   to. Breaking format changes bump the minor pre-1.0.
 - **Issue ids are permanent.** To rename: create the new id, mark the old
   entry `status = "resolved"` with `superseded_by = "new-id"`, keep its
   block (a tombstone) for one release of the page so stale anchors fail
   loudly rather than silently.
 - Issue *content* evolves in place; git history is one temporal record
-  (flip's rule) — but a served page (§8) reaches consumers who cannot see
+  (flip's rule) — but a served page (§9) reaches consumers who cannot see
   git. The **changelog** is the versioning record that travels with the
   page:
 
@@ -643,14 +837,14 @@ in a host project may depend on an export that the page can't regenerate.
   annual file lands as edits to coverage, new issues, new validation
   records, and a `[change]` entry — not a new page.
 
-## 14. Open questions
+## 15. Open questions
 
 - **Executable detection.** `[issue.detect]` gives detection a structured
   form (compiled regexes, query sketches) but nothing runs the queries yet.
   v0.2: execute `query` entries against the host warehouse à la dbt's
   `warn_if` / pointblank's threshold tiers — a documented issue whose
   detector stops firing is either resolved or drifted, and both are worth
-  knowing. Held back to keep v0.1 authorable in an afternoon.
+  knowing. Held back to keep a page authorable in an afternoon.
 - **Activity routing.** frank's obligation skills route by activity/pass
   (`pass_invokes`) on top of an always-loaded constitution tier. ergo's
   `core` + scope filtering is the small-registry version of the same idea;
@@ -664,10 +858,10 @@ in a host project may depend on an export that the page can't regenerate.
 - **Curated-internal datasets.** A knowledge layer whose source of truth is
   a seed list in the repo has no honest `source_url`. A profile for
   internally-curated datasets (publisher = the project, source = a code
-  path) fit awkwardly in v0.1; consider first-classing it.
+  path) fits awkwardly; consider first-classing it.
 - **Cross-project issue sharing and the directory of bundles.** Two
   projects ingesting the same NJDOE files currently each carry a page. With
-  bundles served over HTTP (§8), the aggregation layer becomes concrete: a
+  bundles served over HTTP (§9), the aggregation layer becomes concrete: a
   directory that indexes many publishers' `index.json` URLs, so an agent
   asks one place "who has documented this dataset?" and fetches the
   publisher's own bundle — maintenance stays decentralized, discovery

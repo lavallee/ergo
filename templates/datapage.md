@@ -5,21 +5,29 @@ project uses it. Written for someone deciding whether to read on.
 
 ```toml ergo
 [dataset]
-ergo = "0.1"
+ergo = "0.2"
 slug = "my-dataset"              # kebab-case; unique within the project
 title = "<Dataset title>"
 publisher = "<agency / org, office if known>"
-source_url = "https://…"         # the landing page you'd send a human to
+source_urls = ["https://…"]      # the landing page(s) you'd send a human to; a dataset can have several faces
 bite = "One sentence: the single most likely way this data bites someone who touches it cold."
 status = "acquiring"             # live | acquiring | dormant | archived
+version = ""                     # the SOURCE's own edition/version label, if it has one — not the page's
 confidence = "?"                 # A authoritative primary · B official doc · C secondary · ? unjudged
 updated = "YYYY-MM-DD"           # last substantive page edit
+unknowns = [                     # where your knowledge stops — silence reads as a clean bill of health
+  "<what you have not examined: an era, a column, a release channel>",
+]
 # implementation = "https://…"   # public URL of your code — the one repo pointer the served projection keeps
 
 [dataset.coverage]
 years = "1998-99 → 2025-26"      # in the source's own year labels
 grain = "year × entity × …"      # what one row means
 entities = "who is covered"
+
+[dataset.missingness]
+zero_is_missing = false          # true when the source writes 0 to mean "no value" (commoner than you'd think)
+source_tokens = []               # literals meaning "not a number": "*", "N/A", "Fewer than 10 valid scores"
 
 [dataset.access]
 keys = ["…"]                     # join keys, in warehouse terms
@@ -86,6 +94,34 @@ years = "all"                    # or a list; also: tables, columns, rows, entit
 
 How it was found; a concrete example; the numbers that let the next person
 verify it's still true (or notice it changed).
+
+## Practices
+
+What may be computed from this data, and how. An issue is a defect that
+would exist without you; a practice is a decision you (or the publisher)
+made. One `###` section each, same discipline as issues.
+
+### <The rule, stated as its conclusion>
+
+```toml ergo
+[practice]
+id = "first-practice"            # permanent kebab id — one namespace with issues
+title = "<the rule as a conclusion, not a topic>"
+question = "<the task someone is doing when they need this>"
+authority = "project"            # publisher (don't re-litigate) | project (our call) | community
+rule = "<the sanctioned move>"   # or a list of strings for an ordered procedure
+naive = "<the plausible wrong move this replaces>"   # no naive → it's documentation, not a practice
+because = "<why; what a future reader would need to overrule this honestly>"
+# addresses = ["first-issue"]    # issue ids on this page that this practice answers
+# implemented_by = ["etl/….py#fn"]   # anchor it: # ergo: my-dataset/first-practice
+# contested = true               # reasonable teams differ — independent of authority
+# stops_at = "where OUR automation stops and a human takes over"
+# irreversible = "what the publisher already decided, and which input is gone for good"
+# residual = "the error we accept, AND its direction"
+# because_not = "the road not taken, and what it cost when we tried it"
+```
+
+Why this call and not another; what it costs; who would disagree.
 
 ## Validation
 

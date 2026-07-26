@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.2 — 2026-07-26
+
+Ergo becomes a methodology record, not only a defect registry. Driven by a
+corpus of seven surveyed datasets, parsers and validators (FEC, NOAA
+GHCN-Daily, FDA FAERS/AEMS, CDC WONDER, IRS 990, GTFS) and by grading v0.1
+against a second adopting project's 120-issue registry.
+
+**Backward compatible.** `ergo = "0.1"` pages validate unchanged under the
+0.2 tool; every field below is additive and all but one are optional.
+
+- **`[practice]` — the second block.** An `[issue]` is a defect that would
+  exist without you; a practice is a decision about what may be computed and
+  how. The block exists because the cardinality differs: one defect can have
+  several handlings selected by the question asked (a conduit topline
+  excludes memo lines; a donor list does the opposite), and some practices
+  have no defect underneath them at all. Required `id`, `title`, `question`,
+  `authority`, `rule`, `because`; expected `naive`; optional `stops_at`,
+  `irreversible`, `residual`, `because_not`, `contested`, `addresses`,
+  `implemented_by` (SPEC §6).
+  - `authority` (`publisher | project | community`) says who decided, and
+    therefore whether you may disagree. It is not severity.
+  - `naive` is the honesty check: no plausible wrong move being ruled out
+    means this is documentation, not a practice. The validator warns.
+  - `stops_at` (our automation's boundary, recoverable) and `irreversible`
+    (the publisher already decided, input gone) are different situations and
+    a reader acts differently on each.
+  - Practices share the page's id namespace with issues, so anchors stay
+    kind-free; `implemented_by` gets the same two-way anchor round trip as
+    `handled_by`, and is legitimately absent on prohibitions.
+  - Practices are *more* public than issues: the served bundle carries
+    `rule`, `naive`, `because` and the rest, stripping only
+    `implemented_by`.
+- **`[dataset.missingness]`** — `zero_is_missing` (bool) and `source_tokens`
+  (the literals meaning "not a number"). A zero that means "no value" was
+  the single most common defect shape across surveyed publishers; the
+  manifest flag makes it hard to miss rather than replacing the issue.
+- **`unknowns`** — a list of plain sentences naming where the page's
+  knowledge stops. Without it, silence is indistinguishable from a clean
+  bill of health and a reader cannot tell "no issues" from "nobody looked."
+- **`source_urls`** (list) replaces `source_url` (string, still accepted) —
+  a dataset routinely has more than one face, and two official products of
+  the same data can disagree by design.
+- **`version`** — the *source's* own edition label, distinct from `updated`,
+  which is a freshness signal for the page and never a version of the data.
+- Digest gains a practices column, a per-page practice table under `--long`,
+  and prints `unknowns`; `export` and `publish` carry practices and the new
+  manifest fields; `new` scaffolds a practice section.
+- **`tests/`** — the repo ships a test suite for the first time:
+  `tests/negative.md` triggers every error class, `tests/run.py` asserts the
+  positive fixtures stay clean, the negative counts hold, and 0.1 pages still
+  validate. Run `python3 tests/run.py`.
+- SPEC sections 6–14 renumbered to 7–15 to seat the practice registry beside
+  the issue registry.
+
 ## 0.1 — 2026-07-10
 
 Initial draft.
