@@ -2,22 +2,29 @@
 name: ergo
 description: >
   Work with ergo data pages — the per-dataset documentation format with a
-  structured, code-linked known-issues registry. Use when starting work with
-  a documented dataset (read the digest and relevant issues first), when
-  hitting an unexplained oddity in data (check the registry before
-  diagnosing), when working around a data problem in code (register the
-  issue and anchor the fix), or when authoring/revising a data page. Spec:
+  structured, code-linked registry of known defects and sanctioned practices.
+  Use when starting work with a documented dataset (read the digest, the core
+  issues, and the practices for your question first), when hitting an
+  unexplained oddity in data (check the registry before diagnosing), when
+  working around a data problem in code (register the issue and anchor the
+  fix), when deciding how a number may be computed (check for a practice
+  before inventing one), or when authoring/revising a data page. Spec:
   https://github.com/lavallee/ergo
 ---
 
 # Working with ergo data pages
 
 A data page is one markdown file per dataset carrying fenced `toml ergo`
-blocks: a `[dataset]` manifest, `[issue]` entries, `[validation]` records.
-Pages live together (conventionally `docs/data/` or `docs/data-sources/`)
-next to a generated `INDEX.md` digest. The project's CLAUDE.md/AGENTS.md
-says where. Issue IDs are `<dataset-slug>/<issue-id>` and appear in code as
-anchor comments: `# ergo: spr/rate-prose-suppression`.
+blocks: a `[dataset]` manifest, `[issue]` entries, `[practice]` entries, and
+`[validation]` records. Pages live together (conventionally `docs/data/` or
+`docs/data-sources/`) next to a generated `INDEX.md` digest. The project's
+CLAUDE.md/AGENTS.md says where. IDs are `<dataset-slug>/<id>` — issues and
+practices share one namespace — and appear in code as anchor comments:
+`# ergo: spr/rate-prose-suppression`.
+
+**Issues are defects; practices are handlings.** An issue is true whether or
+not you exist. A practice is a decision about what may be computed and how —
+sometimes ours, sometimes the publisher's. Read both.
 
 ## Consuming (before you touch the data)
 
@@ -37,10 +44,24 @@ anchor comments: `# ergo: spr/rate-prose-suppression`.
    name the foreseeable misread, and `instead` names the sanctioned move.
    If your draft does the thing a `misuse` field warns about, that is a bug
    in the draft.
-5. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
+5. **Read the practices before computing anything.** They are indexed by
+   `question` — find the one matching the task you are doing. `rule` is the
+   sanctioned move and `naive` is the wrong move it replaces; if your plan
+   is the `naive` one, stop. `authority = "publisher"` means the decision is
+   upstream and you do not get to re-derive it — departing from it means
+   departing from the published definition, and you must say so in the
+   output. `authority = "project"` plus `contested = true` means a competent
+   team could rightly differ; you may too, deliberately and in writing.
+   Check `irreversible` before assuming you can recover an underlying value,
+   and `residual` before describing a mitigated number as clean.
+6. **Read `unknowns` in the manifest.** It names where the page's knowledge
+   stops. Absence of an issue in an area listed there is not evidence of
+   absence — treat it as unexamined and say so rather than implying it is
+   clean. A page with no `unknowns` is claiming completeness; be sceptical.
+7. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
    means the weird code below it is deliberate; read that issue before
    "fixing" the code.
-6. **Working outside the repo?** Projects that serve a bundle expose
+8. **Working outside the repo?** Projects that serve a bundle expose
    `<base>/index.json` (every dataset's facts + issue list) and
    `<base>/<slug>.md` (the full page) over HTTP — fetch those instead of
    spelunking the code host. Check `updated` and the page's Changelog
@@ -104,10 +125,31 @@ Register the issue in the same change as the workaround:
 
 Judgment calls:
 
-- **Dataset's problem vs. our choice.** The file mixing four budget bases is
-  the dataset's issue (register it); which base your chart uses is your
-  methodology (narrative section or the consuming app's docs). Test: would
-  it still be true if all our tooling were rebuilt from scratch?
+- **Dataset's problem vs. our choice — both belong on the page, in different
+  blocks.** The file mixing four budget bases is the dataset's `[issue]`;
+  which base your chart uses is a `[practice]`. Two tests: *would it still be
+  true if all our tooling were rebuilt from scratch?* (yes → issue), and
+  *could a competent team look at the same data and rightly decide
+  otherwise?* (yes → practice, and set `contested = true`). The second
+  catches what the first misses — an inherited publisher rule has no code to
+  delete and is still a practice, marked `authority = "publisher"`.
+- **When one defect has two handlings, that is why practices are separate.**
+  Conduit contributions are double-counted in FEC data (one issue), but a
+  committee topline excludes the memo lines while a donor list does the
+  opposite. Two practices, one issue, both `addresses` it.
+- **Does the practice earn its block?** Only if `naive` is fillable — if
+  there is no plausible wrong move it rules out, it is documentation, so put
+  it in the narrative. The validator warns on a practice with no `naive`.
+- **Prohibitions are practices.** "These counts cannot be turned into rates"
+  is a `[practice]` whose `rule` is the prohibition and whose `naive` is the
+  forbidden computation — not an issue. `implemented_by` stays empty.
+- **`stops_at` vs `irreversible`.** Where *our* automation stops and a human
+  takes over → `stops_at`. Where the *publisher* already decided and the
+  input is gone for good → `irreversible`. A reader acts differently on each.
+- **Record what you don't know.** Add to the manifest's `unknowns` whenever
+  you notice an era, column, or release channel you did not examine. Cheapest
+  honesty in the format, and the only thing that stops silence from reading
+  as a clean bill of health.
 - **Effect picking.** Pipeline fails → `breaks`. Numbers silently wrong →
   `corrupts`. Numbers faithful but a natural reading is wrong → `misleads`.
   Not a defect, but background you must hold → `context`.
