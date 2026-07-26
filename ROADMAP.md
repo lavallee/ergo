@@ -18,8 +18,8 @@ supplemental or is removed.
 
 - Adopt data pages in at least two additional projects with materially
   different data shapes and issue types. **One of two.** A second project — a
-  governed data platform, not a website — now carries 24 pages and 120 issues
-  across survey estimates, modeled health data, library administrative
+  governed data platform rather than a website — now carries 25 pages and 120
+  issues across survey estimates, modeled health data, library administrative
   records, boundary files, and PDF/OCR extraction: shapes njschooldata does
   not have. A third adopter is still wanted, ideally outside this household.
 - Measure which issues agents find with and without the page, and whether code
@@ -29,14 +29,18 @@ supplemental or is removed.
 - Build a directory-level reader or index over served bundles without turning
   the directory into a new source of truth.
 
-Evidence the second adoption did produce, which this roadmap did not think to
-ask for: a **measured migration** of a registry between two repositories, with
-a receipt recording 60 issues in, 56 migrated, 4 deliberately retained, and 3
-new defects found *during* the migration. Two independent conversions have now
-each surfaced real defects, which suggests adopting the format is itself a
-detection method. The migration also settled a boundary question the spec had
-left open — a page belongs to whoever fetches the bytes, not to whoever reads
-them.
+Evidence, 2026-07-22: that corpus passed strict manifest and code-anchor
+checks and supplied the independent examples that promoted `identity` and
+`policy` into the recommended taxonomy.
+
+Evidence the second adoption produced that this roadmap did not think to ask
+for: a **measured migration** of a registry between two repositories, with a
+receipt recording 60 issues in, 56 migrated, 4 deliberately retained, and 3
+new findings — among them two semantic regressions that frozen output-parity
+hashes had preserved. Two independent conversions have now each surfaced real
+defects, which suggests adopting the format is itself a detection method. The
+migration also settled a boundary question the spec had left open: a page
+belongs to whoever fetches the bytes, not to whoever reads them.
 
 *Graduation:* a cold human or agent avoids known misuses in multiple projects
 and can trace each mitigation from page to code. *Kill:* if the format only

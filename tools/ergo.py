@@ -4,7 +4,7 @@
 # Stdlib only, Python >= 3.11 (tomllib). Vendor this file freely; it has no deps.
 """
 Usage:
-  python3 ergo.py check   [PATHS...] [--repo ROOT] [--strict]
+  python3 ergo.py check   [PATHS...] [--repo ROOT] [--strict] [--require-manifest]
   python3 ergo.py digest  [PATHS...] [--long] [--write FILE]
   python3 ergo.py export  [PATHS...] [--out FILE]
   python3 ergo.py publish [PATHS...] --dir OUT [--base-url URL]
@@ -31,7 +31,7 @@ AUTHORITIES = {"publisher", "project", "community"}
 TYPES = {
     "definitional", "universe", "coverage", "suppression", "geography",
     "revision", "coding", "format", "entry", "linkage", "uncertainty",
-    "availability", "measurement",
+    "availability", "measurement", "identity", "policy",
 }
 SCOPE_KEYS = {"years", "tables", "columns", "rows", "entities", "all"}
 MISSINGNESS_KEYS = {"zero_is_missing", "source_tokens"}
@@ -707,7 +707,7 @@ note = "Page created."
 
 # ---------- CLI ----------
 
-def collect_pages(paths):
+def collect_pages(paths, require_manifest=False):
     files = []
     for p in map(Path, paths or ["."]):
         if p.is_dir():
@@ -717,7 +717,7 @@ def collect_pages(paths):
     parsed = []
     for f in files:
         page, lines = parse_page(f)
-        if page.blocks or not f.is_file():
+        if page.blocks or require_manifest or not f.is_file():
             parsed.append((page, lines))
     return parsed
 
@@ -730,6 +730,11 @@ def main(argv=None):
     p_check.add_argument("paths", nargs="*")
     p_check.add_argument("--repo", metavar="ROOT")
     p_check.add_argument("--strict", action="store_true")
+    p_check.add_argument(
+        "--require-manifest",
+        action="store_true",
+        help="require every Markdown file in a checked directory to be an Ergo page",
+    )
     p_dig = sub.add_parser("digest")
     p_dig.add_argument("paths", nargs="*")
     p_dig.add_argument("--long", action="store_true")
@@ -757,7 +762,10 @@ def main(argv=None):
         print(f"scaffolded {dest}")
         return 0
 
-    parsed = collect_pages(args.paths)
+    parsed = collect_pages(
+        args.paths,
+        require_manifest=(args.cmd == "check" and args.require_manifest),
+    )
     if not parsed:
         sys.exit("no data pages found")
     pages = [p for p, _ in parsed]

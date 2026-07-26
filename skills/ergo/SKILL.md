@@ -109,7 +109,9 @@ Register the issue in the same change as the workaround:
    `date`, `note`, `issues = [ids touched]` — and the manifest `updated`
    bumps in the same edit. Copyediting doesn't.
 5. **Validate**: `python3 tools/ergo.py check <pages-dir> --repo .` must
-   pass. Regenerate the digest if titles/counts changed:
+   pass. Add `--require-manifest` when the directory is a closed data-page
+   corpus so an unmarked Markdown file cannot disappear from the check.
+   Regenerate the digest if titles/counts changed:
    `python3 tools/ergo.py digest <pages-dir> --write <pages-dir>/INDEX.md`.
    If the project serves a bundle (a `site/…/ergo/` directory with
    `index.json`), republish it in the same change:

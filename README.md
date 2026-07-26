@@ -56,7 +56,7 @@ Design commitments (shared with ergo's sibling,
 ```bash
 python3 tools/ergo.py new my-dataset --dir docs/data   # scaffold a page
 # …fill it in (see templates/datapage.md and examples/)…
-python3 tools/ergo.py check docs/data --repo .          # validate + code linkage
+python3 tools/ergo.py check docs/data --repo . --require-manifest  # gate the corpus
 python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 ```
 
@@ -64,11 +64,14 @@ Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
 the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
 
 Status: spec draft v0.2, proven against
-[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets
-and a second adopting project. Run the test suite with
-`python3 tests/run.py`. Next: executable detection checks, catalog-format
-exporters, and a directory of served bundles that publishes its own observed
-vocabulary.
+[njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets and
+a second adopting project's multi-publisher source-contract corpus. Use
+`--require-manifest` when a directory is intended to contain only data pages;
+it prevents a prose page with a missing or malformed manifest from
+disappearing from the check. Run the tests with `python3 tests/run.py` and
+`python3 -m unittest discover tests`. Next: executable detection checks,
+catalog-format exporters, and a directory of served bundles that publishes its
+own observed vocabulary.
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Changes are
 tracked in [CHANGELOG.md](CHANGELOG.md). [MIT licensed](LICENSE).
