@@ -27,7 +27,7 @@ slug = "structured"
 title = "Structured"
 publisher = "Publisher"
 source_url = "https://example.test"
-bite = "A bite."
+pitfall = "A pitfall."
 status = "live"
 ```
 """,

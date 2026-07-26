@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4 — 2026-07-26
+
+- **`bite` is renamed `pitfall`.** Same field, same required one sentence,
+  same digest column. The old name was a coinage — a noun invented from "the
+  thing that will bite you" — and it read as made-up, which is a real cost
+  for a format meant to be adopted by publishers who had no hand in writing
+  it. `pitfall` is the word this domain already uses.
+- **Breaking, deliberately.** A page still carrying `bite` fails its check
+  with an actionable message naming the rename, rather than silently passing
+  under a deprecated alias. Pre-1.0 with two adopting projects is the
+  cheapest this will ever be; both were migrated in the same change.
+
 ## 0.3 — 2026-07-26
 
 Directories: how you find pages you didn't write, and how many people can

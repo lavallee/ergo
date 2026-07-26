@@ -102,6 +102,20 @@ for cmd in ("digest", "export"):
     code, out = run(cmd, ROOT / "examples")
     check(f"{cmd} exits 0", code == 0, out.strip()[:200])
 
+print("bite -> pitfall migration (0.4)")
+legacy = ROOT / "tests" / "legacy-bite.md"
+legacy.write_text(
+    '# T\n\n```toml ergo\n[dataset]\nergo = "0.3"\nslug = "t"\ntitle = "T"\n'
+    'publisher = "P"\nsubject = "https://x.org/d"\nsource_urls = ["https://x.org/d"]\n'
+    'bite = "old field name"\nstatus = "live"\n```\n', encoding="utf-8")
+try:
+    code, out = run("check", legacy)
+    check("a page still using `bite` fails", code == 1)
+    check("and is told exactly what to rename",
+          "`bite` was renamed to `pitfall`" in out, out.strip())
+finally:
+    legacy.unlink(missing_ok=True)
+
 print("subject normalization clusters correctly (§10)")
 import importlib.util
 _spec = importlib.util.spec_from_file_location("ergo_tool_rt", ERGO)

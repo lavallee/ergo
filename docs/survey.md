@@ -118,8 +118,8 @@ The content is the best anywhere; the structure is nearly absent.
 - **NICAR data diaries**: the process log — what was checked, who was asked,
   what the agency said the field means — documentation of *how we know*.
 - **Data Is Plural**: caveat-writing as compression; the one-sentence "here
-  is the thing that will bite you," written for a reader deciding whether to
-  open the data at all (ergo's required `bite` field).
+  is the thing that will trip you up," written for a reader deciding whether
+  to open the data at all (ergo's required `pitfall` field).
 - **Datasette**: metadata rendered at the point of use, and git-scraping —
   change history as a queryable record rather than a prose changelog.
 

@@ -1,6 +1,6 @@
 # ergo — the data page format
 
-**Status:** draft v0.3 · 2026-07-26
+**Status:** draft v0.4 · 2026-07-26
 **What this is:** a spec for documenting datasets the way working data
 journalists actually need them documented — schema and provenance, yes, but
 above all a structured, code-linked registry of the **known issues** in the
@@ -193,7 +193,7 @@ title = "NJ School Performance Reports"          # (required)
 publisher = "NJ Dept. of Education, Office of Performance Reports"  # (required)
 subject = "https://www.nj.gov/education/spr/"    # what dataset this documents — the identity claim (§11)
 source_urls = ["https://www.nj.gov/education/spr/"]                 # (required; `source_url` string also accepted)
-bite = "Two graduation-rate calculations are published; only the State one has a trend — plotting Federal as a trend is the classic misread."   # (required)
+pitfall = "Two graduation-rate calculations are published; only the State one has a trend — plotting Federal as a trend is the classic misread."   # (required)
 status = "live"                 # live | acquiring | dormant | archived (required)
 version = "2024-25 edition"     # the source's own version/edition label, if it has one
 confidence = "A"                # A | B | C | ? — source reliability, flip-style
@@ -220,7 +220,7 @@ feeds = ["grad_rate", "assessment", "absenteeism"]  # tables/pages produced
 
 Field notes:
 
-- **`bite`** (required) — one sentence: the single thing most likely to bite
+- **`pitfall`** (required) — one sentence: the single thing most likely to trip up
   someone who touches this data cold. It feeds the digest (§9); write it for
   a reader deciding whether they need to open the page. (After Data Is
   Plural's discipline of the one-line caveat.)
@@ -404,7 +404,7 @@ rate column) or because one misread poisons published work. Mark those
 Semantics for consumers: read every core issue before touching the data;
 filter the rest by scope. Under context pressure, degrade in this order:
 supplemental issues to their one-line titles first, core issues stay whole,
-the manifest and `bite` never leave. Mark core sparingly — a page where
+the manifest and `pitfall` never leave. Mark core sparingly — a page where
 half the registry is core has no core (frank-style constitution tiers run
 under 10%); the validator warns past one third.
 
@@ -638,7 +638,7 @@ reconciliation table, say) lives in the surrounding section.
 
 A directory of pages carries a generated `INDEX.md`: for each page, one row —
 slug, title, status, last-updated date, issue counts by effect (core
-flagged), and the `bite` line. Regenerate with `ergo digest` (§12); never
+flagged), and the `pitfall` line. Regenerate with `ergo digest` (§12); never
 hand-edit.
 
 The digest exists because of a blunt finding from the survey: **agents do
@@ -731,7 +731,7 @@ Three rules make it findable and trustworthy:
    The survey's llms.txt finding governs here: files at well-known paths are
    not discovered passively.
 3. **Human pages render, the bundle is canonical.** Public explainer pages
-   consistently carry the ergo elements — the manifest facts, the bite, the
+   consistently carry the ergo elements — the manifest facts, the pitfall, the
    issue registry, the changelog — rendered from the same pages the bundle
    serves, and link to the bundle for the full machine-readable form.
 
@@ -752,7 +752,7 @@ datasets and never joins a directory is unaffected by this section.
 
 At any scale, several projects will document the same dataset. A newsroom's
 ACS page, a housing nonprofit's, and a state agency's will disagree — about
-what is `core`, about which practices apply, about what the `bite` is —
+what is `core`, about which practices apply, about what the `pitfall` is —
 because their questions differ, and a `[practice]` is by definition a
 decision reasonable teams make differently (§6).
 
@@ -879,7 +879,7 @@ lineage costs two lines now and is what makes the tooling possible later.
   is *the dataset's* issue and belongs in the registry. The test: would this
   still be true if we rebuilt all our tooling from scratch?
 - **Write for the cold reader.** No unexplained house jargon in titles,
-  `bite`, or `misuse` — those travel into digests and agent contexts alone.
+  `pitfall`, or `misuse` — those travel into digests and agent contexts alone.
 - **Don't pad.** A dataset with three issues has three issues. Empty
   sections and boilerplate erode the trust that makes agents load pages at
   all. (flip's rule: empty structure is worse than absent structure.)
@@ -949,7 +949,7 @@ onto *nothing*, which is why ergo exists. Sketch:
 | `coverage.years` | `dct:temporal` | — | — |
 | `access.keys` | — | `schema.primaryKey` | `RecordSet.key` |
 | issues (whole registry) | `dqv:QualityAnnotation` (thin) | — | `rai:dataLimitations` (prose dump) |
-| `bite` + issue titles | `dct:description` (appended) | `description` | `description` |
+| `pitfall` + issue titles | `dct:description` (appended) | `description` | `description` |
 
 `ergo export` emits JSON; DCAT/Data Package/Croissant emitters are
 v0.2 candidates. For variable-level semantics the mapping target is
@@ -961,7 +961,7 @@ in a host project may depend on an export that the page can't regenerate.
 
 ## 15. Versioning and evolution
 
-- The manifest's `ergo = "0.3"` names the format version the page conforms
+- The manifest's `ergo = "0.4"` names the format version the page conforms
   to. Breaking format changes bump the minor pre-1.0.
 - **Issue ids are permanent.** To rename: create the new id, mark the old
   entry `status = "resolved"` with `superseded_by = "new-id"`, keep its

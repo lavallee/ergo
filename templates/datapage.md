@@ -5,13 +5,13 @@ project uses it. Written for someone deciding whether to read on.
 
 ```toml ergo
 [dataset]
-ergo = "0.3"
+ergo = "0.4"
 slug = "my-dataset"              # kebab-case; unique within the project
 title = "<Dataset title>"
 publisher = "<agency / org, office if known>"
 subject = "https://…"            # WHAT this documents — one URL; how directories cluster pages (§10)
 source_urls = ["https://…"]      # where YOU get the bytes; a dataset can have several faces
-bite = "One sentence: the single most likely way this data bites someone who touches it cold."
+pitfall = "One sentence: the single most likely way this data trips up someone who touches it cold."
 status = "acquiring"             # live | acquiring | dormant | archived
 version = ""                     # the SOURCE's own edition/version label, if it has one — not the page's
 confidence = "?"                 # A authoritative primary · B official doc · C secondary · ? unjudged

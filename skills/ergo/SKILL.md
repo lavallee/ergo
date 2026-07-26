@@ -28,7 +28,7 @@ sometimes ours, sometimes the publisher's. Read both.
 
 ## Consuming (before you touch the data)
 
-1. **Read the digest** (`INDEX.md`): one line per dataset, with the `bite` —
+1. **Read the digest** (`INDEX.md`): one line per dataset, with the `pitfall` —
    the single most likely way to get burned.
 2. **Skim the page** for the dataset you're using: the manifest (keys,
    builders, coverage) and the issue titles.
@@ -39,7 +39,7 @@ sometimes ours, sometimes the publisher's. Read both.
    test. An issue with `effect = "breaks"` or `"corrupts"` constrains
    ingestion; `"misleads"` and `"context"` constrain analysis and prose.
    Under context pressure, drop supplemental issues to their titles first;
-   core issues stay whole; the manifest and `bite` never leave.
+   core issues stay whole; the manifest and `pitfall` never leave.
 4. **Honor `misuse` fields** when writing analysis, charts, or copy — they
    name the foreseeable misread, and `instead` names the sanctioned move.
    If your draft does the thing a `misuse` field warns about, that is a bug
@@ -205,5 +205,5 @@ Judgment calls:
 - **Never delete a resolved issue** — set `status = "resolved"` and keep the
   block. Archives of old vintages keep old issues relevant.
 - **New dataset** → scaffold with `python3 tools/ergo.py new <slug>`, fill
-  the manifest before anything else, and write the `bite` last, once you
+  the manifest before anything else, and write the `pitfall` last, once you
   know which lesson cost the most.
