@@ -21,6 +21,6 @@ Ground rules:
 
 - Spec changes update SPEC.md, the template, the example, and the validator
   together — the four must never disagree.
-- Breaking format changes bump the version (§14) and get a CHANGELOG entry.
+- Breaking format changes bump the version (§15) and get a CHANGELOG entry.
 - Keep the voice: plain, concrete, quantified. No aspirational fields the
   reference implementation doesn't check.

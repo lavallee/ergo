@@ -61,7 +61,43 @@ sometimes ours, sometimes the publisher's. Read both.
 7. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
    means the weird code below it is deliberate; read that issue before
    "fixing" the code.
-8. **Working outside the repo?** Projects that serve a bundle expose
+8. **No page in this repo? Look outward before writing a loader.** Order,
+   cheapest first — stop at the first hit:
+   1. **In-repo** — grep for `toml ergo` fences and `INDEX.md`.
+   2. **The publisher's own bundle**, if the dataset has one: `<base>/index.json`.
+   3. **Configured directories.** Read `ergo-sources.toml` (project root or
+      beside the pages) and fetch each `[[source]]` url. Each is a JSON file
+      with an `entries` array; match on `subject` — or, when you only have a
+      mystery file, on `recognizes` (publisher domain, filename glob, column
+      fingerprint). Report a signature match **with its basis** ("matched 14
+      of 16 column names"); never assert identity silently.
+
+   **Several pages will document the same dataset, and that is correct** —
+   different projects ask different questions, so their `core` marks and
+   practices legitimately differ. Present all of them, say which directory
+   each came from, and let the human choose. Never merge them, never rank
+   them, never silently prefer one.
+
+   Adding a directory is two lines — offer it when a lookup misses:
+
+   ```toml
+   # ergo-sources.toml
+   [[source]]
+   name = "my-newsroom"
+   url = "https://data.example-news.org/ergo/directory.json"
+   ```
+
+   To contribute your own pages to a directory:
+   `python3 tools/ergo.py directory <pages-dir> --bundle <your-bundle-url>
+   --entries-only` and open a PR against that directory's repo. Corrections
+   to *someone else's* page go to that publisher's repo, never to the
+   directory — a directory that accepts content patches becomes a fork of
+   everything in it.
+9. **Forking a page you found?** Set `subject` to the same URL so it still
+   clusters, and record `[[dataset.derived_from]]` with the upstream url and
+   today's date. That is what later lets anyone see what the upstream has
+   added since you forked, instead of drifting quietly out of date.
+10. **Working outside the repo?** Projects that serve a bundle expose
    `<base>/index.json` (every dataset's facts + issue list) and
    `<base>/<slug>.md` (the full page) over HTTP — fetch those instead of
    spelunking the code host. Check `updated` and the page's Changelog
@@ -152,6 +188,11 @@ Judgment calls:
   you notice an era, column, or release channel you did not examine. Cheapest
   honesty in the format, and the only thing that stops silence from reading
   as a clean bill of health.
+- **Set `subject` on every new page.** One URL naming *what dataset this is*
+  — usually the program or product landing page — not where you fetch bytes
+  (that is `source_urls`). It is a best guess and it is how anyone else finds
+  your page alongside theirs. A page without one is invisible to directories;
+  the validator warns.
 - **Effect picking.** Pipeline fails → `breaks`. Numbers silently wrong →
   `corrupts`. Numbers faithful but a natural reading is wrong → `misleads`.
   Not a defect, but background you must hold → `context`.

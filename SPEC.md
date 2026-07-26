@@ -1,6 +1,6 @@
 # ergo — the data page format
 
-**Status:** draft v0.2 · 2026-07-26
+**Status:** draft v0.3 · 2026-07-26
 **What this is:** a spec for documenting datasets the way working data
 journalists actually need them documented — schema and provenance, yes, but
 above all a structured, code-linked registry of the **known issues** in the
@@ -104,7 +104,7 @@ or `docs/data-sources/`), alongside the generated `INDEX.md` digest.
 A page is ordinary markdown with **ergo blocks**: fenced code blocks whose
 info string is `toml ergo`, each containing exactly one top-level TOML table
 — `[dataset]`, `[issue]`, `[practice]` (§6), `[validation]`, or `[change]`
-(§14).
+(§15).
 
 ````markdown
 # NJ School Performance Reports
@@ -145,7 +145,7 @@ Rules:
   — facts stated in the block are not restated in the prose.
 - `[validation]` blocks may appear anywhere but conventionally live in a
   "Validation" section (§8); `[change]` blocks in a "Changelog" section
-  (§14).
+  (§15).
 - Parsers must accept a plain ` ```toml ` fence as a fallback when the block's
   sole top-level table is `dataset`, `issue`, `practice`, or `validation` —
   but authors should always write ` ```toml ergo `.
@@ -181,16 +181,17 @@ issues) · **Joins** (keys, match rates — quantify them — and join caveats b
 issue reference) · **Issues** (the registry, §5) · **Practices** (what may be
 computed and how, §6) · **Validation** (§8) · **Provenance** (vintage, fetch
 history, publisher revision policy) · **Changelog** (dated `[change]`
-records, §14).
+records, §15).
 
 ## 4. The manifest — `[dataset]`
 
 ```toml
 [dataset]
-ergo = "0.2"                    # format version (required)
+ergo = "0.3"                    # format version (required)
 slug = "spr"                    # kebab id, unique in the project (required)
 title = "NJ School Performance Reports"          # (required)
 publisher = "NJ Dept. of Education, Office of Performance Reports"  # (required)
+subject = "https://www.nj.gov/education/spr/"    # what dataset this documents — the identity claim (§11)
 source_urls = ["https://www.nj.gov/education/spr/"]                 # (required; `source_url` string also accepted)
 bite = "Two graduation-rate calculations are published; only the State one has a trend — plotting Federal as a trend is the classic misread."   # (required)
 status = "live"                 # live | acquiring | dormant | archived (required)
@@ -236,6 +237,31 @@ Field notes:
   refreshed dashboard and as frozen quarterly extracts, and the two return
   different counts by design. A single `source_url` string is still accepted
   and means a one-element list; new pages should use the plural.
+- **`subject`** (recommended) — one URL naming **what dataset this page is
+  about**. Distinct from `source_urls`, which say where *you* get the bytes:
+  two projects documenting the same census product through a mirror and an
+  API share a `subject` and differ in `source_urls`. It is the identity claim
+  a directory clusters on (§11), it is explicitly a *best guess*, and nobody
+  assigns it — pick the most durable public URL a reader would recognise as
+  "this dataset," usually the program or product landing page. Singular by
+  design; if you genuinely document two products that disagree, that is two
+  pages.
+- **`derived_from`** (optional, array of tables) — where this page came from,
+  when a page is a remix rather than an original:
+
+  ```toml
+  [[dataset.derived_from]]
+  url = "https://example.org/ergo/acs-5year.md"    # required
+  retrieved = "2026-07-20"                          # required
+  note = "Forked for housing questions; dropped the education issues."
+  ```
+
+  Several entries mean a merge of several upstreams. Recording lineage is
+  what makes remixing safe: with a URL and a date, a reader (or later, a
+  tool) can fetch the upstream and see what it has added since you forked,
+  rather than discovering months later that a fork went stale. Ergo does not
+  ask the upstream to cooperate and does not model relationship types — a
+  URL and a date carry the weight.
 - **`version`** (optional) — the *source's* own version or edition label,
   not the page's. GHCN-Daily ships `Version 3.34` and asks to be cited by
   it; IRS 990 filings carry a schema version; a survey has an edition. The
@@ -266,7 +292,7 @@ four domains, one shape.
 | `source_tokens` | list of the literals that mean "not a number" (`"*"`, `"N/A"`, `"Fewer than 10 valid scores"`) |
 
 Both are page-level facts, not per-cell state. ergo says *this dataset does
-this*; typing individual values is a data-plane job and out of scope (§13).
+this*; typing individual values is a data-plane job and out of scope (§14).
 Where `zero_is_missing` is true, expect an `[issue]` carrying the detail —
 the manifest flag exists so the shape is hard to miss, not to replace the
 issue.
@@ -301,7 +327,7 @@ years = "all"
 
 | field | values / form |
 |---|---|
-| `id` | kebab-case, stable forever; renames leave a tombstone (§14) |
+| `id` | kebab-case, stable forever; renames leave a tombstone (§15) |
 | `title` | one line, symptom first — what you'd notice, not the diagnosis |
 | `effect` | **closed vocabulary**, below |
 | `type` | recommended vocabulary, below |
@@ -339,7 +365,7 @@ identifiers do not map cleanly to the consuming system) · `policy`
 (interpretation depends on a publisher rule, threshold, or designation).
 
 Validators warn — not error — on other values; recurring new types should be
-proposed upstream (§15).
+proposed upstream (§16).
 
 ### `status` — is it still true (closed)
 
@@ -391,7 +417,7 @@ misread — strongly recommended for `misleads` and `context`) · `instead`
 (the sanctioned move that replaces the misuse — one line; a misuse/instead
 pair is a fail/pass example, the shape LLMs follow best) · `refs` (list:
 source docs, errata URLs, tickets) · `superseded_by` / `supersedes` (issue
-ids, §14).
+ids, §15).
 
 ### Structured detection — `[issue.detect]` (optional)
 
@@ -407,7 +433,7 @@ semantic = ["a rate column parses for some rows and not others"]
 
 The validator compiles each `regex` entry (an invalid pattern is an error)
 and type-checks the rest; executing `query` entries is later territory
-(§15). All three keys are optional lists.
+(§16). All three keys are optional lists.
 
 ## 6. The practice registry — `[practice]`
 
@@ -612,7 +638,7 @@ reconciliation table, say) lives in the surrounding section.
 
 A directory of pages carries a generated `INDEX.md`: for each page, one row —
 slug, title, status, last-updated date, issue counts by effect (core
-flagged), and the `bite` line. Regenerate with `ergo digest` (§11); never
+flagged), and the `bite` line. Regenerate with `ergo digest` (§12); never
 hand-edit.
 
 The digest exists because of a blunt finding from the survey: **agents do
@@ -638,7 +664,7 @@ emits the per-page issue table (core issues flagged) for exactly this use.
 Pages that document *published* data should themselves be published. An
 agent working outside the repo must be able to fetch the documentation from
 a stable URL — not spelunk through a code host. The unit is the **bundle**,
-generated by `ergo publish` (§11) into a directory the host site serves
+generated by `ergo publish` (§12) into a directory the host site serves
 verbatim:
 
 ```
@@ -686,7 +712,7 @@ re-validate under `check` (a `mitigated` issue whose `handled_by` was
 stripped would fail §5) — `check` governs sources, `publish` governs what
 ships.
 
-The test for what stays public is the same as §10's registry test, applied
+The test for what stays public is the same as §11's registry test, applied
 to prose: *would this sentence help someone rebuilding from the source
 files with none of our code?* Issue prose describing **what** the
 workaround does ("non-numeric rate values parse to NULL") is exactly what
@@ -710,11 +736,129 @@ Three rules make it findable and trustworthy:
    serves, and link to the bundle for the full machine-readable form.
 
 This is the decentralized half of a larger shape: every publisher serves
-its own bundle; a *directory of bundles* (an index of index.json URLs
-across publishers) is the natural aggregation layer, kept as an open
-question (§15) until more than one bundle exists in the wild.
+its own bundle, and directories index those bundles (§10).
 
-## 10. Authoring discipline
+## 10. Directories — finding pages you didn't write
+
+A **directory** is an index of bundles. It holds no page content: entries
+point at other people's bundles by URL. That constraint is the whole design —
+a directory that accepted content patches would become a fork of every page
+in it, and corrections would stop flowing to the publishers who own them.
+
+Nothing here is required to use ergo. A project that documents its own
+datasets and never joins a directory is unaffected by this section.
+
+### The premise: many pages per dataset, and that is correct
+
+At any scale, several projects will document the same dataset. A newsroom's
+ACS page, a housing nonprofit's, and a state agency's will disagree — about
+what is `core`, about which practices apply, about what the `bite` is —
+because their questions differ, and a `[practice]` is by definition a
+decision reasonable teams make differently (§6).
+
+So a directory **clusters; it never decides.** It answers *who documents
+this?* with an attributed list. There is deliberately no precedence, no
+shadowing, no merge-on-read, and no cross-directory deduplication. Those
+would impose an authority ranking that does not exist and would hide exactly
+the diversity worth having.
+
+### Clustering on `subject`
+
+Pages declare `subject` (§4) — one URL, the author's best guess at what
+dataset the page is about. To compare two subjects, normalize both: fold the
+scheme to `https` (nobody means a different dataset by `http`), lowercase the
+host, drop a leading `www.`, drop a trailing slash, drop a trailing
+`index.html` or `default.aspx`, drop the fragment. **Keep the query string** —
+for some publishers the query *is* the dataset identity, and dropping it would
+silently fuse distinct sources.
+
+Then:
+
+- Equal normalized subjects → the same cluster, automatically.
+- Same host and a shared path prefix → a **candidate** cluster, reported for
+  a human to judge, never merged silently.
+- Otherwise → separate clusters.
+
+The residual risk runs in a named direction: this will sometimes show two
+clusters for one dataset, and that is the error worth accepting, because
+fusing two datasets into one cluster tells a reader something false.
+
+### The directory file
+
+One JSON document at a stable URL.
+
+```json
+{
+  "ergo_directory": "1",
+  "name": "Example directory",
+  "updated": "2026-07-26",
+  "entries": [
+    {
+      "subject": "https://www.census.gov/programs-surveys/acs",
+      "bundle": "https://example.org/data/ergo/",
+      "slug": "acs-5year",
+      "title": "ACS 5-year estimates, New Jersey",
+      "publisher": "US Census Bureau",
+      "updated": "2026-07-22",
+      "recognizes": {
+        "domains": ["census.gov"],
+        "filenames": ["acs5*.csv"],
+        "columns": ["GEO_ID", "NAME", "B01001_001E"]
+      }
+    }
+  ]
+}
+```
+
+`subject` and `bundle` are required per entry; the rest are conveniences
+copied from the bundle so a directory can be browsed without fetching
+everything it lists. They are a **cache, not a source of truth** — the
+bundle wins on any disagreement.
+
+`recognizes` is optional and answers the harder question: an agent holding an
+unfamiliar file, with no idea what it is, can match on publisher domain,
+filename pattern, or column fingerprint and find a page that way. A column
+fingerprint is the strongest signal for a file that arrived with no
+provenance at all. Report a signature match with its basis ("matched 14 of
+16 column names"); never assert identity from one silently.
+
+### Configuring directories
+
+Consumers list directories in `ergo-sources.toml`, in the project root or
+alongside the pages:
+
+```toml
+[[source]]
+name = "default"
+url = "https://raw.githubusercontent.com/lavallee/ergo-directory/main/directory.json"
+
+[[source]]
+name = "my-newsroom"
+url = "https://data.example-news.org/ergo/directory.json"
+```
+
+Every configured directory is queried and every hit is returned, tagged with
+the directory it came from. Adding one is a two-line edit; running your own
+is a JSON file in a git repo.
+
+Resolution order for a consumer looking for documentation, cheapest first:
+in-repo pages → the publisher's own bundle, if the dataset has one → the
+configured directories. Stop at the first hit; the first two are free and
+authoritative for the project at hand.
+
+### Lineage and remixing
+
+Forking someone's page is expected and encouraged — it is how a page finds
+the questions it actually serves. Record it with `derived_from` (§4): the
+upstream URL and the date you took it.
+
+That record is what keeps a remix honest. With a URL and a date, a reader can
+fetch the upstream and see what it has registered since the fork, instead of
+discovering a year later that the original grew twelve issues nobody carried
+across. Computing that divergence is not yet tooled (§16); recording the
+lineage costs two lines now and is what makes the tooling possible later.
+
+## 11. Authoring discipline
 
 - **Register at the moment of discovery.** The workaround commit and the
   issue entry are the same change. An issue discovered but not registered is
@@ -738,7 +882,7 @@ question (§15) until more than one bundle exists in the wild.
   sections and boilerplate erode the trust that makes agents load pages at
   all. (flip's rule: empty structure is worse than absent structure.)
 
-## 11. Tooling — `ergo.py`
+## 12. Tooling — `ergo.py`
 
 One stdlib-only Python file (≥ 3.11, for `tomllib`). Vendor it by copying
 `tools/ergo.py` into the host repo; it carries its version in a header
@@ -749,6 +893,7 @@ python3 tools/ergo.py check   [PATHS...] [--repo ROOT] [--strict] [--require-man
 python3 tools/ergo.py digest  [PATHS...] [--long] [--write FILE]
 python3 tools/ergo.py export  [PATHS...] [--out FILE]
 python3 tools/ergo.py publish [PATHS...] --dir OUT [--base-url URL]
+python3 tools/ergo.py directory [PATHS...] [--bundle URL] [--entries-only]
 python3 tools/ergo.py new     SLUG [--dir DIR]
 ```
 
@@ -766,9 +911,13 @@ python3 tools/ergo.py new     SLUG [--dir DIR]
 - **publish** — write the servable bundle (§9): `index.json` plus each
   page's public projection as `<slug>.md`, deterministic, into a directory
   the host site serves; warns where projected output still smells internal.
+- **directory** — emits this project's entries for a directory file (§10):
+  subject and its normalized form, bundle URL, and recognition signatures
+  derived from the manifest. `--entries-only` gives just the array, to open
+  as a PR against someone else's directory.
 - **new** — scaffold a fresh page from the template.
 
-## 12. Skills — teaching agents the format
+## 13. Skills — teaching agents the format
 
 The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
 
@@ -784,7 +933,7 @@ The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
 Host projects reference or copy the skill; the two-line CLAUDE.md pointer
 (§9) is what makes it fire.
 
-## 13. Interop (generated, never canonical)
+## 14. Interop (generated, never canonical)
 
 The page is canonical; catalog formats are exports. The manifest maps
 losslessly onto the common standards — and the issue registry mostly maps
@@ -808,9 +957,9 @@ SDMX's `OBS_STATUS` flag vocabulary (break-in-series, suppressed,
 provisional, …) is prior art for the `type` taxonomy at cell grain. Nothing
 in a host project may depend on an export that the page can't regenerate.
 
-## 14. Versioning and evolution
+## 15. Versioning and evolution
 
-- The manifest's `ergo = "0.2"` names the format version the page conforms
+- The manifest's `ergo = "0.3"` names the format version the page conforms
   to. Breaking format changes bump the minor pre-1.0.
 - **Issue ids are permanent.** To rename: create the new id, mark the old
   entry `status = "resolved"` with `superseded_by = "new-id"`, keep its
@@ -841,7 +990,7 @@ in a host project may depend on an export that the page can't regenerate.
   annual file lands as edits to coverage, new issues, new validation
   records, and a `[change]` entry — not a new page.
 
-## 15. Open questions
+## 16. Open questions
 
 - **Executable detection.** `[issue.detect]` gives detection a structured
   form (compiled regexes, query sketches) but nothing runs the queries yet.

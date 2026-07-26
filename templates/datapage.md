@@ -5,11 +5,12 @@ project uses it. Written for someone deciding whether to read on.
 
 ```toml ergo
 [dataset]
-ergo = "0.2"
+ergo = "0.3"
 slug = "my-dataset"              # kebab-case; unique within the project
 title = "<Dataset title>"
 publisher = "<agency / org, office if known>"
-source_urls = ["https://…"]      # the landing page(s) you'd send a human to; a dataset can have several faces
+subject = "https://…"            # WHAT this documents — one URL; how directories cluster pages (§10)
+source_urls = ["https://…"]      # where YOU get the bytes; a dataset can have several faces
 bite = "One sentence: the single most likely way this data bites someone who touches it cold."
 status = "acquiring"             # live | acquiring | dormant | archived
 version = ""                     # the SOURCE's own edition/version label, if it has one — not the page's
@@ -19,6 +20,13 @@ unknowns = [                     # where your knowledge stops — silence reads 
   "<what you have not examined: an era, a column, a release channel>",
 ]
 # implementation = "https://…"   # public URL of your code — the one repo pointer the served projection keeps
+
+# Forked someone else's page? Record it — it is what lets you see what the
+# upstream has added since, instead of drifting quietly out of date.
+# [[dataset.derived_from]]
+# url = "https://example.org/ergo/their-page.md"
+# retrieved = "YYYY-MM-DD"
+# note = "Why you forked, and what you changed."
 
 [dataset.coverage]
 years = "1998-99 → 2025-26"      # in the source's own year labels
