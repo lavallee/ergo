@@ -63,7 +63,7 @@ python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
 the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
 
-Status: spec draft v0.2, proven against
+Status: spec draft v0.3, proven against
 [njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets and
 a second adopting project's multi-publisher source-contract corpus. Use
 `--require-manifest` when a directory is intended to contain only data pages;

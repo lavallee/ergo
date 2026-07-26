@@ -7,6 +7,7 @@ Asserts three things: the shipped positive fixtures are clean, the negative
 fixture triggers every error class we claim to catch, and a 0.1-shaped page
 still validates under the current tool.
 """
+import json
 import re
 import subprocess
 import sys
@@ -47,7 +48,7 @@ code, out = run("check", ROOT / "tests" / "negative.md")
 n_err, n_warn = counts(out)
 check("exit 1", code == 1)
 check("error count == 19", n_err == 19, f"got {n_err}")
-check("warning count == 8", n_warn == 8, f"got {n_warn}")
+check("warning count == 9", n_warn == 9, f"got {n_warn}")
 # Each string below is a check we must never silently lose in a refactor.
 for probe in [
     "missing required field: source_urls",
@@ -72,22 +73,27 @@ for probe in [
     "names no naive alternative",
     "practices take no scope",
     "but names no misuse",
+    "no subject — directories cluster pages by subject URL",
 ]:
     check(f"catches: {probe}", probe in out)
 
 print("0.1 pages still validate (backward compatibility)")
 legacy = ROOT / "tests" / "legacy-0.1.md"
 src = (ROOT / "examples" / "spr.md").read_text(encoding="utf-8")
-src = src.replace('ergo = "0.2"', 'ergo = "0.1"').replace(
+src, n = re.subn(r'^ergo = "0\.\d+"$', 'ergo = "0.1"', src, count=1, flags=re.M)
+assert n == 1, "compat fixture: could not downgrade the ergo version"
+src = src.replace(
     'source_urls = ["https://www.nj.gov/education/spr/"]',
     'source_url = "https://www.nj.gov/education/spr/"')
+src = re.sub(r'^subject = .*\n', '', src, count=1, flags=re.M)
 src = re.sub(r'version = .*\n', '', src, count=1)
 src = re.sub(r'unknowns = \[.*?\n\]\n', '', src, flags=re.S)
 src = re.sub(r'\[dataset\.missingness\]\n.*?\n\n', '', src, flags=re.S)
 legacy.write_text(src, encoding="utf-8")
 try:
     code, out = run("check", legacy, "--strict")
-    check("0.1 manifest shape: 0 errors, 0 warnings", counts(out) == (0, 0), out.strip())
+    check("0.1 manifest shape parses with no errors", counts(out)[0] == 0, out.strip())
+    check("0.1 page warns only about the missing subject", counts(out)[1] == 1, out.strip())
 finally:
     legacy.unlink(missing_ok=True)
 
@@ -95,6 +101,41 @@ print("digest and export run")
 for cmd in ("digest", "export"):
     code, out = run(cmd, ROOT / "examples")
     check(f"{cmd} exits 0", code == 0, out.strip()[:200])
+
+print("subject normalization clusters correctly (§10)")
+import importlib.util
+_spec = importlib.util.spec_from_file_location("ergo_tool_rt", ERGO)
+_ergo = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_ergo)
+norm = _ergo.normalize_subject
+acs = [
+    "https://WWW.Census.GOV/programs-surveys/acs/",
+    "http://census.gov/programs-surveys/acs",
+    "https://www.census.gov/programs-surveys/acs/index.html",
+    "https://census.gov/programs-surveys/acs#notes",
+]
+check("scheme/host/www/slash/index.html/fragment all fold together",
+      len({norm(u) for u in acs}) == 1, str({norm(u) for u in acs}))
+check("query string is preserved as identity",
+      norm("https://x.org/d?dataset=foo") != norm("https://x.org/d?dataset=bar"))
+check("distinct datasets stay distinct",
+      norm("https://census.gov/acs") != norm("https://census.gov/cps"))
+check("empty subject normalizes to empty", norm("") == "" and norm(None) == "")
+check("non-URL passes through without crashing", norm("not a url") == "not a url")
+
+print("directory emit (§10)")
+code, out = run("directory", ROOT / "examples", "--bundle", "https://example.org/ergo/")
+check("directory exits 0", code == 0, out.strip()[:200])
+try:
+    doc = json.loads(out[:out.rindex("}") + 1])
+    entry = doc["entries"][0]
+    check("entry carries subject + normalized form",
+          entry["subject"] and entry["subject_normalized"] == norm(entry["subject"]))
+    check("entry points at the bundle, not page content",
+          entry["bundle"] == "https://example.org/ergo/" and "issues" not in entry)
+    check("recognition signatures emitted", bool(entry.get("recognizes")))
+except (ValueError, KeyError, IndexError) as e:
+    check("directory output is valid JSON with entries", False, str(e))
 
 print()
 if failures:

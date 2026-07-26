@@ -1,0 +1,31 @@
+# ergo-sources.toml — the directories this project consults (SPEC §10).
+#
+# Copy to your project root (or beside your data pages). Every source listed
+# here is queried and every hit is returned, tagged with where it came from.
+# There is deliberately no precedence: when several projects document the same
+# dataset, that is not a conflict to resolve — their questions differ, so their
+# core marks and practices legitimately differ too. You choose.
+#
+# Lookup order for a consumer, cheapest first, stopping at the first hit:
+#   1. data pages in this repo
+#   2. the publisher's own served bundle, if the dataset has one
+#   3. the directories below
+
+[[source]]
+name = "default"
+url = "https://raw.githubusercontent.com/lavallee/ergo-directory/main/directory.json"
+
+# Add your own — a directory is just a JSON file at a stable URL, so a git
+# repo with one file in it is a complete implementation.
+#
+# [[source]]
+# name = "my-newsroom"
+# url = "https://data.example-news.org/ergo/directory.json"
+
+# To contribute your pages to a directory:
+#   python3 tools/ergo.py directory docs/data-sources/ \
+#       --bundle https://your.site/data/ergo/ --entries-only
+# then open a PR against that directory's repo.
+#
+# Corrections to someone else's page go to THAT publisher's repo, never to a
+# directory. A directory holds no page content, only pointers.

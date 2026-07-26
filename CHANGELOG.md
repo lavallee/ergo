@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.3 — 2026-07-26
+
+Directories: how you find pages you didn't write, and how many people can
+document the same dataset without anyone arbitrating.
+
+**Backward compatible.** 0.1 and 0.2 pages validate unchanged; the one new
+warning (a page with no `subject`) is a warning, not an error.
+
+- **`subject`** (manifest, recommended) — one URL naming *what dataset this
+  page is about*. Distinct from `source_urls`, which say where **you** get
+  the bytes: two projects documenting the same census product through a
+  mirror and an API share a `subject`. It is the identity claim directories
+  cluster on, it is explicitly a best guess, and nobody assigns it.
+- **`derived_from`** (manifest, optional, array of tables) — `url` and
+  `retrieved` per upstream, plus an optional `note`. Several entries mean a
+  merge of several upstreams. Forking a page is expected; recording the fork
+  is what later lets anyone see what the upstream has added since.
+- **§10, Directories.** A directory is an index of bundles at a stable URL,
+  holding **no page content** — a directory that accepted content patches
+  would become a fork of everything in it, and corrections would stop
+  flowing to the publishers who own them. Entries carry `subject`, `bundle`,
+  and optional `recognizes` signatures (publisher domain, filename glob,
+  column fingerprint) so an agent holding a mystery file can still find a
+  page.
+  - **Directories cluster; they never decide.** Several projects documenting
+    one dataset legitimately disagree about what is `core` and which
+    practices apply, because their questions differ. So there is deliberately
+    no precedence, no shadowing, no merge-on-read, and no cross-directory
+    deduplication — every hit is returned, attributed to the directory it
+    came from.
+  - **Subject normalization** is specified so clustering is reproducible:
+    fold the scheme to `https`, lowercase the host, drop a leading `www.`, a
+    trailing slash, a trailing `index.html`/`default.aspx`, and the fragment.
+    The **query string is kept** — for some publishers it carries the dataset
+    identity. Exact normalized match clusters automatically; same host with a
+    shared path prefix is reported as a *candidate* for a human, never merged
+    silently.
+  - **Multiple directories are the default assumption.** Consumers list them
+    in `ergo-sources.toml`; adding one is two lines, and running your own is
+    a JSON file in a git repo.
+- **`ergo directory`** — new subcommand emitting this project's entries,
+  with `--bundle` and `--entries-only`, so contributing to a directory is one
+  command and a PR.
+- Skill gains the outward lookup path (in-repo → publisher bundle →
+  directories), the never-merge rule, how to add a directory, and how to fork
+  a page without losing its lineage.
+
 ## 0.2 — 2026-07-26
 
 Ergo becomes a methodology record, not only a defect registry. Driven by a

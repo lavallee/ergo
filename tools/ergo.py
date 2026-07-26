@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ergo.py — validator, digest, and exporter for ergo data pages.
-# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.2 · tool 0.2.0
+# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.3 · tool 0.3.0
 # Stdlib only, Python >= 3.11 (tomllib). Vendor this file freely; it has no deps.
 """
 Usage:
@@ -8,6 +8,7 @@ Usage:
   python3 ergo.py digest  [PATHS...] [--long] [--write FILE]
   python3 ergo.py export  [PATHS...] [--out FILE]
   python3 ergo.py publish [PATHS...] --dir OUT [--base-url URL]
+  python3 ergo.py directory [PATHS...] [--bundle URL] [--name NAME] [--entries-only]
   python3 ergo.py new     SLUG [--dir DIR]
 
 PATHS are data-page markdown files or directories containing them
@@ -22,7 +23,7 @@ import sys
 import tomllib
 from pathlib import Path
 
-FORMAT_VERSIONS = {"0.1", "0.2"}
+FORMAT_VERSIONS = {"0.1", "0.2", "0.3"}
 BLOCK_TYPES = {"dataset", "issue", "practice", "validation", "change"}
 EFFECTS = ["breaks", "corrupts", "misleads", "context"]
 ISSUE_STATUSES = {"open", "mitigated", "resolved", "monitor"}
@@ -172,9 +173,25 @@ def check_page(page, lines):
             urls = None
         if not [u for u in (urls or []) if str(u).strip()] and not str(d.get("source_url") or "").strip():
             err.append((dl, "[dataset] missing required field: source_urls"))
-        for f in ("version", "implementation"):
+        for f in ("version", "implementation", "subject"):
             if f in d and not isinstance(d[f], str):
                 err.append((dl, f"{f} must be a string, got {d[f]!r}"))
+        if isinstance(d.get("subject"), str) and d["subject"].strip():
+            if not re.match(r"^https?://\S+$", d["subject"].strip()):
+                err.append((dl, f"subject must be a single http(s) URL, got {d['subject']!r}"))
+        elif "subject" not in d:
+            warn.append((dl, "no subject — directories cluster pages by subject URL, so a page without one cannot be found alongside others documenting the same dataset (§10)"))
+        derived = d.get("derived_from")
+        if derived is not None:
+            if not (isinstance(derived, list) and all(isinstance(x, dict) for x in derived)):
+                err.append((dl, "derived_from must be an array of tables ([[dataset.derived_from]])"))
+            else:
+                for i, src in enumerate(derived):
+                    for f in ("url", "retrieved"):
+                        if not str(src.get(f) or "").strip():
+                            err.append((dl, f"derived_from[{i}] missing required field: {f}"))
+                    for k in set(src) - {"url", "retrieved", "note"}:
+                        warn.append((dl, f"derived_from[{i}] key {k!r} is outside the recommended set ['note', 'retrieved', 'url']"))
         unknowns = d.get("unknowns")
         if unknowns is not None and not (isinstance(unknowns, list)
                                          and all(isinstance(u, str) for u in unknowns)):
@@ -454,7 +471,7 @@ def digest(pages, long=False):
 
 
 def export(pages):
-    doc = {"ergo": "0.2", "pages": []}
+    doc = {"ergo": "0.3", "pages": []}
     for page in pages:
         entry = {"path": str(page.path), "dataset": page.dataset,
                  "issues": [], "practices": [], "validations": []}
@@ -573,6 +590,8 @@ def publish(pages, out_dir, base_url=None):
             "status": d.get("status", ""),
             "confidence": d.get("confidence", ""),
             "updated": page.updated(),
+            "subject": d.get("subject", ""),
+            "derived_from": d.get("derived_from", []),
             "version": d.get("version", ""),
             "implementation": d.get("implementation", ""),
             "bite": d.get("bite", ""),
@@ -602,12 +621,71 @@ def publish(pages, out_dir, base_url=None):
         if base:
             rec["page_url"] = base + f"{slug}.md"
         datasets.append(rec)
-    index = {"ergo": "0.2", "datasets": datasets}
+    index = {"ergo": "0.3", "datasets": datasets}
     if base:
         index["base_url"] = base
     (out / "index.json").write_text(
         json.dumps(index, indent=2, default=str, ensure_ascii=False) + "\n", encoding="utf-8")
     return len(datasets), all_warnings
+
+
+def normalize_subject(url):
+    """Canonical form of a subject URL, for directory clustering (§10).
+
+    Fold the scheme to https, lowercase the host, drop a leading 'www.', a
+    trailing slash, and a trailing index.html/default.aspx, drop the fragment.
+    The query string is KEPT — for some publishers it carries the dataset
+    identity, and dropping it would fuse distinct sources.
+    """
+    s = str(url or "").strip()
+    if not s:
+        return ""
+    m = re.match(r"^(https?)://([^/?#]+)([^?#]*)(\?[^#]*)?", s, re.I)
+    if not m:
+        return s.rstrip("/")
+    # scheme folds to https: nobody means a different dataset by http vs https
+    scheme, host, path, query = "https", m.group(2).lower(), m.group(3) or "", m.group(4) or ""
+    host = host[4:] if host.startswith("www.") else host
+    path = re.sub(r"/(index\.html?|default\.aspx)$", "/", path, flags=re.I)
+    path = path.rstrip("/")
+    return f"{scheme}://{host}{path}{query}"
+
+
+def directory_entries(pages, bundle_url=None):
+    """Directory entries (§10) for these pages — what a publisher contributes."""
+    base = (bundle_url.rstrip("/") + "/") if bundle_url else ""
+    out = []
+    for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
+        d = page.dataset or {}
+        subject = d.get("subject", "")
+        entry = {
+            "subject": subject,
+            "subject_normalized": normalize_subject(subject),
+            "bundle": base,
+            "slug": d.get("slug", ""),
+            "title": d.get("title", ""),
+            "publisher": d.get("publisher", ""),
+            "updated": page.updated(),
+        }
+        cov = d.get("coverage") or {}
+        recognizes = {}
+        hosts = []
+        for u in (d.get("source_urls") or ([d["source_url"]] if d.get("source_url") else [])):
+            m = re.match(r"^https?://([^/?#]+)", str(u), re.I)
+            if m:
+                h = m.group(1).lower()
+                hosts.append(h[4:] if h.startswith("www.") else h)
+        if hosts:
+            recognizes["domains"] = sorted(set(hosts))
+        keys = (d.get("access") or {}).get("keys")
+        if keys:
+            recognizes["columns"] = list(keys)
+        if recognizes:
+            entry["recognizes"] = recognizes
+        if cov.get("years"):
+            entry["years"] = cov["years"]
+        out.append(entry)
+    return out
 
 
 TEMPLATE = '''# {title}
@@ -616,10 +694,11 @@ One-paragraph lede: what this dataset is and why the project uses it.
 
 ```toml ergo
 [dataset]
-ergo = "0.2"
+ergo = "0.3"
 slug = "{slug}"
 title = "{title}"
 publisher = ""
+subject = ""            # the URL of the dataset this documents — how directories cluster pages (§10)
 source_urls = [""]
 bite = ""
 status = "acquiring"
@@ -746,6 +825,13 @@ def main(argv=None):
     p_pub.add_argument("paths", nargs="*")
     p_pub.add_argument("--dir", required=True, metavar="OUT")
     p_pub.add_argument("--base-url", metavar="URL")
+    p_dir = sub.add_parser("directory")
+    p_dir.add_argument("paths", nargs="*")
+    p_dir.add_argument("--bundle", metavar="URL", help="public URL of your served bundle")
+    p_dir.add_argument("--name", default="", metavar="NAME", help="directory name, when emitting a whole file")
+    p_dir.add_argument("--entries-only", action="store_true",
+                       help="emit just the entries array, to paste into an existing directory")
+    p_dir.add_argument("--out", metavar="FILE")
     p_new = sub.add_parser("new")
     p_new.add_argument("slug")
     p_new.add_argument("--dir", default=".")
@@ -786,6 +872,25 @@ def main(argv=None):
             print(f"wrote {args.out}")
         else:
             sys.stdout.write(text)
+        return 0
+
+    if args.cmd == "directory":
+        entries = directory_entries(pages, bundle_url=args.bundle)
+        missing = [e["slug"] for e in entries if not e["subject"]]
+        doc = entries if args.entries_only else {
+            "ergo_directory": "1", "name": args.name or "", "entries": entries}
+        text = json.dumps(doc, indent=2, default=str, ensure_ascii=False) + "\n"
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote {args.out} ({len(entries)} entr{'y' if len(entries) == 1 else 'ies'})")
+        else:
+            sys.stdout.write(text)
+        if missing:
+            print(f"warning: no subject on: {', '.join(missing)} — these cannot be clustered (§10)",
+                  file=sys.stderr)
+        if not args.bundle:
+            print("warning: no --bundle URL given; entries have an empty bundle field",
+                  file=sys.stderr)
         return 0
 
     if args.cmd == "publish":
