@@ -768,7 +768,9 @@ Pages declare `subject` (§4) — one URL, the author's best guess at what
 dataset the page is about. To compare two subjects, normalize both: fold the
 scheme to `https` (nobody means a different dataset by `http`), lowercase the
 host, drop a leading `www.`, drop a trailing slash, drop a trailing
-`index.html` or `default.aspx`, drop the fragment. **Keep the query string** —
+`index.`/`default.` page of any common extension (`.html`, `.htm`, `.shtml`,
+`.php`, `.asp`, `.aspx`, `.jsp` — agencies use all of them for the same
+landing page), drop the fragment. **Keep the query string** —
 for some publishers the query *is* the dataset identity, and dropping it would
 silently fuse distinct sources.
 

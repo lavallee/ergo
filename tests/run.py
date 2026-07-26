@@ -122,6 +122,11 @@ check("distinct datasets stay distinct",
       norm("https://census.gov/acs") != norm("https://census.gov/cps"))
 check("empty subject normalizes to empty", norm("") == "" and norm(None) == "")
 check("non-URL passes through without crashing", norm("not a url") == "not a url")
+ufb = ["https://www.nj.gov/education/budget/ufb/index.shtml",
+       "https://nj.gov/education/budget/ufb/",
+       "http://WWW.NJ.gov/education/budget/ufb/index.shtml"]
+check("index pages fold across extensions (.shtml, not just .html)",
+      len({norm(u) for u in ufb}) == 1, str({norm(u) for u in ufb}))
 
 print("directory emit (§10)")
 code, out = run("directory", ROOT / "examples", "--bundle", "https://example.org/ergo/")

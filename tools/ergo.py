@@ -633,7 +633,8 @@ def normalize_subject(url):
     """Canonical form of a subject URL, for directory clustering (§10).
 
     Fold the scheme to https, lowercase the host, drop a leading 'www.', a
-    trailing slash, and a trailing index.html/default.aspx, drop the fragment.
+    trailing slash, and a trailing index/default page of any common extension,
+    drop the fragment.
     The query string is KEPT — for some publishers it carries the dataset
     identity, and dropping it would fuse distinct sources.
     """
@@ -646,7 +647,7 @@ def normalize_subject(url):
     # scheme folds to https: nobody means a different dataset by http vs https
     scheme, host, path, query = "https", m.group(2).lower(), m.group(3) or "", m.group(4) or ""
     host = host[4:] if host.startswith("www.") else host
-    path = re.sub(r"/(index\.html?|default\.aspx)$", "/", path, flags=re.I)
+    path = re.sub(r"/(index|default)\.(html?|shtml|php|aspx?|jsp)$", "/", path, flags=re.I)
     path = path.rstrip("/")
     return f"{scheme}://{host}{path}{query}"
 
