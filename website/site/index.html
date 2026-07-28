@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ergo — the data page format</title>
+<meta name="description" content="A schema tells you what the columns are. It can't tell you which ones lie. ergo is a markdown format for documenting a dataset's known issues — scoped, typed, versioned, and linked to the code that works around them.">
+<link rel="icon" href="lib/artoo-kit/favicon.svg">
+<link rel="stylesheet" href="lib/artoo-kit/tokens.css">
+<link rel="stylesheet" href="lib/artoo-kit/base.css">
+<link rel="stylesheet" href="lib/artoo-kit/article.css">
+<link rel="stylesheet" href="lib/artoo-kit/components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html">ergo</a>
+  <button class="nav-toggle" type="button" aria-label="Menu">menu</button>
+  <div class="nav-links">
+    <a href="walkthrough.html">Walkthrough</a>
+    <a href="format.html">Format</a>
+    <a href="page.html">Example page</a>
+    <a href="start.html">Start</a>
+    <a href="https://github.com/lavallee/ergo">GitHub</a>
+  </div>
+  <button data-theme-toggle class="nav-toggle spacer" type="button" aria-label="Toggle light or dark theme">theme</button>
+</nav>
+
+<header class="hero">
+  <div>
+    <p class="hero__kicker">
+      <span>The data page format</span>
+      <span class="badge badge--accent" data-fact="version">v0.4</span>
+      <span data-fact="spec-status">draft spec</span>
+    </p>
+    <h1>A schema tells you what the columns are. It can't tell you <em>which ones lie</em>.</h1>
+    <p class="hero__dek">ergo is a markdown format for documenting a dataset the way people
+      who actually use it need it documented: one page per dataset, carrying a registry of
+      the known issues — each one scoped to the years and columns it touches, typed, dated,
+      and linked to the code that works around it.</p>
+    <p class="hero__actions">
+      <a class="btn btn--solid" href="walkthrough.html">Watch a page come together</a>
+      <a class="btn btn--quiet" href="page.html">Read a finished page</a>
+      <a class="btn btn--quiet" href="start.html">Adopt it in ten minutes</a>
+    </p>
+  </div>
+  <div>
+    <p class="pane-label">One issue, from the page built on this site's walkthrough</p>
+    <div id="hero-record">
+      <div class="record">
+        <div class="record__chip"><strong>docs/data/&lt;slug&gt;.md</strong></div>
+        <pre><code>Generated at build time from a real data page.</code></pre>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <section class="prose">
+    <p class="section-kicker">The problem</p>
+    <h2>The documentation burden was never the schema</h2>
+    <p>Anyone who has worked with government data knows where the time goes. Not the
+      column list — the <em>issues</em>. The misspelled header. The suppression sentence
+      sitting in a rate field. The format that silently changed in 2019. The category
+      whose meaning narrowed in 2006. The boundary that moved. The two published
+      calculations with one name, only one of which has a trend.</p>
+    <p>Working through those is the craft. Writing them down is what almost nobody does,
+      because there has been nowhere to put them. They end up in a paragraph in a README,
+      in a code comment three functions deep, in a Slack thread, or in the head of the one
+      person who has been on the beat longest. So the next project pays for the same
+      discoveries again — and an agent handed the same files with no documentation
+      <a href="https://arxiv.org/abs/2406.07275">surfaces about 30% of the known issues on
+      its own</a>. The rest have to be handed over.</p>
+    <p>ergo is a place to put them. It is not a catalog, a warehouse, or a validation
+      service; it sits beside the data as one markdown file per dataset, and it is designed
+      so that handing the list over — to a colleague, to a stranger, or to a model — is a
+      file read rather than a conversation.</p>
+  </section>
+
+  <section>
+    <p class="section-kicker">What is actually enforced</p>
+    <h2>Four rules, and a validator that will not let you skip them</h2>
+    <p class="lede">Every fragment below is real output, produced by running the validator
+      when this page was built.</p>
+    <div class="rules" id="rules"></div>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">At rest</p>
+    <h2>It's a markdown file. That's the whole trick.</h2>
+    <p>A data page is one file per dataset: a document a human reads top to bottom as a
+      reporter's notebook, carrying fenced <code>toml ergo</code> blocks that a program
+      parses without guesswork. The blocks hold the structured facts — id, effect, type,
+      status, scope, the code that handles it. The prose between them holds the story, the
+      examples, and the numbers. Never both; a fact stated in a block is not restated in
+      the prose, because duplication drifts.</p>
+    <p>Parsing needs Python 3.11 and its standard library, because <code>tomllib</code> is
+      in it. There is no service to run, no database to migrate, and no dependency to
+      audit: <a href="https://github.com/lavallee/ergo/blob/main/tools/ergo.py">a single
+      file</a> you copy into your repository is the validator, the digest generator, the
+      exporter and the publisher. If the tool is abandoned tomorrow, what you are left with
+      is markdown that still reads correctly.</p>
+    <p><a href="format.html">See the format laid out visually →</a></p>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">The distinction that does the work</p>
+    <h2>An issue is a defect. A practice is a decision.</h2>
+    <p>An <strong>issue</strong> is something true about the data whether or not you exist:
+      the zeros that mean "no value", the ward numbers that were reassigned, the rate
+      column that carries prose. A <strong>practice</strong> is a call somebody made about
+      what may be computed from it: report the median rather than the mean, exclude the
+      migration date, don't turn report counts into occurrence rates.</p>
+    <p>Two tests, and they disagree usefully. <em>Deletion:</em> would this still be true
+      if we deleted all our code? Yes → issue. <em>Disagreement:</em> could a competent
+      team look at the same data and rightly decide otherwise? Yes → practice, and it says
+      so with <code>contested</code>. They are separate blocks because the cardinality
+      differs: one defect routinely has several handlings, chosen by the question being
+      asked, and no single issue entry can carry two opposite ones.</p>
+  </section>
+
+  <section>
+    <p class="section-kicker">Choosing where caveats live</p>
+    <h2>What you're actually choosing between</h2>
+    <p class="lede">These differ in kind, not in quality. Most projects need several of
+      them, and none of the others is trying to be a registry of defects.</p>
+    <div class="compare-wrap">
+      <table class="compare">
+        <colgroup><col><col class="is-ergo"><col><col><col></colgroup>
+        <thead>
+          <tr>
+            <th scope="col"><span class="visually-hidden">Dimension</span></th>
+            <th scope="col">ergo data page</th>
+            <th scope="col">Catalog metadata (DCAT, schema.org)</th>
+            <th scope="col">Dataset cards (Datasheets, Croissant)</th>
+            <th scope="col">Validation tooling (Frictionless, Great Expectations)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">What it is for</th>
+            <td>Documenting the traps in a dataset for whoever touches it next</td>
+            <td>Making a dataset discoverable and describable</td>
+            <td>Describing provenance, collection, and intended use</td>
+            <td>Asserting that today's file matches expectations</td>
+          </tr>
+          <tr>
+            <th scope="row">Where a caveat goes</th>
+            <td>A typed entry with an id, an effect, and a scope</td>
+            <td>A description string</td>
+            <td>A limitations section, in prose</td>
+            <td>A failing check, if somebody wrote one</td>
+          </tr>
+          <tr>
+            <th scope="row">Machine-readable scope</th>
+            <td>Which years, tables, columns, entities — as fields</td>
+            <td>Temporal and spatial coverage of the whole dataset</td>
+            <td>No</td>
+            <td>Per check, and only for what is executable</td>
+          </tr>
+          <tr>
+            <th scope="row">Linked to the workaround</th>
+            <td>Both ways, and the link is checked</td>
+            <td>No</td>
+            <td>No</td>
+            <td>The check <em>is</em> the code; the reason usually isn't recorded</td>
+          </tr>
+          <tr>
+            <th scope="row">Holds what isn't executable</th>
+            <td>Yes — definitional and institutional context is a first-class effect</td>
+            <td>Prose only</td>
+            <td>Prose only</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <th scope="row">Relationship to ergo</th>
+            <td>—</td>
+            <td colspan="3">Generated from the page, never canonical. The manifest maps onto all three; the issue registry maps onto almost nothing, which is why the format exists.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="record__caption">No composite score, no feature counts, no ranking. A dataset
+      that is thoroughly described and completely undocumented is exactly the situation
+      ergo was written for, and a scoring table would hide it.</p>
+  </section>
+
+  <section class="prose limits">
+    <p class="section-kicker">Before you adopt it</p>
+    <h2>The honest case against</h2>
+    <p><strong>The strongest objection is that a registry rots.</strong> Somebody writes
+      twelve issues in a burst of enthusiasm, the dataset changes, nobody updates the page,
+      and two years later a reader trusts a scope that is no longer true — which is worse
+      than no documentation, because it was believed.</p>
+    <p>That objection lands, and the honest answer is partial. The round trip catches the
+      half that involves code: delete a workaround, or rename an issue without touching the
+      anchor, and <code>check</code> fails in CI. Validation records make an untested
+      caveat visibly untested, and <code>unknowns</code> makes silence say something.
+      What none of that does is notice that the publisher changed something nobody looked
+      at. This format does not detect an issue for you. It is a place to put one, and a
+      mechanism that makes some kinds of rot loud.</p>
+
+    <h3>Thin adoption evidence</h3>
+    <p>The format is proven against two projects: the NJ DOE datasets behind
+      <a href="https://github.com/lavallee/njschooldata">njschooldata</a>, and a second
+      adopting project's multi-publisher source-contract corpus. That is enough to know it
+      survives contact with real government data. It is not enough to know it works across
+      a hundred datasets, or for a team that did not write it.</p>
+
+    <h3>No effectiveness measurement</h3>
+    <p>Nothing here shows that a project with data pages makes fewer mistakes than one
+      without. The benchmark figure above measures how much agents miss <em>unaided</em>;
+      it is the reason handing issues over matters, not evidence that this is how you
+      should hand them over.</p>
+
+    <h3>The spec is draft, and it has moved</h3>
+    <p>Version <span data-fact="format-version">0.4</span>, and the changelog records
+      breaking renames — <code>bite</code> became <code>pitfall</code> one release ago.
+      Pages declare the format version they conform to and the validator still accepts the
+      older ones, but the format is not frozen and should not be treated as if it were.</p>
+
+    <h3>It documents your relationship with a dataset, not the dataset</h3>
+    <p>Two newsrooms will write different pages about the same census product, disagree
+      about what is <code>core</code>, and both be right, because their questions differ.
+      Directories cluster pages by subject and deliberately refuse to merge or rank them.
+      If what you want is one authoritative description of a dataset, this is not that, and
+      does not believe that exists.</p>
+  </section>
+
+  <section>
+    <p class="section-kicker">Where this stands</p>
+    <h2>Coordinates</h2>
+    <dl class="facts" id="facts"></dl>
+    <p class="hero__actions">
+      <a class="btn" href="start.html">Adopt it</a>
+      <a class="btn btn--quiet" href="https://github.com/lavallee/ergo/blob/main/SPEC.md">Read the spec</a>
+      <a class="btn btn--quiet" href="https://github.com/lavallee/ergo/blob/main/skills/ergo/SKILL.md">Wire up an agent</a>
+    </p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot__inner">
+    <p>ergo — format and tooling for data pages. MIT licensed. Sibling of
+      <a href="https://github.com/lavallee/flip">flip</a>.</p>
+    <p>
+      <a href="https://github.com/lavallee/ergo">Repository</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/SPEC.md">Spec</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/docs/survey.md">Survey</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/CHANGELOG.md">Changelog</a>
+    </p>
+  </div>
+</footer>
+
+<script src="data/ergo.js"></script>
+<script src="data/walkthrough.js"></script>
+<script src="site.js"></script>
+<script src="home.js"></script>
+<script src="lib/artoo-kit/kit.js"></script>
+</body>
+</html>

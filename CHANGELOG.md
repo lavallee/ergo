@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- **A documentation site**, in `website/`, published to GitHub Pages by
+  `.github/workflows/pages.yml`. Five routes: the argument, a walkthrough of
+  one page being built, the format map, the repository's example page rendered
+  from its own export, and a start guide.
+- **The site's facts are derived, and drift fails the build.** `website/build.py`
+  runs the real `tools/ergo.py` against a scratch project to generate every
+  frame of the walkthrough, imports the validator's own vocabularies and
+  cross-checks them against SPEC.md, parses the spec's section anchors, reads
+  the command list out of `--help`, and runs the test suite for the count it
+  quotes. A vocabulary the spec stops naming, a command that disappears, or a
+  refusal that stops refusing fails the site rather than shipping stale.
+
 ## 0.4 — 2026-07-26
 
 - **`bite` is renamed `pitfall`.** Same field, same required one sentence,

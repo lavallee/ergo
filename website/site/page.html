@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A real data page — NJ School Performance Reports</title>
+<meta name="description" content="The example data page shipped in the ergo repository, rendered from its own machine-readable export: the manifest, the pitfall, every issue with its scope and misuse, and the practices that decide what may be computed.">
+<link rel="icon" href="lib/artoo-kit/favicon.svg">
+<link rel="stylesheet" href="lib/artoo-kit/tokens.css">
+<link rel="stylesheet" href="lib/artoo-kit/base.css">
+<link rel="stylesheet" href="lib/artoo-kit/article.css">
+<link rel="stylesheet" href="lib/artoo-kit/components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html">ergo</a>
+  <button class="nav-toggle" type="button" aria-label="Menu">menu</button>
+  <div class="nav-links">
+    <a href="walkthrough.html">Walkthrough</a>
+    <a href="format.html">Format</a>
+    <a href="page.html">Example page</a>
+    <a href="start.html">Start</a>
+    <a href="https://github.com/lavallee/ergo">GitHub</a>
+  </div>
+  <button data-theme-toggle class="nav-toggle spacer" type="button" aria-label="Toggle light or dark theme">theme</button>
+</nav>
+
+<main class="pg">
+
+  <header class="wk__lede">
+    <p class="section-kicker">A real page</p>
+    <h1 id="pg-title">The example data page</h1>
+    <p class="lede" id="pg-lede">Loading the page's own export…</p>
+    <p class="demo-note" id="pg-vintage">
+      Unlike the <a href="walkthrough.html">walkthrough</a>, nothing here is invented: this
+      is <code>examples/spr.md</code> from the repository, condensed from the working page
+      in <a href="https://github.com/lavallee/njschooldata">njschooldata</a>, and every
+      field below was read out of it by <code>ergo.py export</code> when the site was built.
+      What you are looking at is a render — the markdown file is the canonical artifact,
+      and it reads perfectly well without any of this.
+    </p>
+  </header>
+
+  <section id="pg-manifest-section">
+    <p class="section-kicker">The manifest</p>
+    <h2>What this page is about</h2>
+    <div class="pg__manifest facts" id="pg-manifest"></div>
+    <div class="pg__pitfall" id="pg-pitfall"></div>
+    <div id="pg-unknowns"></div>
+  </section>
+
+  <section>
+    <p class="section-kicker">The registry</p>
+    <h2>Issues</h2>
+    <p class="lede">Each entry is one discrete thing a user of this data must know. Filter
+      by what happens if you ignore it — the same closed vocabulary an agent filters on.</p>
+    <div class="pg__filters" id="pg-filters" role="group" aria-label="Filter issues by effect"></div>
+    <div id="pg-issues"></div>
+  </section>
+
+  <section>
+    <p class="section-kicker">The decisions</p>
+    <h2>Practices</h2>
+    <p class="lede">Not defects — calls somebody made about what may be computed from this
+      data, and what the naive move would have been. Reached by the question you are
+      answering, not by what is broken.</p>
+    <div id="pg-practices"></div>
+  </section>
+
+  <section id="pg-validation-section">
+    <p class="section-kicker">The receipts</p>
+    <h2>Validation</h2>
+    <p class="lede">Dated records that the page's claims were checked against reality. A
+      caveat nobody has tested is a hypothesis.</p>
+    <div class="table-wrap"><table id="pg-validations"></table></div>
+  </section>
+
+  <section class="prose">
+    <h2>What this page costs to keep</h2>
+    <p>Five issues and two practices, in one file, alongside the code that ingests the
+      data. The bulk of it was written at the moment of discovery — the workaround commit
+      and the issue entry are the same change — which is the only authoring discipline in
+      the spec that really matters. An issue discovered but not registered is the next
+      person's rediscovery, and the next reporter's error.</p>
+    <p><a href="https://github.com/lavallee/ergo/blob/main/examples/spr.md">Read the raw
+      markdown →</a> · <a href="format.html">See the block reference →</a> ·
+      <a href="start.html">Start your own →</a></p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot__inner">
+    <p>ergo — format and tooling for data pages. MIT licensed.</p>
+    <p>
+      <a href="https://github.com/lavallee/ergo">Repository</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/examples/spr.md">This page's source</a> ·
+      <a href="https://github.com/lavallee/njschooldata">The project it came from</a>
+    </p>
+  </div>
+</footer>
+
+<script src="data/example.js"></script>
+<script src="data/ergo.js"></script>
+<script src="site.js"></script>
+<script src="page.js"></script>
+<script src="lib/artoo-kit/kit.js"></script>
+</body>
+</html>

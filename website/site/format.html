@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The format — a data page, opened up</title>
+<meta name="description" content="The five blocks a data page is made of, their required and optional keys, the closed vocabularies the validator enforces, and the life of an issue from registered to resolved.">
+<link rel="icon" href="lib/artoo-kit/favicon.svg">
+<link rel="stylesheet" href="lib/artoo-kit/tokens.css">
+<link rel="stylesheet" href="lib/artoo-kit/base.css">
+<link rel="stylesheet" href="lib/artoo-kit/article.css">
+<link rel="stylesheet" href="lib/artoo-kit/components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html">ergo</a>
+  <button class="nav-toggle" type="button" aria-label="Menu">menu</button>
+  <div class="nav-links">
+    <a href="walkthrough.html">Walkthrough</a>
+    <a href="format.html">Format</a>
+    <a href="page.html">Example page</a>
+    <a href="start.html">Start</a>
+    <a href="https://github.com/lavallee/ergo">GitHub</a>
+  </div>
+  <button data-theme-toggle class="nav-toggle spacer" type="button" aria-label="Toggle light or dark theme">theme</button>
+</nav>
+
+<main class="wk">
+
+  <header class="wk__lede">
+    <p class="section-kicker">The format</p>
+    <h1>A data page, opened up</h1>
+    <p class="lede">A page is markdown with five kinds of fenced TOML block in it. This is
+      a way into <a href="https://github.com/lavallee/ergo/blob/main/SPEC.md">SPEC.md</a>,
+      not a replacement for it: every key, vocabulary and example below is read out of the
+      validator and the demo page at build time, so nothing here can describe a format the
+      tool no longer enforces.</p>
+  </header>
+
+  <section>
+    <p class="section-kicker">Anatomy</p>
+    <h2>The five blocks</h2>
+    <p class="lede">Pick one. The example beside it is a real block from the page the
+      <a href="walkthrough.html">walkthrough</a> builds.</p>
+    <div class="map-grid">
+      <nav class="anatomy" id="anatomy" aria-label="Block types"></nav>
+      <div class="block-detail" id="block-detail"></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-kicker">Vocabularies</p>
+    <h2>What is closed, and what is only recommended</h2>
+    <p class="lede">A <strong>closed</strong> vocabulary is an error outside the list —
+      that is what makes filtering by it worth doing. A <strong>recommended</strong> one
+      warns, so a project can carry a value the taxonomy hasn't earned yet and propose it
+      upstream once a second independent example turns up.</p>
+    <div id="vocabularies"></div>
+  </section>
+
+  <section>
+    <p class="section-kicker">Lifecycle</p>
+    <h2>The life of an issue</h2>
+    <p class="lede">Six stages, and every one of them is a separate act. An issue that has
+      only been registered is worth something; one that has been anchored and validated is
+      worth considerably more, and the difference is visible rather than assumed.</p>
+    <div class="rail" id="rail"></div>
+    <p class="record__caption">Resolved issues stay on the page. They document eras of the
+      data that still exist in archives, and they are the record that stops the same
+      discovery being made a third time.</p>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">Adoption</p>
+    <h2>Core and supplemental</h2>
+    <p>The spec splits itself in two so adoption never demands the whole apparatus at
+      once. A repository that adopts only the core — pages, plus an occasional
+      <code>check</code> — is conformant. The supplemental affordances are where the
+      compounding value is, and they can be adopted independently, in any order.</p>
+    <div class="conformance" id="conformance"></div>
+    <p>A page that documents real issues with correct scopes beats a fully instrumented
+      page with thin content. Start core, grow supplemental; empty structure is worse than
+      absent structure.</p>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">Reading order</p>
+    <h2>Three tiers, so a page can be read cheaply</h2>
+    <p>Documentation that costs a thousand tokens to consult does not get consulted. The
+      format is arranged for progressive disclosure: the <strong>digest</strong> is one row
+      per dataset — status, issue counts by effect, and the pitfall line. The <strong>page
+      skim</strong> is the manifest plus the issue titles. The <strong>issue section</strong>
+      is the full story, loaded only when its scope intersects the work.</p>
+    <p>Issues marked <code>core</code> break that rule deliberately: they are read before
+      any contact with the dataset, whatever the slice, because exposure is universal or
+      one misread poisons published work. The validator warns when more than a third of a
+      registry is core, because a page where everything is core has no core.</p>
+  </section>
+
+  <section>
+    <p class="section-kicker">Tooling</p>
+    <h2>Six commands, one file, no dependencies</h2>
+    <p class="lede">Vendored by copying
+      <a href="https://github.com/lavallee/ergo/blob/main/tools/ergo.py"><code>tools/ergo.py</code></a>
+      into your repository. Usage lines below are its own <code>--help</code> output at
+      this revision.</p>
+    <div class="table-wrap">
+      <table class="cli-table" id="cli"></table>
+    </div>
+    <p class="record__caption">Everything except <code>check</code> emits a render:
+      digests, JSON exports, served bundles, catalog records. Renders are generated from
+      the page and never authored — edits flow back to the page, never to a render.</p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot__inner">
+    <p>ergo — format and tooling for data pages. MIT licensed.</p>
+    <p>
+      <a href="https://github.com/lavallee/ergo">Repository</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/SPEC.md">Spec</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/templates/datapage.md">Template</a>
+    </p>
+  </div>
+</footer>
+
+<script src="data/ergo.js"></script>
+<script src="data/format.js"></script>
+<script src="site.js"></script>
+<script src="format.js"></script>
+<script src="lib/artoo-kit/kit.js"></script>
+</body>
+</html>

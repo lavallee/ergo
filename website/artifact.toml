@@ -1,0 +1,26 @@
+[artifact]
+slug = "ergo-site"
+title = "ergo — the data page format"
+description = "Every dataset has a list of things that will bite you. ergo is where that list lives."
+kind = "explainer"
+status = "live"
+created = "2026-07-28"
+updated = "2026-07-28"
+
+[build]
+commands = ["python3 build.py"]
+
+[deploy]
+target = "github-pages"
+
+[deploy.github-pages]
+commit = false
+mode = "workflow"
+own_root = true
+publish_dir = "website/site"
+subpath = ""
+
+[[libraries]]
+name = "artoo-kit"
+version = "0.3.0"
+sha256 = "66993edcfc8a821cddd430a163b787d644c17bd809c92aeab0d4ff55074073f7"

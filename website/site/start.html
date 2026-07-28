@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start — your first data page in ten minutes</title>
+<meta name="description" content="Vendor one Python file, scaffold a page, register the issue you already know about, anchor the code that handles it, and put the check in CI.">
+<link rel="icon" href="lib/artoo-kit/favicon.svg">
+<link rel="stylesheet" href="lib/artoo-kit/tokens.css">
+<link rel="stylesheet" href="lib/artoo-kit/base.css">
+<link rel="stylesheet" href="lib/artoo-kit/article.css">
+<link rel="stylesheet" href="lib/artoo-kit/components.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="index.html">ergo</a>
+  <button class="nav-toggle" type="button" aria-label="Menu">menu</button>
+  <div class="nav-links">
+    <a href="walkthrough.html">Walkthrough</a>
+    <a href="format.html">Format</a>
+    <a href="page.html">Example page</a>
+    <a href="start.html">Start</a>
+    <a href="https://github.com/lavallee/ergo">GitHub</a>
+  </div>
+  <button data-theme-toggle class="nav-toggle spacer" type="button" aria-label="Toggle light or dark theme">theme</button>
+</nav>
+
+<main class="page page--narrow">
+
+  <header>
+    <p class="section-kicker">Start</p>
+    <h1>Your first data page in ten minutes</h1>
+    <p class="lede">Nine steps, from an empty repository to a documented dataset with the
+      check running in CI. Requires Python 3.11 or newer, and nothing else.</p>
+    <p class="demo-note">Start with a dataset you already know something about. The point
+      of the first page is not to be complete — it is to get the one issue that has
+      already cost you a day out of your head and into a file.</p>
+  </header>
+
+  <ol class="steps">
+
+    <li>
+      <h3>Vendor the tool</h3>
+      <p>One file, no install, no dependencies. Commit it: the version it was vendored at
+        is recorded in its header, and a repository that carries its own validator can
+        still be checked in five years.</p>
+      <div class="cmd"><code>mkdir -p tools docs/data</code></div>
+      <div class="cmd"><code>curl -sSLo tools/ergo.py https://raw.githubusercontent.com/lavallee/ergo/main/tools/ergo.py</code></div>
+    </li>
+
+    <li>
+      <h3>Scaffold a page</h3>
+      <p>One page per dataset, named after its slug. The template is a to-do list: it does
+        not validate until you have filled in who publishes the data, where it comes from,
+        and what the pitfall is.</p>
+      <div class="cmd"><code>python3 tools/ergo.py new my-dataset --dir docs/data</code></div>
+    </li>
+
+    <li>
+      <h3>Fill the manifest, and write the pitfall first</h3>
+      <p>Publisher, <code>source_urls</code>, <code>status</code> — and
+        <code>pitfall</code>: one sentence naming the single thing most likely to trip up
+        somebody who touches this data cold. It is required because it is the line that
+        travels furthest, into the index and into an agent's context, often without the
+        rest of the page.</p>
+      <p>Add <code>subject</code> too, if the dataset has a landing page. It is the
+        identity claim — what dataset this <em>is</em>, as opposed to where you fetch it —
+        and it is how anyone else's page about the same data can be found alongside yours.</p>
+      <div class="cmd"><code>python3 tools/ergo.py check docs/data</code></div>
+    </li>
+
+    <li>
+      <h3>Register the issue you already know about</h3>
+      <p>Title it by the symptom, not the diagnosis: "rate cells are strings", not
+        "inconsistent typing" — that is how the next person searches. Then the four
+        required judgments: what happens if you ignore it (<code>effect</code>), what kind
+        of problem it is (<code>type</code>), whether it is still true
+        (<code>status</code>), and where it applies (<code>[issue.scope]</code>).</p>
+      <p>If it is a <code>misleads</code> or a <code>context</code> issue, write the
+        <code>misuse</code>: the wrong conclusion a careless-but-reasonable reader would
+        publish. That sentence is usually the most valuable line on the page.</p>
+      <div class="cmd"><code>python3 tools/ergo.py check docs/data</code></div>
+    </li>
+
+    <li>
+      <h3>Point the issue at the code, and the code back at the issue</h3>
+      <p>If you have already worked around it, set <code>status = "mitigated"</code> and
+        list the code in <code>handled_by</code>. Then put the anchor comment beside the
+        workaround. One line of <em>why this looks weird</em> next to it is good manners;
+        three lines is a fork of the page.</p>
+      <div class="cmd"><code># ergo: my-dataset/my-issue-id — non-numeric rates parse to NULL</code></div>
+      <div class="cmd"><code>python3 tools/ergo.py check docs/data --repo .</code></div>
+      <p>Now <code>grep -rn "ergo: my-dataset"</code> finds every workaround in the
+        repository, and deleting either half fails the check instead of quietly changing a
+        number.</p>
+    </li>
+
+    <li>
+      <h3>Record how you checked it</h3>
+      <p>A <code>[validation]</code> block: the date, the method, and the result with
+        numbers in it. "7 of 7 spot figures match within rounding" beats "we checked",
+        because the number is what lets the <em>next</em> check detect drift.</p>
+    </li>
+
+    <li>
+      <h3>Generate the index</h3>
+      <p>One row per dataset — status, issue counts by effect, core flagged, and the
+        pitfall. Regenerate it on commit; never hand-edit it.</p>
+      <div class="cmd"><code>python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md</code></div>
+      <div id="start-index"></div>
+    </li>
+
+    <li>
+      <h3>Point your agents at it</h3>
+      <p>Agents do not discover documentation at well-known paths; they go where they are
+        pointed. Two or three lines in <code>CLAUDE.md</code> or <code>AGENTS.md</code> is
+        what makes the rest of this work — the digest and the pages carry the weight.</p>
+      <div class="record">
+        <div class="record__chip"><strong>CLAUDE.md</strong></div>
+        <pre><code>## Data documentation
+
+Every dataset we ingest has an ergo data page in `docs/data/`, indexed by
+`docs/data/INDEX.md`. Read the page before writing code against a dataset:
+issues carry stable ids, the ids are anchored in the code that works around
+them, and `python3 tools/ergo.py check docs/data --repo .` validates that
+contract.</code></pre>
+      </div>
+      <p>For agents that maintain the pages as well as read them, copy
+        <a href="https://github.com/lavallee/ergo/blob/main/skills/ergo/SKILL.md">the
+        skill</a> into your skills directory. It covers both roles: consulting the
+        registry before writing code, and registering an issue at the moment of
+        discovery.</p>
+    </li>
+
+    <li>
+      <h3>Put the check in CI</h3>
+      <p>This is the line that keeps the corpus honest without anyone watching it.
+        <code>--require-manifest</code> closes the directory, so a prose file that quietly
+        stops being a data page is an error rather than a page that silently disappears
+        from the check. Add <code>--strict</code> once you have cleaned the warnings, and
+        warnings fail too.</p>
+      <div class="cmd"><code>python3 tools/ergo.py check docs/data --repo . --require-manifest</code></div>
+    </li>
+
+  </ol>
+
+  <section class="prose">
+    <h2>When you're ready for more</h2>
+    <p><strong>Practices.</strong> Once you find yourself explaining <em>why</em> a number
+      is computed the way it is, that is a <code>[practice]</code>, not an issue — see
+      <a href="format.html">the format map</a>. Name the naive move it replaces; if there
+      isn't one, it is documentation rather than a practice.</p>
+    <p><strong>Publish the bundle.</strong> If the data is public, the documentation
+      probably should be too. <code>publish</code> writes a served directory: an
+      <code>index.json</code> plus each page's public projection, with your rebuild
+      runbooks and repo paths stripped out.</p>
+    <div class="cmd"><code>python3 tools/ergo.py publish docs/data --dir site/ergo --base-url https://example.org/ergo/</code></div>
+    <p><strong>Join a directory.</strong> <code>directory --entries-only</code> emits your
+      entries — subject, bundle URL, and recognition signatures — to open as a pull request
+      against someone else's directory file. A directory indexes bundles and never holds
+      page content, so corrections keep flowing to whoever owns the page.</p>
+    <p><a href="walkthrough.html">Watch all of this happen with real output →</a></p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot__inner">
+    <p>ergo — format and tooling for data pages. MIT licensed.</p>
+    <p>
+      <a href="https://github.com/lavallee/ergo">Repository</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/SPEC.md">Spec</a> ·
+      <a href="https://github.com/lavallee/ergo/blob/main/CONTRIBUTING.md">Contributing</a>
+    </p>
+  </div>
+</footer>
+
+<script src="data/walkthrough.js"></script>
+<script src="site.js"></script>
+<script src="start.js"></script>
+<script src="lib/artoo-kit/kit.js"></script>
+</body>
+</html>

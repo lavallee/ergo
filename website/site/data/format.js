@@ -1,0 +1,353 @@
+window.__ERGO_FORMAT__ = {
+  "generated": "2026-07-28T13:51:04+00:00",
+  "blocks": [
+    {
+      "table": "dataset",
+      "label": "The manifest",
+      "spec": "4",
+      "summary": "Who publishes it, where it comes from, what it covers — and the one sentence that saves a cold reader.",
+      "one_per_page": true,
+      "optional": [
+        "subject",
+        "version",
+        "confidence",
+        "updated",
+        "unknowns",
+        "implementation",
+        "derived_from",
+        "coverage",
+        "missingness",
+        "access"
+      ],
+      "required": [
+        "ergo",
+        "slug",
+        "title",
+        "publisher",
+        "pitfall",
+        "status"
+      ],
+      "example": "[dataset]\nergo = \"0.4\"\nslug = \"ridgeway-311\"\ntitle = \"Ridgeway County 311 service requests\"\npublisher = \"Ridgeway County Office of Constituent Services\"\nsubject = \"https://data.ridgeway.example.gov/311\"\nsource_urls = [\"https://data.ridgeway.example.gov/311/requests.csv\"]\npitfall = \"Every ticket still open when the county switched ticket systems was closed on the migration date, so response times computed across March 2021 are worthless unless those rows are excluded.\"\nstatus = \"live\"\nversion = \"export of 2026-06-30\"\nconfidence = \"B\"\nupdated = \"2026-07-28\"\nunknowns = [\n  \"The pre-2018 archive is published as PDF summaries only; we have not read it.\",\n  \"We do not know whether the vendor rewrites categories on old rows when the category list changes.\",\n]\n\n[dataset.coverage]\nyears = \"2018 -> 2026 (partial year)\"\ngrain = \"one row per service request\"\nentities = \"unincorporated county only; the four boroughs run their own systems\"\n\n[dataset.missingness]\nzero_is_missing = true\nsource_tokens = [\"\", \"N/A\", \"UNKNOWN\"]\n\n[dataset.access]\nkeys = [\"request_id\"]\nraw = \"data/raw/ridgeway-311/\"\nbuilders = [\"tools/load_311.py\"]\nfeeds = [\"requests\", \"response_times\"]"
+    },
+    {
+      "table": "issue",
+      "label": "An issue",
+      "spec": "5",
+      "summary": "One discrete thing a user of the data must know: a defect, a trap, or a piece of institutional nuance.",
+      "one_per_page": false,
+      "optional": [
+        "core",
+        "discovered",
+        "handled_by",
+        "detection",
+        "misuse",
+        "instead",
+        "refs",
+        "detect",
+        "superseded_by",
+        "supersedes"
+      ],
+      "required": [
+        "id",
+        "title",
+        "effect",
+        "type",
+        "status",
+        "scope"
+      ],
+      "example": "[issue]\nid = \"migration-close-dates\"\ntitle = \"Every ticket open on 2021-03-15 carries that date as its closed_date\"\neffect = \"corrupts\"\ntype = \"revision\"\nstatus = \"open\"\ndiscovered = \"2026-07\"\ndetection = \"closed_date = 2021-03-15 on 14,902 rows; the next busiest close date in the whole file is 231 rows\"\nmisuse = \"Reading 2020 and early 2021 response times as if they were measured. They were assigned by a data migration.\"\n\n[issue.scope]\nyears = [\"2018\", \"2019\", \"2020\", \"2021\"]\ncolumns = [\"closed_date\", \"response_hours\"]"
+    },
+    {
+      "table": "practice",
+      "label": "A practice",
+      "spec": "6",
+      "summary": "A decision about what may be computed from the data, and how. Not a defect — a call somebody made.",
+      "one_per_page": false,
+      "optional": [
+        "naive",
+        "stops_at",
+        "irreversible",
+        "residual",
+        "because_not",
+        "contested",
+        "addresses",
+        "implemented_by"
+      ],
+      "required": [
+        "id",
+        "title",
+        "question",
+        "authority",
+        "rule",
+        "because"
+      ],
+      "example": "[practice]\nid = \"median-response-worked-only\"\ntitle = \"Response time is the median over tickets that had a work order, excluding the migration date\"\nquestion = \"How fast does the county respond to a complaint?\"\nauthority = \"project\"\nrule = [\n  \"Restrict to tickets with a work_order_id and a closed_date.\",\n  \"Drop every ticket whose closed_date is the 2021-03-15 migration date.\",\n  \"Report the median by year, with n.\",\n]\nnaive = \"The mean of response_hours over every closed ticket, which folds in the intake zeros and the migration backfill.\"\nbecause = \"Both defects push the average down, and they push it down hardest in exactly the years a reader wants to compare against.\"\nresidual = \"Dropping the migration date also drops roughly 400 tickets genuinely closed that day. The error runs toward reporting the county as slower than it was, which is the safer direction.\"\ncontested = true\naddresses = [\"migration-close-dates\", \"response-hours-zero\"]\nimplemented_by = [\"tools/load_311.py#median_response\"]"
+    },
+    {
+      "table": "validation",
+      "label": "A validation record",
+      "spec": "8",
+      "summary": "Dated, quantified proof that a claim on this page was checked against reality. Append-only.",
+      "one_per_page": false,
+      "optional": [
+        "evidence"
+      ],
+      "required": [
+        "date",
+        "method",
+        "result"
+      ],
+      "example": "[validation]\ndate = \"2026-07-28\"\nmethod = \"reconciled our 2024 median against the county's published annual service report\"\nresult = \"ours 41.5 h vs the county's 42 h for 2024; the gap is the four boroughs, which the county includes and we exclude\"\nevidence = \"docs/data/ridgeway-311-reconciliation.md\""
+    },
+    {
+      "table": "change",
+      "label": "A changelog entry",
+      "spec": "15",
+      "summary": "What changed in a consumer's picture of the dataset, for readers who cannot see your git history.",
+      "one_per_page": false,
+      "optional": [
+        "issues"
+      ],
+      "required": [
+        "date",
+        "note"
+      ],
+      "example": "[change]\ndate = \"2026-07-28\"\nnote = \"First pass over the 311 export: migration close dates, ward renumbering, and the intake zeros registered; response-time practice recorded.\"\nissues = [\"migration-close-dates\", \"ward-renumbering\", \"response-hours-zero\"]"
+    }
+  ],
+  "vocabularies": [
+    {
+      "field": "effect",
+      "table": "issue",
+      "closed": true,
+      "spec": "5",
+      "question": "What happens if you ignore it?",
+      "values": [
+        "breaks",
+        "corrupts",
+        "misleads",
+        "context"
+      ]
+    },
+    {
+      "field": "status",
+      "table": "issue",
+      "closed": true,
+      "spec": "5",
+      "question": "Is it still true?",
+      "values": [
+        "open",
+        "mitigated",
+        "resolved",
+        "monitor"
+      ]
+    },
+    {
+      "field": "type",
+      "table": "issue",
+      "closed": false,
+      "spec": "5",
+      "question": "What kind of problem is it?",
+      "values": [
+        "definitional",
+        "universe",
+        "coverage",
+        "suppression",
+        "geography",
+        "revision",
+        "coding",
+        "format",
+        "entry",
+        "linkage",
+        "uncertainty",
+        "availability",
+        "measurement",
+        "identity",
+        "policy"
+      ]
+    },
+    {
+      "field": "authority",
+      "table": "practice",
+      "closed": true,
+      "spec": "6",
+      "question": "Who decided?",
+      "values": [
+        "publisher",
+        "project",
+        "community"
+      ]
+    },
+    {
+      "field": "status",
+      "table": "dataset",
+      "closed": true,
+      "spec": "4",
+      "question": "Are we still taking this in?",
+      "values": [
+        "live",
+        "acquiring",
+        "dormant",
+        "archived"
+      ]
+    },
+    {
+      "field": "scope",
+      "table": "issue",
+      "closed": false,
+      "spec": "5",
+      "question": "Where does it apply?",
+      "values": [
+        "years",
+        "tables",
+        "columns",
+        "rows",
+        "entities",
+        "all"
+      ]
+    }
+  ],
+  "lifecycle": [
+    {
+      "stage": "registered",
+      "act": "write the block",
+      "spec": "5",
+      "gains": "An id that never changes, a symptom-first title, and an effect from the closed vocabulary.",
+      "worth": "It is findable. Nothing else yet — an unscoped issue is refused."
+    },
+    {
+      "stage": "scoped",
+      "act": "[issue.scope]",
+      "spec": "5",
+      "gains": "The years, columns, tables, or entities it touches — machine-readable, not adjectives.",
+      "worth": "A consumer can now ask 'does this touch my slice?' without reading the page."
+    },
+    {
+      "stage": "mitigated",
+      "act": "handled_by",
+      "spec": "5",
+      "gains": "A code reference. Required — a mitigated issue with no handled_by is an error.",
+      "worth": "The claim that it is handled now names something a reader can open."
+    },
+    {
+      "stage": "anchored",
+      "act": "# ergo: slug/id",
+      "spec": "7",
+      "gains": "A comment in the handling code naming the issue back.",
+      "worth": "The round trip closes. Deleting either half now fails the check."
+    },
+    {
+      "stage": "validated",
+      "act": "[validation]",
+      "spec": "8",
+      "gains": "A dated record with numbers in it: reconciled, or confirmed against real files.",
+      "worth": "The caveat stops being a hypothesis. Drift becomes detectable."
+    },
+    {
+      "stage": "resolved",
+      "act": "status = resolved",
+      "spec": "15",
+      "gains": "A note that it no longer applies — kept on the page, never deleted.",
+      "worth": "The record that stops the next person rediscovering it in the archive."
+    }
+  ],
+  "conformance": {
+    "core": [
+      "The manifest, with its required fields",
+      "Issues with id, title, effect, type, status and a scope",
+      "handled_by on every mitigated issue"
+    ],
+    "supplemental": [
+      "Code anchors and the --repo round trip",
+      "[practice] entries",
+      "[validation] records and [change] changelogs",
+      "The generated digest and the agent-memory pointer",
+      "The served bundle and directory entries",
+      "missingness, unknowns, version on the manifest",
+      "core, misuse, instead, detect on issues",
+      "The agent skill, and the interop exports"
+    ]
+  },
+  "sections": [
+    {
+      "number": "1",
+      "title": "Principles",
+      "anchor": "1-principles"
+    },
+    {
+      "number": "2",
+      "title": "Definitions",
+      "anchor": "2-definitions"
+    },
+    {
+      "number": "3",
+      "title": "The data page",
+      "anchor": "3-the-data-page"
+    },
+    {
+      "number": "4",
+      "title": "The manifest — `[dataset]`",
+      "anchor": "4-the-manifest--dataset"
+    },
+    {
+      "number": "5",
+      "title": "The issue registry — `[issue]`",
+      "anchor": "5-the-issue-registry--issue"
+    },
+    {
+      "number": "6",
+      "title": "The practice registry — `[practice]`",
+      "anchor": "6-the-practice-registry--practice"
+    },
+    {
+      "number": "7",
+      "title": "Code linkage — the round trip",
+      "anchor": "7-code-linkage--the-round-trip"
+    },
+    {
+      "number": "8",
+      "title": "Validation — `[validation]`",
+      "anchor": "8-validation--validation"
+    },
+    {
+      "number": "9",
+      "title": "The index and the agent entry point",
+      "anchor": "9-the-index-and-the-agent-entry-point"
+    },
+    {
+      "number": "10",
+      "title": "Directories — finding pages you didn't write",
+      "anchor": "10-directories--finding-pages-you-didnt-write"
+    },
+    {
+      "number": "11",
+      "title": "Authoring discipline",
+      "anchor": "11-authoring-discipline"
+    },
+    {
+      "number": "12",
+      "title": "Tooling — `ergo.py`",
+      "anchor": "12-tooling--ergopy"
+    },
+    {
+      "number": "13",
+      "title": "Skills — teaching agents the format",
+      "anchor": "13-skills--teaching-agents-the-format"
+    },
+    {
+      "number": "14",
+      "title": "Interop (generated, never canonical)",
+      "anchor": "14-interop-generated-never-canonical"
+    },
+    {
+      "number": "15",
+      "title": "Versioning and evolution",
+      "anchor": "15-versioning-and-evolution"
+    },
+    {
+      "number": "16",
+      "title": "Open questions",
+      "anchor": "16-open-questions"
+    }
+  ]
+};

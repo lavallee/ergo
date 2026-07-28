@@ -1,0 +1,76 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "SPEC.md"
+      - "tools/ergo.py"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The build stamps the deployed revision and runs `git ls-files` in a
+          # scratch project; a shallow clone is enough for both.
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install artoo
+        run: pipx install artoo-artifacts
+
+      # The site's data comes from running this checkout's own validator, so
+      # what the site describes is what this revision enforces. Any drift —
+      # a vocabulary the spec no longer names, a command that vanished, a
+      # refusal that stopped refusing — fails here rather than shipping.
+      - name: Build the artifact
+        run: artoo build website
+
+      - name: Firewall and coherence checks
+        run: |
+          artoo status website
+          artoo doctor .
+
+      # The site renders this page, so it must validate before it is published.
+      # No --repo: the example is condensed from another project and its
+      # handled_by refs point at that project's files, not this repository's.
+      - name: The example page must validate
+        run: |
+          python3 tools/ergo.py check examples/spr.md
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: website/site
+          # v5 excludes dotfiles by default; the site ships .nojekyll, which
+          # artoo's firewall allow-lists precisely so it reaches the root.
+          include-hidden-files: true
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

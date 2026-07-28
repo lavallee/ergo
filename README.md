@@ -31,6 +31,15 @@ issue registry and its taxonomies, the practice registry, code linkage,
 validation records, the index/digest, authoring discipline, tooling, and
 interop.
 
+**[The site](https://lavallee.github.io/ergo/)** is the illustrated version:
+a [walkthrough](https://lavallee.github.io/ergo/walkthrough.html) of one page
+being built by real commands (including the three times the validator refuses),
+the [format map](https://lavallee.github.io/ergo/format.html), the
+[example page](https://lavallee.github.io/ergo/page.html) rendered from its own
+export, and a [start guide](https://lavallee.github.io/ergo/start.html). It is
+built from this repository by `website/build.py`, so it cannot describe a format
+the tool no longer enforces.
+
 Why a new format? A survey of the landscape
 ([docs/survey.md](docs/survey.md)) — metadata standards, ML dataset cards,
 validation tooling, newsroom practice, agency documentation, agent-readable
