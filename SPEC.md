@@ -1,6 +1,6 @@
 # ergo — the data page format
 
-**Status:** draft v0.4 · 2026-07-26
+**Status:** draft v0.5 · 2026-07-31
 **What this is:** a spec for documenting datasets the way working data
 journalists actually need them documented — schema and provenance, yes, but
 above all a structured, code-linked registry of the **known issues** in the
@@ -78,6 +78,14 @@ dependencies, canonical artifact with derived renders.
 10. **Render, don't fork.** Public-facing explainer pages, catalog metadata
     (DCAT, Data Package, Croissant), and agent digests are derived from the
     page. Edits flow back to the page, never directly to a render.
+11. **Look for what the publisher already said.** Agencies put their cautions
+    in places that are not data: a readme sheet, a cover page, a legend, a
+    technical guide, an introduction, a notes tab. They add them *precisely in
+    the editions where something went wrong* — a pandemic year, a waiver, a
+    methodology change — which is when a process that only reads the data is
+    least likely to look. Go and read them, quote them (§8), and record where
+    you looked and found nothing, because "the publisher was silent" and
+    "nobody checked" are different claims.
 
 ## 2. Definitions
 
@@ -87,6 +95,14 @@ dependencies, canonical artifact with derived renders.
   scraped corpus. Identified by a kebab-case **slug**.
 - **Issue** — one discrete thing a user of the data must know: a defect, a
   trap, a definitional nuance. Identified by `<dataset-slug>/<issue-id>`.
+  **An issue is true whether or not you exist.** A fact about how your project
+  handles the data is not an issue about the data; it belongs on the page for
+  the dataset your project produces (below), or, where that is more ceremony
+  than it is worth, is marked `about = "handling"` (§5).
+- **Produced dataset** — a dataset this project makes rather than fetches: a
+  warehouse table, a curated seed list, a joined layer. It has a page like any
+  other, but declares `produced_from` instead of `source_urls` (§4), because
+  there is no publisher and no URL to be honest about.
 - **Anchor** — the comment `ergo: <dataset-slug>/<issue-id>` placed in code
   that implements an issue's workaround.
 - **Manifest** — the `[dataset]` TOML block at the top of a page.
@@ -103,8 +119,8 @@ or `docs/data-sources/`), alongside the generated `INDEX.md` digest.
 
 A page is ordinary markdown with **ergo blocks**: fenced code blocks whose
 info string is `toml ergo`, each containing exactly one top-level TOML table
-— `[dataset]`, `[issue]`, `[practice]` (§6), `[validation]`, or `[change]`
-(§15).
+— `[dataset]`, `[issue]`, `[practice]` (§6), `[reference]` (§8), `[quote]`
+(§8), `[validation]` (§8), or `[change]` (§15).
 
 ````markdown
 # NJ School Performance Reports
@@ -143,12 +159,14 @@ Rules:
   same or higher level, is that entry's narrative. Structured facts go in the
   block; the story, evidence, and worked examples go in the prose. Never both
   — facts stated in the block are not restated in the prose.
-- `[validation]` blocks may appear anywhere but conventionally live in a
-  "Validation" section (§8); `[change]` blocks in a "Changelog" section
-  (§15).
+- `[reference]`, `[quote]` and `[validation]` blocks may appear anywhere. A
+  quote belongs
+  beside whatever it backs — under the issue it evidences, or in the section
+  whose claim it settles; validations conventionally live in a "Validation"
+  section (§8) and `[change]` blocks in a "Changelog" section (§15).
 - Parsers must accept a plain ` ```toml ` fence as a fallback when the block's
-  sole top-level table is `dataset`, `issue`, `practice`, or `validation` —
-  but authors should always write ` ```toml ergo `.
+  sole top-level table is `dataset`, `issue`, `practice`, `reference`,
+  `quote`, or `validation` — but authors should always write ` ```toml ergo `.
 
 ### Conformance — core format and supplemental affordances
 
@@ -160,7 +178,8 @@ the whole apparatus at once:
   type/status/scope, `handled_by` on mitigated issues. A repo that adopts
   only this — pages plus an occasional `check` run — is conformant.
 - **Supplemental** (adopt independently, in any order): code anchors and
-  the `--repo` round trip, `[practice]` entries (§6), `[validation]` records,
+  the `--repo` round trip, `[practice]` entries (§6), `[reference]`,
+  `[quote]` and `[validation]` records (§8),
   `[change]` changelogs, the generated digest and agent-memory pointer, the
   served bundle (§9), `missingness`/`unknowns`/`version` on the manifest,
   `core`/`misuse`/`instead`/`detect` on issues, the skill, interop exports.
@@ -169,6 +188,55 @@ Supplemental affordances are where the compounding value is, but a page
 that documents real issues with correct scopes beats a fully-instrumented
 page with thin content. Start core, grow supplemental. (flip's rule again:
 empty structure is worse than absent structure.)
+
+### What the prose is for
+
+Assume the page is read by an agent and shown to a person a paragraph at a
+time. Almost nobody opens the whole file, and almost nobody writes one by
+hand. That does not make the narrative worthless — it changes its job. The
+prose is not an explanation of the dataset; it is the **evidence** a later
+reader needs to check a claim, or to repeat it accurately to someone else.
+
+Three consequences for how it is written:
+
+- **Prefer what can be quoted back.** A number, a filename, a date, a row
+  count, a verbatim sentence from the publisher. These survive being pulled
+  out of context. General explanation does not, and it is the part a reader
+  can reconstruct without you.
+- **Where the publisher already says it, quote them** — `[quote]` (§8) —
+  rather than restating it in your own words. Restatement is where a caveat
+  quietly becomes something the publisher never said, and that failure is
+  much likelier when the page is being drafted by a model that is fluent
+  regardless of whether it checked.
+- **Do not restate the block.** Facts belong in the TOML once. The prose
+  carries what the block cannot hold: how it was found, the example that
+  shows it, the figure that lets the next person confirm it still happens.
+
+### The stages a page covers
+
+A dataset is worked with in four stages, and a page has something to say about
+each:
+
+| stage | the question | where it lands |
+|---|---|---|
+| **acquisition** | how do I get the bytes, and how do I know I got them? | `[dataset.acquisition]` (§4); issues typed `acquisition` or `availability` |
+| **parsing** | what do the bytes mean once read? | most of the issue registry — `format`, `coding`, `entry`, `suppression`, `identity` |
+| **storage** | what is kept, at what grain, and what is now derived? | `[dataset.coverage]`, `keys`, `missingness`; issues typed `revision`, `measurement` |
+| **rendering** | what may be computed and said from it? | `[practice]` (§6), and `misuse`/`instead` on issues |
+
+Acquisition is the stage most documentation skips and the one that breaks
+pipelines most often — a review of one 94-source corpus found roughly a third
+of all recorded defects were defects in *fetching*, not in the data.
+
+**Rendering is in scope; a house style is not.** A page may record that a
+rate below one percent cannot be shown without its denominator, because that
+is a fact about the data. It may not record that *your* newsroom prints
+"<1%" — that is an editorial decision, and a different desk will rightly make
+it differently. The dividing line is already in the format: a rendering
+decision is a `[practice]`, which requires `authority` and accepts
+`contested = true` precisely so the page can carry a call without claiming it
+is the only defensible one. Nothing in this spec should grow a field that
+encodes one publication's style.
 
 ### Recommended section arc
 
@@ -182,6 +250,11 @@ issue reference) · **Issues** (the registry, §5) · **Practices** (what may be
 computed and how, §6) · **Validation** (§8) · **Provenance** (vintage, fetch
 history, publisher revision policy) · **Changelog** (dated `[change]`
 records, §15).
+
+Quotes are not a section of their own. A `[quote]` sits wherever the words it
+carries do work — a definition under **What it is**, a suppression rule under
+the issue it explains, a publisher's own caveat under **Practices** where it
+establishes `authority = "publisher"`.
 
 ## 4. The manifest — `[dataset]`
 
@@ -216,6 +289,17 @@ keys = ["county_code", "district_code", "school_code", "school_year"]
 raw = "data/raw/spr/"           # local cache of source files
 builders = ["tools/build_spr_db.py"]     # ingestion code
 feeds = ["grad_rate", "assessment", "absenteeism"]  # tables/pages produced
+
+[dataset.acquisition]           # how ANYONE gets the bytes (optional table)
+access = "public"               # public | conditional | restricted (required in this table)
+terms = "Public state education records; preserve the source's own terms."
+credentials = "none"            # what kind of credential, never a secret
+format = "One XLSX workbook per year; ZIP before 2015-16."
+method = "Published index page, then direct per-year file URLs."
+cadence = "annual"
+lag = "Published the autumn after the school year it describes."
+verification = "Watch the index for a new workbook and record the first date seen."
+size = "~330 MB at school level for the current year."
 ```
 
 Field notes:
@@ -232,11 +316,52 @@ Field notes:
   (the repo). This is the one pointer a served page keeps to *our*
   implementation: everything else that names internal paths, scripts, or
   runbooks stays out of the public projection (§9).
+- **`produced_from`** (list, required *instead of* `source_urls` when the
+  dataset is one this project makes) — the upstreams it is built from, as page
+  slugs in this corpus or absolute URLs for upstreams with no page here. A
+  produced dataset has no publisher to name and no URL to fetch, so demanding
+  `source_urls` forces an author to invent one. Such a page also has no
+  `subject`: nobody else publishes this dataset, so there is nothing to cluster
+  it with, and `ergo directory` leaves it out rather than emitting an entry
+  that no one could match.
+
+  This is the page that keeps source pages honest. A fact about your own
+  identifiers, your own period labels, your own joined layer is a fact about
+  *your* dataset — put it here, where it is true, rather than on the
+  publisher's page, where it is not.
+
 - **`source_urls`** (required) — a list. A dataset routinely has more than
   one face: FDA's adverse-event data is published both as a continuously
   refreshed dashboard and as frozen quarterly extracts, and the two return
   different counts by design. A single `source_url` string is still accepted
   and means a one-element list; new pages should use the plural.
+- **`[dataset.acquisition]`** (optional table) — the acquisition stage. Not to
+  be confused with `[dataset.access]` above it, which describes *this
+  project's* pipeline — join keys, local cache, ingestion code — and is
+  partly stripped from the public projection (§9). `acquisition` describes how
+  **anyone** gets the bytes, and is public in full.
+
+  | key | what it holds |
+  |---|---|
+  | `access` | **required when the table is present** — `public`, `conditional`, or `restricted` |
+  | `terms` | rights, attribution, reuse limits, in prose |
+  | `credentials` | what kind of credential is needed — an API key, a token, a signed agreement, `none`. **Never a secret** |
+  | `format` | what actually arrives, including by era |
+  | `method` | how you get it: a published index, an API, a bulk download, a scrape |
+  | `via` | whose copy you are fetching, when it is not the publisher's — a mirror or re-host is a separate provenance hop and often a separate release schedule |
+  | `cadence` | how often it is published |
+  | `lag` | how far behind the world the data is |
+  | `verification` | how you would know a new release actually landed |
+  | `size` | what a consumer is committing to |
+
+  Everything but `access` is prose, deliberately: a survey of 94 real sources
+  found 76 distinct rights statements and 37 distinct credential
+  descriptions, so a closed vocabulary would be wrong for all of them. The one
+  exception is `access`, which is closed because a tool has to branch on it —
+  it is what lets an agent decide whether a lesson about this dataset may be
+  offered anywhere public (§9). "Public" prose that a program cannot read is
+  the same as no answer.
+
 - **`subject`** (recommended) — one URL naming **what dataset this page is
   about**. Distinct from `source_urls`, which say where *you* get the bytes:
   two projects documenting the same census product through a mirror and an
@@ -359,7 +484,10 @@ across time) · `revision` (published values change after release; vintages)
 anomalous-but-faithfully-reported values) · `linkage` (crosswalk/join
 failures between sources) · `uncertainty` (sampling error, margins of error,
 disclosure-avoidance noise) · `availability` (access quirks, URL weirdness,
-discontinued releases) · `measurement` (how the published number is
+discontinued releases) · `acquisition` (defects in *getting* the bytes:
+filenames that change case, archives whose member names move, a landing page
+that stops being a file locator, an API that returns a 200 with a partial
+layer, a cache that outlives the release it holds) · `measurement` (how the published number is
 computed; what may not be recomputed or compared) · `identity` (publisher
 identifiers do not map cleanly to the consuming system) · `policy`
 (interpretation depends on a publisher rule, threshold, or designation).
@@ -410,7 +538,8 @@ under 10%); the validator warns past one third.
 
 ### Optional fields
 
-`core` (bool, above) · `discovered` (`YYYY-MM`) · `handled_by` (list of
+`about` (`data` — the default — or `handling`; see below) · `core` (bool,
+above) · `discovered` (`YYYY-MM`) · `handled_by` (list of
 `path` or `path#symbol` code refs, repo-relative) · `detection` (how to
 spot it: a symptom, a check, a query sketch) · `misuse` (the foreseeable
 misread — strongly recommended for `misleads` and `context`) · `instead`
@@ -418,6 +547,32 @@ misread — strongly recommended for `misleads` and `context`) · `instead`
 pair is a fail/pass example, the shape LLMs follow best) · `refs` (list:
 source docs, errata URLs, tickets) · `superseded_by` / `supersedes` (issue
 ids, §15).
+
+### `about` — whose fact is this (closed)
+
+Defaults to `data` and is normally omitted. `about = "handling"` marks an
+issue that is really about **your project's handling** rather than about the
+dataset — the one deliberate exception to §2's rule that an issue is true
+whether or not you exist.
+
+It exists because the alternative is worse. Without it, a fact about your own
+canonical identifiers has two homes: a page for the produced dataset that may
+not otherwise be worth writing, or, in practice, the publisher's page, where
+it is simply false. The escape hatch keeps such a fact visible and labelled
+rather than disguised.
+
+Two things follow from the label, which is the point of having it:
+
+- `ergo publish` (§9) reports every `handling` issue that reaches the public
+  projection. Someone else's copy of this dataset is not handled the way yours
+  is, so shipping the fact to them is at best noise. Move it to the produced
+  dataset's page, or wrap its section in `ergo:internal` markers.
+- `check` warns when more than a third of a page's issues are `handling`. A
+  page that is mostly about your pipeline is a page about your pipeline; give
+  the produced dataset its own page (`produced_from`, §4).
+
+Use it sparingly and prefer the produced-dataset page. A registry where the
+label is common has stopped describing a dataset.
 
 ### Structured detection — `[issue.detect]` (optional)
 
@@ -505,7 +660,7 @@ Authority is not severity. The useful question is not *how bad is this* but
 draws by deriving ERROR from "must" and WARNING from "should" in its own
 specification.
 
-`authority = "publisher"` is the load-bearing case: it tells a reader **do
+`authority = "publisher"` is the case that matters most: it tells a reader **do
 not re-litigate this**. NOAA's precedence order for resolving duplicate
 station-days is a normalization practice we inherit, not one we chose.
 
@@ -513,7 +668,7 @@ station-days is a normalization practice we inherit, not one we chose.
 
 Strongly expected, and it is the honesty check. If there is no plausible
 wrong move a competent person would make instead, this is documentation, not
-a practice — write it in the narrative. A practice earns its block when
+a practice — write it in the narrative. A practice deserves its own block when
 getting it wrong produces a wrong published number. The validator warns on a
 practice with no `naive`.
 
@@ -576,8 +731,24 @@ implement — and the validator does not ask for it.
 
 Practices take no `scope` table. An issue needs scope because a consumer must
 ask *does this touch my slice?*; a practice is reached through `question`,
-which is the task, not the data. If a practice really applies only to part of
-a dataset, say so in `rule`.
+which is the task, not the data.
+
+**When the constraint really is scoped, the scoped thing is an issue.** This
+comes up in long series, where a publisher's caution lands on one edition out
+of many. Take NJDOE's note that pandemic-year discipline counts are not
+comparable to adjacent years: the durable fact is that one edition's data
+means something different, which is an `[issue]` with `effect = "misleads"`,
+`type = "measurement"`, `[issue.scope] years = ["2020-21"]`, a `misuse` of
+plotting a trend straight through it, and an `instead` that breaks the series.
+Quote the publisher on it (§8). *Then*, if a particular question needs a rule
+of its own, write a practice that `addresses` that issue.
+
+Composed that way a renderer gets what it needs mechanically — it reads the
+issue's scope to know which point in a ten-point series to flag — and the
+prohibition still has a home. Putting scope on the practice instead would
+duplicate the machinery and split one fact across two blocks. If you find a
+practice that is genuinely edition-specific and has **no** issue underneath
+it, that is the counterexample this rule wants to hear about (§16).
 
 ## 7. Code linkage — the round trip
 
@@ -608,7 +779,118 @@ The anchor replaces the restated rule: write `# ergo: spr/rate-prose-suppression
 not a paragraph paraphrasing the page (principle 2). One line of *why this
 looks weird* alongside the anchor is good manners; three lines is a fork.
 
-## 8. Validation — `[validation]`
+## 8. What backs the page — `[quote]`, `[reference]`, `[validation]`
+
+Three blocks answering three different questions, none of which requires
+trusting the page's author. A `[quote]` shows what the source itself says. A
+`[reference]` points at what other people have already built or written about
+this dataset. A `[validation]` records what happened when a claim met real
+files.
+
+### `[quote]` — the source's own words
+
+```toml
+[quote]
+text = "Because the ACS is based on a sample, estimates are subject to sampling error, which is measured by the margin of error."   # verbatim (required)
+source = "https://www.census.gov/programs-surveys/acs/guidance/estimates.html"   # where it appears (required)
+retrieved = "2026-07-30"        # when it was seen there (required)
+supports = ["moe-required"]     # issue or practice ids this backs (optional)
+note = "The publisher, not us, calls the margin the measure of the error."      # why it is here, in your words (optional)
+```
+
+| field | rule |
+|---|---|
+| `text` | **required** — the source's exact words. Not a summary, not a tidied version |
+| `source` | **required** — one http(s) URL where those words appear |
+| `retrieved` | **required** — the date they were seen there; publisher pages move and get rewritten |
+| `supports` | list of ids on this page, checked by `ergo check` |
+| `note` | your framing, clearly separate from the quotation |
+
+The point is the boundary. Everything in `text` is theirs; everything in
+`note` is yours; a reader can always tell which is which, and an agent asked
+"what does the publisher actually say?" can answer without paraphrasing.
+
+`retrieved` is required for the same reason `derived_from` carries a date:
+agency documentation is edited without notice, and a quote with no date
+cannot be re-checked, only believed.
+
+Quote when the wording carries the weight — a definition, a suppression rule,
+a stated universe, an explicit caveat, a refusal to support a comparison.
+Do not quote decoration; a page that quotes everything has quoted nothing,
+and the block costs more than a sentence of narrative would.
+
+A quote is also the strongest support a `[practice]` with
+`authority = "publisher"` can have (§6): it shows the decision really is
+upstream rather than an inference someone drew.
+
+### `[reference]` — other people's work on this dataset
+
+```toml
+[reference]
+id = "tidycensus"               # optional; shares the page's id namespace with issues and practices
+kind = "implementation"         # recommended vocabulary, below (required)
+url = "https://github.com/walkerke/tidycensus"      # (required)
+observed = "2026-07-31"         # when you last looked (required)
+covers = "ACS 1- and 5-year detailed tables through the Census API, tidy or wide"
+commit = "5461f0386f46f3ca26bb13bfb1ff37b1d9b2054e"  # pin the revision when it is code
+edition = "2019 EDGE shapefiles"   # which edition of the SOURCE it serves
+maintenance = "active"          # active | dated | archived | unknown (closed)
+caveat = "Collapses nine typed ACS sentinels to a single NA, so 'not applicable' and 'too few sample cases' become indistinguishable."
+supports = ["jam-values-typed"]    # ids on this page it bears on
+```
+
+Most datasets have no page anywhere, and most of the people who could write
+one do not publish the code that would justify it. What they *can* contribute
+cheaply is a pointer: someone has already parsed this, someone has already
+written about it, here is where. That is a low-cost claim — anyone can check
+it by following the link, and it fails loudly by rotting — which makes it the
+contribution that a stranger can make first.
+
+| field | rule |
+|---|---|
+| `kind` | **required** — recommended vocabulary, below |
+| `url` | **required** — one http(s) URL |
+| `observed` | **required** — when you looked; a pointer with no date cannot be aged out |
+| `covers` | what it actually does, in one line — the field a reader scans |
+| `commit` | pin the revision when the reference is code; without it the citation rots |
+| `edition` | which edition of the **source** it serves, which is often not the current one |
+| `maintenance` | closed vocabulary: `active`, `dated`, `archived`, `unknown` |
+| `caveat` | what is wrong or limited about it — kept in its own field, see below |
+| `supports` | issue or practice ids on this page |
+
+`edition` and `maintenance` are the two fields that decide whether anyone
+should use the thing at all. A wrapper around a 2019 snapshot, last touched in
+2021, is right for reproducing an old analysis and wrong for current work —
+and neither fact is usually visible from its own documentation.
+
+**`caveat` is separate on purpose.** Everything else in the block states that
+something exists, which anyone can verify by clicking. `caveat` is a judgment
+about a project someone maintains, and its maintainers are the people most
+likely to arrive with a rebuttal. Keeping the two apart lets the checkable
+part be checked mechanically and the contestable part be reviewed by a person.
+
+### `kind` — what it is (recommended)
+
+`implementation` · `documentation` · `article` · `schema` · `discussion` ·
+`dataset` · `notebook`
+
+Recommended rather than closed. The one real corpus available used thirteen
+distinct words for this, so closing the vocabulary now would close it wrong;
+the validator warns on an unfamiliar value and accepts it.
+
+### A reference is not an endorsement
+
+A reference records that something exists and what shape it is in. It does not
+say the thing is correct, and a page carrying a reference has not vouched for
+it. Where you *have* judged it, say so in `caveat` and nowhere else.
+
+Referencing an implementation you did not write is expected and encouraged:
+it is how a page for a dataset nobody owns gets started. Cite the code by
+permalink at a pinned commit; never copy it into the page. Their license
+governs their code, not the facts about a public dataset you learned by
+reading it.
+
+### `[validation]` — dated checks against reality
 
 Dated, methodical records that the page's claims were checked against
 reality. Two shapes matter:
@@ -628,9 +910,21 @@ method = "confirmed from real data — 2024-25 District/State file"
 result = "codes are zero-padded TEXT (county 2, district 4); join is clean with no coercion"
 ```
 
+```toml
+[validation]
+date = "2026-07-31"
+method = "opened the non-data sheets (notes, legend, cover) on all 10 editions looking for publisher guidance"
+result = "guidance found only in 2020-21 (COVID caution on discipline, ELP waiver, DLM/ACCESS in-person only); the other nine editions carry no notes sheet"
+```
+
 The first is **reconciliation** (our numbers vs. an independent publication
 of the same facts); the second is **confirmation** (a claim on this page,
-verified against actual files, with the date and vintage). Both accumulate —
+verified against actual files, with the date and vintage). The third is a
+**search that came back empty**, and it is worth recording for the same reason
+the others are: "the publisher said nothing" and "nobody looked" are different
+claims, and only one of them is evidence. `unknowns` on the manifest says
+where you did *not* look; a validation record like this says where you did and
+found nothing. Both accumulate —
 never edit an old record, add a new one. Prose context (the full
 reconciliation table, say) lives in the surrounding section.
 
@@ -878,6 +1172,12 @@ lineage costs two lines now and is what makes the tooling possible later.
   the consuming app's docs); the fact that the file mixes four budget bases
   is *the dataset's* issue and belongs in the registry. The test: would this
   still be true if we rebuilt all our tooling from scratch?
+- **Read the non-data parts of every edition.** Notes sheets, readmes, cover
+  pages, legends, technical guides. A workbook tab called "Important Notes —
+  Please Read Before Using Data" is the publisher handing you issues already
+  written; nothing in the values will tell you it exists. Do this per edition,
+  not once per dataset: the year that has a notes sheet is usually the year
+  that needed one.
 - **Write for the cold reader.** No unexplained house jargon in titles,
   `pitfall`, or `misuse` — those travel into digests and agent contexts alone.
 - **Don't pad.** A dataset with three issues has three issues. Empty
@@ -896,6 +1196,7 @@ python3 tools/ergo.py digest  [PATHS...] [--long] [--write FILE]
 python3 tools/ergo.py export  [PATHS...] [--out FILE]
 python3 tools/ergo.py publish [PATHS...] --dir OUT [--base-url URL]
 python3 tools/ergo.py directory [PATHS...] [--bundle URL] [--entries-only]
+python3 tools/ergo.py scan    [PATHS...] [--json] [--out FILE]
 python3 tools/ergo.py new     SLUG [--dir DIR]
 ```
 
@@ -917,11 +1218,34 @@ python3 tools/ergo.py new     SLUG [--dir DIR]
   subject and its normalized form, bundle URL, and recognition signatures
   derived from the manifest. `--entries-only` gives just the array, to open
   as a PR against someone else's directory.
+- **scan** — read code that already works with a dataset and list the places
+  its author handled something: sentinel comparisons, null filling, year-keyed
+  parser branches, column rename maps, sheet and header offsets, fixed-width
+  layouts, identifier padding, encoding fallbacks, parse guards, hardcoded
+  source URLs, and comments flagged `HACK`/`FIXME`/`GOTCHA`. Lines already
+  carrying an anchor — or sitting just under one — are skipped as documented.
+
+  This is the way into a dataset nobody has written up: a working
+  implementation is a record of what its author learned, in the only notation
+  they were willing to maintain. But **a hit proves a workaround exists, not
+  that the reading behind it was right.** A `fillna(0)` shows someone chose to
+  fill nulls; it does not show the publisher writes nulls meaning zero. Scan
+  output is a worklist for an author, never a page: what it can prove goes
+  straight into `handled_by` and `discovered`, and everything else stays a
+  hypothesis until a `[validation]` record says otherwise. A page built this
+  way carries `confidence = "?"` and an `unknowns` entry saying the code was
+  read and the data was not.
+
+  `--json` for tooling and agents. Expect `hardcoded-source-url` to be the
+  noisiest signal outside an ingestion codebase, and the most useful inside
+  one.
 - **new** — scaffold a fresh page from the template.
 
 ## 13. Skills — teaching agents the format
 
-The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
+The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles,
+plus `skills/ergo/reading-implementations.md`, loaded on demand when
+bootstrapping a page from a codebase (§12, `scan`):
 
 - **Consuming:** on first contact with a dataset, read the digest, then the
   page manifest and issue titles; load issue sections whose scope intersects
@@ -931,6 +1255,14 @@ The repo ships `skills/ergo/SKILL.md`, an agent skill covering both roles:
   (someone may have already paid for this lesson); on working around
   anything, register the issue, scope it, anchor the code, and run
   `ergo.py check` before committing.
+
+- **Reading an implementation:** when a dataset has no page anywhere but code
+  in some repository already parses it, that code is a record of what its
+  author learned. The reference file carries the procedure — what to read and
+  in what order (tests and fixtures first, parsing code sixth), how to cluster
+  scattered sites into one issue, how to sort a finding between the data, a
+  practice, and the library's own behavior, and the evidence rules that keep a
+  fluent draft from becoming a page.
 
 Host projects reference or copy the skill; the two-line CLAUDE.md pointer
 (§9) is what makes it fire.
@@ -961,7 +1293,7 @@ in a host project may depend on an export that the page can't regenerate.
 
 ## 15. Versioning and evolution
 
-- The manifest's `ergo = "0.4"` names the format version the page conforms
+- The manifest's `ergo = "0.5"` names the format version the page conforms
   to. Breaking format changes bump the minor pre-1.0.
 - **Issue ids are permanent.** To rename: create the new id, mark the old
   entry `status = "resolved"` with `superseded_by = "new-id"`, keep its
@@ -1005,15 +1337,16 @@ in a host project may depend on an export that the page can't regenerate.
   `core` + scope filtering is the small-registry version of the same idea;
   if hosts grow to dozens of datasets and hundreds of issues, a
   per-activity field (ingest / join / aggregate / compare-years /
-  visualize / write) may earn its ceremony. Not before.
+  visualize / write) may be worth its cost. Not before.
 - **Taxonomy candidates.** `constraint` (restricted-vocabulary/enum rules
   on curated columns — rights gates, grade letters) came up during the
   njschooldata conversion and got shoehorned into `coding`. Needs a second
   independent example (CONTRIBUTING's bar) before joining the taxonomy.
-- **Curated-internal datasets.** A knowledge layer whose source of truth is
-  a seed list in the repo has no honest `source_url`. A profile for
-  internally-curated datasets (publisher = the project, source = a code
-  path) fits awkwardly; consider first-classing it.
+- **Curated-internal datasets.** *Settled:* such a dataset declares
+  `produced_from` instead of `source_urls` and carries no `subject` (§4).
+  What remains open is whether a produced page should be able to state which
+  of its upstream's issues it inherits, rather than leaving a reader to follow
+  `produced_from` and work it out.
 - **Cross-project issue sharing and the directory of bundles.** Two
   projects ingesting the same NJDOE files currently each carry a page. With
   bundles served over HTTP (§9), the aggregation layer becomes concrete: a

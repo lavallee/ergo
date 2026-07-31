@@ -5,12 +5,18 @@ project uses it. Written for someone deciding whether to read on.
 
 ```toml ergo
 [dataset]
-ergo = "0.4"
+ergo = "0.5"
 slug = "my-dataset"              # kebab-case; unique within the project
 title = "<Dataset title>"
 publisher = "<agency / org, office if known>"
 subject = "https://…"            # WHAT this documents — one URL; how directories cluster pages (§10)
 source_urls = ["https://…"]      # where YOU get the bytes; a dataset can have several faces
+# produced_from = ["upstream-slug"]  # INSTEAD of source_urls, when this is a dataset YOU make
+#                                    # (a warehouse table, a curated list, a joined layer).
+#                                    # Such a page carries no subject — nobody else publishes it.
+# produced_from = ["upstream-slug"]  # INSTEAD of source_urls, when this is a dataset YOU make
+#                                    # (a warehouse table, a curated list, a joined layer).
+#                                    # Such a page carries no subject — nobody else publishes it.
 pitfall = "One sentence: the single most likely way this data trips up someone who touches it cold."
 status = "acquiring"             # live | acquiring | dormant | archived
 version = ""                     # the SOURCE's own edition/version label, if it has one — not the page's
@@ -37,23 +43,55 @@ entities = "who is covered"
 zero_is_missing = false          # true when the source writes 0 to mean "no value" (commoner than you'd think)
 source_tokens = []               # literals meaning "not a number": "*", "N/A", "Fewer than 10 valid scores"
 
-[dataset.access]
+[dataset.access]                 # YOUR pipeline — partly stripped from the public projection
 keys = ["…"]                     # join keys, in warehouse terms
 raw = "data/raw/…"               # local cache of source files
 builders = ["tools/build_….py"]  # ingestion code
 feeds = ["…"]                    # tables / pages this source produces
+
+[dataset.acquisition]            # how ANYONE gets the bytes — public in full
+access = "public"                # public | conditional | restricted (required in this table)
+terms = "<rights, attribution, reuse limits>"
+credentials = "none"             # what KIND of credential — an API key, a token, an agreement. Never a secret
+format = "<what actually arrives, including by era>"
+method = "<published index, API, bulk download, scrape>"
+# via = "<whose copy you fetch, if not the publisher's — a mirror is a separate provenance hop>"
+cadence = "annual"
+lag = "<how far behind the world the data is>"
+verification = "<how you would know a new release actually landed>"
+size = "<what a consumer is committing to>"
 ```
 
 ## What it is
 
-Orientation prose. What the dataset measures, the publisher's purpose for
-it, what this project builds from it.
+What the dataset measures, the publisher's purpose for it, what this project
+builds from it. Assume an agent reads this and shows a person one paragraph
+of it — so favour what survives being quoted out of context: a figure, a
+date, a name, the publisher's own sentence. Where the publisher already says
+it well, quote them rather than restating it.
 
-## Access
+```toml ergo
+[quote]
+text = "<the source's exact words — a definition, a universe, a stated caveat>"
+source = "https://…"             # the page those words appear on
+retrieved = "YYYY-MM-DD"         # when you saw them there; agency pages get rewritten
+# supports = ["first-issue"]     # issue/practice ids this backs — checked by `ergo check`
+# note = "<why it is here — your framing, kept separate from their words>"
+```
 
-Where the files actually live (including any landing-page-vs-file-host
-weirdness — register real quirks as issues and reference them here), formats
-by year, sizes, fetch method.
+## Acquisition
+
+Publisher guidance first: notes sheets, readmes, cover pages, legends,
+technical guides — per edition, because the year with a notes sheet is usually
+the year that needed one. What you find there is normally an issue scoped to
+that edition, quoted rather than paraphrased.
+
+The narrative behind the manifest's `[dataset.acquisition]` table: where the
+files actually live, landing-page-versus-file-host weirdness, how URLs are
+built for a given year, what you had to do to get them the first time.
+Defects in *fetching* — a filename that changed case, an archive whose member
+name moved, a 200 response with a partial payload — are issues like any other
+(`type = "acquisition"`), not footnotes.
 
 ## Structure
 
@@ -84,6 +122,12 @@ type = "format"                  # definitional | universe | coverage | suppress
                                  # linkage | uncertainty | availability | measurement |
                                  # identity | policy
 status = "open"                  # open | mitigated | resolved | monitor
+# about = "handling"             # ONLY for a fact about your own handling rather than the data.
+#                                # An issue is normally true whether or not you exist (SPEC §2);
+#                                # prefer giving the produced dataset its own page.
+# about = "handling"             # ONLY for a fact about your own handling rather than the data.
+#                                # An issue is normally true whether or not you exist (SPEC §2);
+#                                # prefer giving the produced dataset its own page.
 # core = true                    # load before ANY contact with the dataset; mark sparingly (SPEC §5)
 discovered = "YYYY-MM"
 # handled_by = ["tools/build_….py#fn"]   # required once mitigated; anchor the code:
@@ -102,7 +146,9 @@ years = "all"                    # or a list; also: tables, columns, rows, entit
 ```
 
 How it was found; a concrete example; the numbers that let the next person
-verify it's still true (or notice it changed).
+verify it's still true (or notice it changed). Not a restatement of the block
+above it, and not a general explanation — the evidence, which is the part a
+reader cannot reconstruct without you.
 
 ## Practices
 
@@ -130,7 +176,30 @@ because = "<why; what a future reader would need to overrule this honestly>"
 # because_not = "the road not taken, and what it cost when we tried it"
 ```
 
-Why this call and not another; what it costs; who would disagree.
+Why this call and not another; what it costs; who would disagree. If the
+decision is the publisher's rather than yours (`authority = "publisher"`),
+put their words under it as a `[quote]` — it is the difference between a
+decision that is upstream and one someone inferred was upstream.
+
+## Prior work
+
+Who else has already parsed or written about this dataset. A pointer is the
+cheapest useful contribution there is — anyone can check it by following the
+link — and for a dataset with no page anywhere, it is usually the first thing
+worth recording.
+
+```toml ergo
+[reference]
+kind = "implementation"          # implementation | documentation | article | schema | discussion | dataset | notebook
+url = "https://github.com/…"
+observed = "YYYY-MM-DD"          # when you looked; a pointer with no date can't be aged out
+covers = "<what it actually does, one line>"
+commit = "<sha>"                 # pin the revision when it is code, or the citation rots
+# edition = "<which edition of the SOURCE it serves — often not the current one>"
+# maintenance = "active"         # active | dated | archived | unknown
+# caveat = "<what is wrong or limited about it>"   # a judgment about someone's project — its own field
+# supports = ["first-issue"]
+```
 
 ## Validation
 

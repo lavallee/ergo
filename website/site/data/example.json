@@ -1,7 +1,7 @@
 {
   "path": "examples/spr.md",
   "dataset": {
-    "ergo": "0.4",
+    "ergo": "0.5",
     "slug": "spr",
     "title": "NJ School Performance Reports",
     "publisher": "NJ Dept. of Education, Office of Performance Reports",
@@ -13,7 +13,7 @@
     "status": "live",
     "version": "2024-25 edition",
     "confidence": "A",
-    "updated": "2026-07-26",
+    "updated": "2026-07-31",
     "implementation": "https://github.com/lavallee/njschooldata",
     "unknowns": [
       "Pre-2015-16 editions have not been examined; the format eras before that are unknown to us.",
@@ -50,6 +50,17 @@
         "absenteeism",
         "growth"
       ]
+    },
+    "acquisition": {
+      "access": "public",
+      "terms": "Public NJ education records; preserve NJDOE's own terms on redistribution.",
+      "credentials": "none",
+      "format": "One XLSX workbook per year, ~80 tabs; a companion layout workbook is the data dictionary.",
+      "method": "Published index page, then direct per-year file URLs.",
+      "cadence": "annual",
+      "lag": "Published the autumn after the school year it describes.",
+      "verification": "Watch the index for a new workbook and record the first date seen.",
+      "size": "~330 MB at school level for the current year."
     }
   },
   "issues": [
@@ -67,7 +78,7 @@
       "scope": {
         "all": true
       },
-      "_line": 64
+      "_line": 88
     },
     {
       "id": "layout-types-lie",
@@ -89,7 +100,7 @@
         ],
         "all": true
       },
-      "_line": 85
+      "_line": 109
     },
     {
       "id": "rate-prose-suppression",
@@ -127,7 +138,7 @@
           "a rate column parses as numeric for some rows and prose for others"
         ]
       },
-      "_line": 108
+      "_line": 132
     },
     {
       "id": "grad-state-vs-federal",
@@ -152,7 +163,7 @@
         ],
         "years": "all"
       },
-      "_line": 138
+      "_line": 162
     },
     {
       "id": "grade-mix-context",
@@ -168,7 +179,7 @@
         ],
         "all": true
       },
-      "_line": 162
+      "_line": 186
     }
   ],
   "practices": [
@@ -188,7 +199,7 @@
         "tools/build_spr_db.py#headline"
       ],
       "residual": "We inherit NJDOE's own inclusions and exclusions, which are not fully documented; our figure matches the published one and is no more transparent than it.",
-      "_line": 184
+      "_line": 208
     },
     {
       "id": "grad-calcs-stay-separate",
@@ -207,7 +218,31 @@
       ],
       "contested": true,
       "because_not": "We considered publishing only the Federal rate for cross-state comparability and rejected it: with one populated year it answers almost no question a reader actually asks about NJ.",
-      "_line": 204
+      "_line": 228
+    }
+  ],
+  "references": [
+    {
+      "id": "njschooldata",
+      "kind": "implementation",
+      "url": "https://github.com/almartin82/njschooldata",
+      "observed": "2026-07-30",
+      "commit": "9c34401276d3d7fb45bdbd62ef927db6e252b933",
+      "covers": "R fetchers for NJ DOE series; fetch_spr() builds SPR database URLs for end_year 2017-2025 at school or district level.",
+      "maintenance": "active",
+      "_line": 252
+    }
+  ],
+  "quotes": [
+    {
+      "text": "The School Performance Reports reflect the New Jersey Department of Education's (NJDOE) commitment to providing parents, students, and school communities with a large variety of information about each school, each district, and the state overall.",
+      "source": "https://www.nj.gov/education/spr/",
+      "retrieved": "2026-07-30",
+      "supports": [
+        "headline-proficiency-as-published"
+      ],
+      "note": "A reader-facing publication, which is why suppression arrives as prose in a cell and why the headline figures are NJDOE's to compute, not ours.",
+      "_line": 67
     }
   ],
   "validations": [
@@ -215,14 +250,29 @@
       "date": "2026-06-14",
       "method": "confirmed from real data — 2024-25 District/State file",
       "result": "codes are zero-padded TEXT; All-Students label is 'All Students'; suppression is prose sentences; SchoolYear format matches warehouse",
-      "_line": 228
+      "_line": 269
     }
   ],
   "changes": [
     {
       "date": "2026-07-10",
       "note": "Page created in ergo format; 5 issues registered from the 2024-25 acquisition notes.",
-      "_line": 243
+      "_line": 284
+    },
+    {
+      "date": "2026-07-30",
+      "note": "Quoted NJDOE's own statement of what the reports are for, under What it is.",
+      "_line": 290
+    },
+    {
+      "date": "2026-07-31",
+      "note": "Recorded almartin82/njschooldata as an existing R implementation of these workbooks.",
+      "_line": 296
+    },
+    {
+      "date": "2026-07-31",
+      "note": "Added the acquisition table: access level, terms, cadence, lag, and how to tell a new release landed.",
+      "_line": 302
     }
   ],
   "prose": {
@@ -232,7 +282,8 @@
     "grad-state-vs-federal": "The trajectory uses the State calculation; the latest-year Federal ACGR is\nheadlined where present, with the difference noted in the caption.",
     "grade-mix-context": "Real, not a bug: comparisons across aggregation levels compare different\ngrade mixes. Per-grade views (`assessment_grade`) are the honest grain.",
     "headline-proficiency-as-published": "The reader-facing number on NJDOE's own report card is the published one.\nAny figure we compute that disagrees with it will be read as an error in our\nwork, and usually is.",
-    "grad-calcs-stay-separate": "Cross-state comparison is the one job the Federal rate does better, and it\nis worth saying out loud that another newsroom covering multiple states\nmight reasonably invert this call."
+    "grad-calcs-stay-separate": "Cross-state comparison is the one job the Federal rate does better, and it\nis worth saying out loud that another newsroom covering multiple states\nmight reasonably invert this call.",
+    "njschooldata": "Recorded because it is the shortest route to the same workbooks for anyone\nworking in R, not as an endorsement — no `caveat` here means it has not been\njudged, only observed."
   },
   "check": "1 page(s), 5 issue(s), 2 practice(s): 0 error(s), 0 warning(s)",
   "lede": "Worked example of an ergo data page, condensed from the real page in\n[njschooldata](https://github.com/lavallee/njschooldata). New Jersey's\nofficial annual \"report card\" for every public school and district —\nassessments, graduation, absenteeism, growth — and the authoritative source\nfor academic-outcome reporting."

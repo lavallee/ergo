@@ -1,64 +1,76 @@
 # ergo
 
-Format and tooling for **data pages** — documentation of datasets as they
-actually are, for the humans and agents who have to work with them.
+**ergo helps you and your agents work around data pitfalls, and share what
+you've learned.**
 
-Anyone who has worked with government data knows the real documentation
-burden isn't the schema. It's the *issues*: the misspelled columns, the
-suppression markers hiding in rate fields, the format that silently changed
-in 2019, the category whose meaning narrowed in 2006, the boundary that
-moved, the two published calculations with one name. Working through these
-is the craft of data journalism — and every project that doesn't write them
-down pays for the same discoveries twice.
+Anyone who has worked with government data knows the real burden isn't the
+schema. It's the pitfalls: the misspelled columns, the suppression markers
+hiding in rate fields, the format that silently changed in 2019, the category
+whose meaning narrowed in 2006, the boundary that moved, the two published
+calculations with one name. Working through these is the craft. Every project
+that doesn't write them down pays for the same discoveries twice — and agents
+left to rediscover dataset issues unaided find roughly a third of them.
 
-A data page is one markdown file per dataset that a human reads as a
-reporter's notebook and a program parses without guesswork: a manifest, a
-narrative, and a **structured issue registry** where every known issue has a
-stable ID, a type, an effect, a machine-readable scope (which years, which
-columns), the foreseeable misuse it invites, and a link to the code that
-works around it — with a greppable anchor in that code pointing back. Data +
-documented caveats ⇒ justified use. Hence the name.
+## The loop
 
-Alongside it, a **practice registry**: the decisions about what may be
-computed from the data and how. An issue is a defect that would exist
-without you; a practice is a call someone made — sometimes yours, sometimes
-the publisher's. Each names the naive move it replaces, who decided, and
-what it costs. The two are separate blocks because one defect often has
-several handlings, chosen by the question being asked.
+| | |
+|---|---|
+| **Before you fetch anything** | Find out what's already known about this dataset — in your repo, from the publisher, from a directory, or by reading a parser someone else wrote |
+| **While you build** | Work around the known issues, and leave a greppable anchor in the code pointing at the one you're handling |
+| **When something bites** | Record it where the next person will find it, at the moment you learned it |
+| **Later, deliberately** | Offer the shareable part upstream. Never automatically, and never for a dataset that isn't public |
 
-**[SPEC.md](SPEC.md)** has the full format: the page, the manifest, the
-issue registry and its taxonomies, the practice registry, code linkage,
-validation records, the index/digest, authoring discipline, tooling, and
-interop.
+Most of that runs through the [skill](skills/ergo/SKILL.md): the agent already
+in your session is the one that just helped you work around a jam value, and
+it is holding everything the record needs. That's the difference from every
+documentation tradition that came before — the moment of learning and the
+moment of writing it down can be the same moment.
 
-**[The site](https://lavallee.github.io/ergo/)** is the illustrated version:
-a [walkthrough](https://lavallee.github.io/ergo/walkthrough.html) of one page
-being built by real commands (including the three times the validator refuses),
-the [format map](https://lavallee.github.io/ergo/format.html), the
-[example page](https://lavallee.github.io/ergo/page.html) rendered from its own
-export, and a [start guide](https://lavallee.github.io/ergo/start.html). It is
-built from this repository by `website/build.py`, so it cannot describe a format
-the tool no longer enforces.
+## Starting from nothing
 
-Why a new format? A survey of the landscape
-([docs/survey.md](docs/survey.md)) — metadata standards, ML dataset cards,
-validation tooling, newsroom practice, agency documentation, agent-readable
-docs — found the same gap everywhere: **caveats live in prose.** No existing
-format makes an issue scoped, typed, versioned, and code-linked at once. And
-agents left to rediscover dataset issues unaided find roughly a third of
-them; the rest must be handed over.
+Most datasets have no documentation anywhere, and most publishers will never
+write any. But if code exists that reads the data, that code is a record of
+what its author learned, in the only notation they were willing to maintain.
 
-Design commitments (shared with ergo's sibling,
-[flip](https://github.com/lavallee/flip)):
+```bash
+python3 tools/ergo.py scan src/          # places where someone already handled something
+```
 
-- **Plain files, no services.** Markdown with embedded TOML blocks. Readable
-  with `less`, diffable with `git`, parseable with Python ≥ 3.11's stdlib.
-- **One source of truth.** The page is canonical; JSON exports, index
-  digests, public explainer pages, and catalog records (DCAT, Data Package,
-  Croissant) are generated renders.
-- **Vendorable tooling.** [`tools/ergo.py`](tools/ergo.py) — validator,
-  digest, exporter, scaffold — is one dependency-free file you copy into
-  your repo.
+`scan` is a cheap pre-pass — eleven regexes that find *where to look*. The
+reading is in
+[skills/ergo/reading-implementations.md](skills/ergo/reading-implementations.md),
+which puts tests, fixtures, NEWS files and commit history ahead of the parsing
+code, because that's where the reasons are. Run against three open-source
+packages it recovered most of a hand-built reference catalog's findings and
+added more; the runs and their limits are in
+[docs/distribution.md](docs/distribution.md).
+
+The governing rule: **code proves a workaround exists, not that the reading
+behind it was right.** A draft built this way says so about itself.
+
+## What gets written down
+
+One markdown file per dataset — a **data page** — that a program parses
+without guesswork and an agent reads with nothing in between:
+
+- a **manifest**: what this is, where the bytes come from, what it covers, and
+  the one sentence that saves a cold reader;
+- an **issue registry**, where every known problem has a stable ID, a type, an
+  effect, a machine-readable scope (which years, which columns), the
+  foreseeable misuse it invites, and a link to the code that works around it —
+  with an anchor in that code pointing back;
+- a **practice registry**: the decisions about what may legitimately be
+  computed. An issue is a defect that would exist without you; a practice is a
+  call someone made, sometimes yours, sometimes the publisher's;
+- **what backs the page**: `[quote]` for the source's own words with a URL and
+  a date, `[reference]` for what other people have already built, and
+  `[validation]` for what happened when a claim met real files.
+
+Data + documented caveats ⇒ justified use. Hence the name.
+
+The pages are plain files in your repo. That matters more than readability:
+they sit next to the code they describe, they diff legibly in a pull request,
+and nothing sits between an agent and the text.
 
 ## Quick start
 
@@ -72,15 +84,52 @@ python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
 the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
 
-Status: spec draft v0.4, proven against
+## Reading further
+
+**[SPEC.md](SPEC.md)** has the full format: the page, the manifest, the issue
+and practice registries and their taxonomies, code linkage, what backs a page,
+the index/digest, directories, authoring discipline, tooling, and interop.
+
+**[The site](https://lavallee.github.io/ergo/)** is the illustrated version: a
+[walkthrough](https://lavallee.github.io/ergo/walkthrough.html) of one page
+being built by real commands (including the three times the validator
+refuses), the [format map](https://lavallee.github.io/ergo/format.html), the
+[example page](https://lavallee.github.io/ergo/page.html) rendered from its own
+export, and a [start guide](https://lavallee.github.io/ergo/start.html). Built
+from this repository by `website/build.py`, so it cannot describe a format the
+tool no longer enforces.
+
+**[docs/survey.md](docs/survey.md)** is why this exists rather than an existing
+standard. Metadata standards, ML dataset cards, validation tooling, newsroom
+practice, agency documentation, agent-readable docs — the same gap everywhere:
+**caveats live in prose.** No existing format makes an issue scoped, typed,
+versioned, and code-linked at once.
+
+**[docs/distribution.md](docs/distribution.md)** is the open design question:
+how pages get found and contributed when the dataset's publisher will never
+write one, which is nearly always.
+
+## Design commitments
+
+Shared with ergo's sibling, [flip](https://github.com/lavallee/flip):
+
+- **Plain files, no services.** Markdown with embedded TOML blocks. Readable
+  with `less`, diffable with `git`, parseable with Python ≥ 3.11's stdlib.
+- **One source of truth.** The page is canonical; JSON exports, index digests,
+  public explainer pages, and catalog records (DCAT, Data Package, Croissant)
+  are generated renders.
+- **Vendorable tooling.** [`tools/ergo.py`](tools/ergo.py) is one
+  dependency-free file you copy into your repo. It reads and checks; it never
+  rewrites your pages.
+- **Plain language.** Real terms of art from data work where they're more
+  precise, ordinary English otherwise, and nothing invented.
+
+Status: spec draft v0.5, proven against
 [njschooldata](https://github.com/lavallee/njschooldata)'s NJ DOE datasets and
-a second adopting project's multi-publisher source-contract corpus. Use
-`--require-manifest` when a directory is intended to contain only data pages;
-it prevents a prose page with a missing or malformed manifest from
-disappearing from the check. Run the tests with `python3 tests/run.py` and
-`python3 -m unittest discover tests`. Next: executable detection checks,
-catalog-format exporters, and a directory of served bundles that publishes its
-own observed vocabulary.
+a second adopting project's multi-publisher source-contract corpus. Run the
+tests with `python3 tests/run.py` and `python3 -m unittest discover tests`.
+Next: executable detection checks, catalog-format exporters, and a directory of
+served bundles that publishes its own observed vocabulary.
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Changes are
 tracked in [CHANGELOG.md](CHANGELOG.md). [MIT licensed](LICENSE).

@@ -1,6 +1,6 @@
 # Contributing
 
-ergo is a young spec (draft v0.1) being proven against real datasets.
+ergo is a young spec (draft v0.5) being proven against real datasets.
 Contributions most welcome right now:
 
 - **Field reports.** You adopted the format for a dataset and something

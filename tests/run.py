@@ -47,8 +47,8 @@ print("negative fixture triggers every class")
 code, out = run("check", ROOT / "tests" / "negative.md")
 n_err, n_warn = counts(out)
 check("exit 1", code == 1)
-check("error count == 19", n_err == 19, f"got {n_err}")
-check("warning count == 9", n_warn == 9, f"got {n_warn}")
+check("error count == 31", n_err == 31, f"got {n_err}")
+check("warning count == 13", n_warn == 13, f"got {n_warn}")
 # Each string below is a check we must never silently lose in a refactor.
 for probe in [
     "missing required field: source_urls",
@@ -68,12 +68,28 @@ for probe in [
     "addresses unknown issue id",
     "issues and practices share one namespace",
     "references unknown issue or practice id",
+    "[quote] missing required field: source",
+    "[quote] missing required field: retrieved",
+    "[quote] supports unknown issue or practice id",
+    "quote source must be a single http(s) URL",
+    "[reference] missing required field: observed",
+    "reference url must be a single http(s) URL",
+    "maintenance must be one of",
+    "reference supports must be a list of issue or practice ids",
+    "issues, practices and references share one namespace",
+    "[dataset.acquisition] needs `access`",
+    "acquisition.credentials must be a string",
+    "issue about must be one of",
     # warnings
     "outside the recommended taxonomy",
     "names no naive alternative",
     "practices take no scope",
     "but names no misuse",
     "no subject — directories cluster pages by subject URL",
+    "quote is over 1200 characters",
+    "is outside the recommended set",
+    "points at code with no commit",
+    "acquisition key 'whatever' is outside the recommended set",
 ]:
     check(f"catches: {probe}", probe in out)
 
@@ -115,6 +131,79 @@ try:
           "`bite` was renamed to `pitfall`" in out, out.strip())
 finally:
     legacy.unlink(missing_ok=True)
+
+print("a produced dataset needs no source_urls and no subject (§4)")
+produced = ROOT / "tests" / "produced.md"
+produced.write_text(
+    '# P\n\n```toml ergo\n[dataset]\nergo = "0.4"\nslug = "p"\ntitle = "P"\n'
+    'publisher = "This project"\nproduced_from = ["spr"]\n'
+    'pitfall = "Period labels are ours, not any publisher\'s."\nstatus = "live"\n```\n',
+    encoding="utf-8")
+try:
+    code, out = run("check", produced, "--strict")
+    check("produced page validates with no source_urls", counts(out) == (0, 0), out.strip())
+    code, out = run("directory", produced, "--bundle", "https://x.org/ergo/")
+    check("and is left out of directory entries", '"slug": "p"' not in out, out.strip()[:200])
+    bad = ROOT / "tests" / "no-source.md"
+    bad.write_text(
+        '# B\n\n```toml ergo\n[dataset]\nergo = "0.4"\nslug = "b"\ntitle = "B"\n'
+        'publisher = "P"\npitfall = "x"\nstatus = "live"\n```\n', encoding="utf-8")
+    try:
+        code, out = run("check", bad)
+        check("a page with neither still errors", "missing required field: source_urls" in out, out.strip())
+    finally:
+        bad.unlink(missing_ok=True)
+finally:
+    produced.unlink(missing_ok=True)
+
+print("scan finds handled-but-undocumented sites (§12)")
+# Outside the repo on purpose: `scan` walks git-tracked files when it can, so
+# an in-repo fixture would have to be staged to be seen at all.
+import tempfile
+with tempfile.TemporaryDirectory(prefix="ergo-scan-") as _tmp:
+    scan_dir = Path(_tmp)
+    (scan_dir / "loader.py").write_text(
+        'SRC = "https://example.gov/data/2024/enr.xlsx"\n'
+        'COLUMN_MAP = {"Cnty Code": "county_code"}\n'
+        'def load(year):\n'
+        '    if year < 2009:\n'
+        '        df = read_fwf(SRC, colspecs=[(0, 2)])\n'
+        '    df = read_excel(SRC, sheet_name="Enr", skiprows=3)\n'
+        '    df = df.rename(columns=COLUMN_MAP)\n'
+        '    df["cc"] = df["cc"].astype(str).str.zfill(2)\n'
+        '    df.loc[df["rate"] == "*", "rate"] = None\n'
+        '    df["rate"] = df["rate"].fillna(0)\n'
+        '    # HACK: some files are latin-1\n'
+        '    try:\n'
+        '        notes = read_csv("n.csv", encoding="latin-1")\n'
+        '    except ValueError:\n'
+        '        notes = None\n'
+        '    return df\n'
+        'def documented(df):\n'
+        '    # ergo: enr/prose-suppression\n'
+        '    df.loc[df["rate"] == "*", "rate"] = None\n'
+        '    return df\n', encoding="utf-8")
+    (scan_dir / "notes.md").write_text("# not scanned - wrong extension\n", encoding="utf-8")
+
+    code, out = run("scan", scan_dir, "--json")
+    check("scan exits 0", code == 0, out.strip()[:200])
+    payload = json.loads(out)
+    signals = {c["signal"] for c in payload["candidates"]}
+    for probe in ["sentinel-comparison", "null-filling", "era-branch",
+                  "column-rename", "workbook-layout", "fixed-width",
+                  "identifier-padding", "encoding-fallback", "parse-guard",
+                  "hardcoded-source-url", "flagged-comment"]:
+        check(f"scan signal: {probe}", probe in signals, str(sorted(signals)))
+    check("anchored lines are skipped, not reported",
+          payload["stats"]["already_anchored"] >= 1, str(payload["stats"]))
+    check("the anchored duplicate is not a candidate",
+          sum(1 for c in payload["candidates"] if c["signal"] == "sentinel-comparison") == 1,
+          str([c["line"] for c in payload["candidates"] if c["signal"] == "sentinel-comparison"]))
+    check("only source files are scanned",
+          payload["stats"]["files_scanned"] == 1, str(payload["stats"]))
+    code, out = run("scan", scan_dir)
+    check("scan says a hit is a workaround, not a defect",
+          "not that the reading behind it was right" in out, out.strip()[:200])
 
 print("subject normalization clusters correctly (§10)")
 import importlib.util

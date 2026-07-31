@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-28T13:51:04+00:00",
+  "generated": "2026-07-31T11:07:23+00:00",
   "blocks": [
     {
       "table": "dataset",
@@ -27,7 +27,7 @@
         "pitfall",
         "status"
       ],
-      "example": "[dataset]\nergo = \"0.4\"\nslug = \"ridgeway-311\"\ntitle = \"Ridgeway County 311 service requests\"\npublisher = \"Ridgeway County Office of Constituent Services\"\nsubject = \"https://data.ridgeway.example.gov/311\"\nsource_urls = [\"https://data.ridgeway.example.gov/311/requests.csv\"]\npitfall = \"Every ticket still open when the county switched ticket systems was closed on the migration date, so response times computed across March 2021 are worthless unless those rows are excluded.\"\nstatus = \"live\"\nversion = \"export of 2026-06-30\"\nconfidence = \"B\"\nupdated = \"2026-07-28\"\nunknowns = [\n  \"The pre-2018 archive is published as PDF summaries only; we have not read it.\",\n  \"We do not know whether the vendor rewrites categories on old rows when the category list changes.\",\n]\n\n[dataset.coverage]\nyears = \"2018 -> 2026 (partial year)\"\ngrain = \"one row per service request\"\nentities = \"unincorporated county only; the four boroughs run their own systems\"\n\n[dataset.missingness]\nzero_is_missing = true\nsource_tokens = [\"\", \"N/A\", \"UNKNOWN\"]\n\n[dataset.access]\nkeys = [\"request_id\"]\nraw = \"data/raw/ridgeway-311/\"\nbuilders = [\"tools/load_311.py\"]\nfeeds = [\"requests\", \"response_times\"]"
+      "example": "[dataset]\nergo = \"0.5\"\nslug = \"ridgeway-311\"\ntitle = \"Ridgeway County 311 service requests\"\npublisher = \"Ridgeway County Office of Constituent Services\"\nsubject = \"https://data.ridgeway.example.gov/311\"\nsource_urls = [\"https://data.ridgeway.example.gov/311/requests.csv\"]\npitfall = \"Every ticket still open when the county switched ticket systems was closed on the migration date, so response times computed across March 2021 are worthless unless those rows are excluded.\"\nstatus = \"live\"\nversion = \"export of 2026-06-30\"\nconfidence = \"B\"\nupdated = \"2026-07-28\"\nunknowns = [\n  \"The pre-2018 archive is published as PDF summaries only; we have not read it.\",\n  \"We do not know whether the vendor rewrites categories on old rows when the category list changes.\",\n]\n\n[dataset.coverage]\nyears = \"2018 -> 2026 (partial year)\"\ngrain = \"one row per service request\"\nentities = \"unincorporated county only; the four boroughs run their own systems\"\n\n[dataset.missingness]\nzero_is_missing = true\nsource_tokens = [\"\", \"N/A\", \"UNKNOWN\"]\n\n[dataset.access]\nkeys = [\"request_id\"]\nraw = \"data/raw/ridgeway-311/\"\nbuilders = [\"tools/load_311.py\"]\nfeeds = [\"requests\", \"response_times\"]\n\n[dataset.acquisition]\naccess = \"public\"\nterms = \"County open-data terms; attribution requested, redistribution unrestricted.\"\ncredentials = \"none\"\nformat = \"One CSV per calendar year, plus a rolling current-year file.\"\nmethod = \"Direct file URLs from the county's open-data index.\"\ncadence = \"annual, with the current year refreshed nightly\"\nlag = \"Closed requests appear the following business day.\"\nverification = \"Compare the new year file's row count against the county's published annual total.\"\nsize = \"About 40 MB per year.\""
     },
     {
       "table": "issue",
@@ -82,6 +82,45 @@
         "because"
       ],
       "example": "[practice]\nid = \"median-response-worked-only\"\ntitle = \"Response time is the median over tickets that had a work order, excluding the migration date\"\nquestion = \"How fast does the county respond to a complaint?\"\nauthority = \"project\"\nrule = [\n  \"Restrict to tickets with a work_order_id and a closed_date.\",\n  \"Drop every ticket whose closed_date is the 2021-03-15 migration date.\",\n  \"Report the median by year, with n.\",\n]\nnaive = \"The mean of response_hours over every closed ticket, which folds in the intake zeros and the migration backfill.\"\nbecause = \"Both defects push the average down, and they push it down hardest in exactly the years a reader wants to compare against.\"\nresidual = \"Dropping the migration date also drops roughly 400 tickets genuinely closed that day. The error runs toward reporting the county as slower than it was, which is the safer direction.\"\ncontested = true\naddresses = [\"migration-close-dates\", \"response-hours-zero\"]\nimplemented_by = [\"tools/load_311.py#median_response\"]"
+    },
+    {
+      "table": "reference",
+      "label": "A reference",
+      "spec": "8",
+      "summary": "Other people's work on this dataset — what exists, which edition it serves, whether it is still maintained.",
+      "one_per_page": false,
+      "optional": [
+        "id",
+        "covers",
+        "commit",
+        "edition",
+        "maintenance",
+        "caveat",
+        "supports"
+      ],
+      "required": [
+        "kind",
+        "url",
+        "observed"
+      ],
+      "example": "[reference]\nkind = \"documentation\"\nurl = \"https://ridgeway.example.gov/311/data-dictionary\"\nobserved = \"2026-07-28\"\ncovers = \"The county's field-by-field dictionary for the 311 export, including the closure-code list.\"\nmaintenance = \"dated\"\ncaveat = \"Last revised before the 2023 code change; three closure codes in the current export are absent from it.\""
+    },
+    {
+      "table": "quote",
+      "label": "A quote",
+      "spec": "8",
+      "summary": "The source's own words, with the URL and the date they were seen there — so a reader never has to trust a paraphrase.",
+      "one_per_page": false,
+      "optional": [
+        "supports",
+        "note"
+      ],
+      "required": [
+        "text",
+        "source",
+        "retrieved"
+      ],
+      "example": "[quote]\ntext = \"Across all service requests closed in 2024, the median time to close was 42 hours.\"\nsource = \"https://ridgeway.example.gov/311/annual-report-2024\"\nretrieved = \"2026-07-28\"\nsupports = [\"median-response-worked-only\"]\nnote = \"Their 42 hours counts the four boroughs; ours does not, and that is the whole of the gap below.\""
     },
     {
       "table": "validation",
@@ -163,7 +202,8 @@
         "availability",
         "measurement",
         "identity",
-        "policy"
+        "policy",
+        "acquisition"
       ]
     },
     {
@@ -306,8 +346,8 @@
     },
     {
       "number": "8",
-      "title": "Validation — `[validation]`",
-      "anchor": "8-validation--validation"
+      "title": "What backs the page — `[quote]`, `[reference]`, `[validation]`",
+      "anchor": "8-what-backs-the-page--quote-reference-validation"
     },
     {
       "number": "9",

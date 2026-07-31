@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ergo.py — validator, digest, and exporter for ergo data pages.
-# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.4 · tool 0.4.0
+# Format: https://github.com/lavallee/ergo (SPEC.md) · ergo format 0.5 · tool 0.5.0
 # Stdlib only, Python >= 3.11 (tomllib). Vendor this file freely; it has no deps.
 """
 Usage:
@@ -9,6 +9,7 @@ Usage:
   python3 ergo.py export  [PATHS...] [--out FILE]
   python3 ergo.py publish [PATHS...] --dir OUT [--base-url URL]
   python3 ergo.py directory [PATHS...] [--bundle URL] [--name NAME] [--entries-only]
+  python3 ergo.py scan    [PATHS...] [--json] [--out FILE]
   python3 ergo.py new     SLUG [--dir DIR]
 
 PATHS are data-page markdown files or directories containing them
@@ -23,23 +24,43 @@ import sys
 import tomllib
 from pathlib import Path
 
-FORMAT_VERSIONS = {"0.1", "0.2", "0.3", "0.4"}
-BLOCK_TYPES = {"dataset", "issue", "practice", "validation", "change"}
+FORMAT_VERSIONS = {"0.1", "0.2", "0.3", "0.4", "0.5"}
+BLOCK_TYPES = {"dataset", "issue", "practice", "reference", "quote", "validation",
+               "change"}
 EFFECTS = ["breaks", "corrupts", "misleads", "context"]
 ISSUE_STATUSES = {"open", "mitigated", "resolved", "monitor"}
 DATASET_STATUSES = {"live", "acquiring", "dormant", "archived"}
 AUTHORITIES = {"publisher", "project", "community"}
+# An issue is a defect in the data (SPEC §2). `handling` is the escape hatch
+# for a fact about this project's own handling that is not worth a page of
+# its own — deliberately narrow, and reported by `publish`.
+ISSUE_ABOUT = {"data", "handling"}
 TYPES = {
     "definitional", "universe", "coverage", "suppression", "geography",
     "revision", "coding", "format", "entry", "linkage", "uncertainty",
-    "availability", "measurement", "identity", "policy",
+    "availability", "measurement", "identity", "policy", "acquisition",
 }
 SCOPE_KEYS = {"years", "tables", "columns", "rows", "entities", "all"}
 MISSINGNESS_KEYS = {"zero_is_missing", "source_tokens"}
+ACQUISITION_KEYS = {"access", "terms", "credentials", "format", "method", "via",
+                    "cadence", "lag", "verification", "size"}
+# Closed: this is the field a tool branches on when deciding whether a lesson
+# about this dataset could be shared at all.
+ACCESS_LEVELS = {"public", "conditional", "restricted"}
 # source_url(s) handled separately: either form satisfies the requirement.
 DATASET_REQUIRED = ("ergo", "slug", "title", "publisher", "pitfall", "status")
 ISSUE_REQUIRED = ("id", "title", "effect", "type", "status")
 PRACTICE_REQUIRED = ("id", "title", "question", "authority", "rule", "because")
+QUOTE_REQUIRED = ("text", "source", "retrieved")
+REFERENCE_REQUIRED = ("kind", "url", "observed")
+# Recommended, not closed: one real corpus of 94 sources used 13 distinct
+# words for this, so closing it now would close it wrong (cf. issue `type`).
+REFERENCE_KINDS = {
+    "implementation", "documentation", "article", "schema", "discussion",
+    "dataset", "notebook",
+}
+# Closed: a consumer's behaviour branches on it — whether to use the thing.
+MAINTENANCE = {"active", "dated", "archived", "unknown"}
 VALIDATION_REQUIRED = ("date", "method", "result")
 CHANGE_REQUIRED = ("date", "note")
 
@@ -78,6 +99,12 @@ class Page:
 
     def practices(self):
         return [b for b in self.blocks if b.kind == "practice"]
+
+    def references(self):
+        return [b for b in self.blocks if b.kind == "reference"]
+
+    def quotes(self):
+        return [b for b in self.blocks if b.kind == "quote"]
 
     def validations(self):
         return [b for b in self.blocks if b.kind == "validation"]
@@ -175,15 +202,23 @@ def check_page(page, lines):
         if urls is not None and not isinstance(urls, list):
             err.append((dl, f"source_urls must be a list, got {type(urls).__name__} — use source_url for a single string"))
             urls = None
+        produced = d.get("produced_from")
+        if produced is not None and not (isinstance(produced, list)
+                                         and all(isinstance(x, str) and x.strip() for x in produced)):
+            err.append((dl, "produced_from must be a list of page slugs or upstream URLs"))
+            produced = None
         if not [u for u in (urls or []) if str(u).strip()] and not str(d.get("source_url") or "").strip():
-            err.append((dl, "[dataset] missing required field: source_urls"))
+            if not produced:
+                err.append((dl, "[dataset] missing required field: source_urls "
+                                "(a dataset this project produces rather than fetches "
+                                "declares `produced_from` instead)"))
         for f in ("version", "implementation", "subject"):
             if f in d and not isinstance(d[f], str):
                 err.append((dl, f"{f} must be a string, got {d[f]!r}"))
         if isinstance(d.get("subject"), str) and d["subject"].strip():
             if not re.match(r"^https?://\S+$", d["subject"].strip()):
                 err.append((dl, f"subject must be a single http(s) URL, got {d['subject']!r}"))
-        elif "subject" not in d:
+        elif "subject" not in d and not d.get("produced_from"):
             warn.append((dl, "no subject — directories cluster pages by subject URL, so a page without one cannot be found alongside others documenting the same dataset (§10)"))
         derived = d.get("derived_from")
         if derived is not None:
@@ -200,6 +235,24 @@ def check_page(page, lines):
         if unknowns is not None and not (isinstance(unknowns, list)
                                          and all(isinstance(u, str) for u in unknowns)):
             err.append((dl, "unknowns must be a list of strings"))
+        acq = d.get("acquisition")
+        if acq is not None:
+            if not isinstance(acq, dict):
+                err.append((dl, "[dataset.acquisition] must be a table"))
+            else:
+                for k in set(acq) - ACQUISITION_KEYS:
+                    warn.append((dl, f"acquisition key {k!r} is outside the recommended set {sorted(ACQUISITION_KEYS)}"))
+                level = acq.get("access")
+                if not level:
+                    err.append((dl, "[dataset.acquisition] needs `access` — one of "
+                                    f"{sorted(ACCESS_LEVELS)}. Prose terms cannot be read by a tool "
+                                    "deciding whether anything about this dataset may be shared"))
+                elif level not in ACCESS_LEVELS:
+                    err.append((dl, f"acquisition.access must be one of {sorted(ACCESS_LEVELS)}, got {level!r}"))
+                for k in ACQUISITION_KEYS - {"access"}:
+                    if k in acq and not isinstance(acq[k], str):
+                        err.append((dl, f"acquisition.{k} must be a string, got {acq[k]!r}"))
+
         miss = d.get("missingness")
         if miss is not None:
             if not isinstance(miss, dict):
@@ -244,6 +297,8 @@ def check_page(page, lines):
             err.append((il, f"issue {iid or '?'} is mitigated but has no handled_by"))
         if iss.get("effect") in ("misleads", "context") and not iss.get("misuse"):
             warn.append((il, f"issue {iid or '?'} is {iss.get('effect')} but names no misuse"))
+        if iss.get("about") and iss["about"] not in ISSUE_ABOUT:
+            err.append((il, f"issue about must be one of {sorted(ISSUE_ABOUT)}, got {iss['about']!r}"))
         if "core" in iss and not isinstance(iss["core"], bool):
             err.append((il, f"core must be a boolean, got {iss['core']!r}"))
         detect = iss.get("detect", {})
@@ -296,10 +351,69 @@ def check_page(page, lines):
                 err.append((pl, f"[practice] addresses unknown issue id {ref!r}"))
 
     issues = page.issues()
+    n_handling = sum(1 for b in issues if b.data["issue"].get("about") == "handling")
+    if issues and n_handling > max(1, len(issues) // 3):
+        warn.append((issues[0].line,
+            f"{n_handling} of {len(issues)} issues are about this project's own handling "
+            "rather than the data — that is a page about your pipeline, not about the "
+            "dataset; give the derived dataset its own page (`produced_from`, §4)"))
     n_core = sum(1 for b in issues if b.data["issue"].get("core") is True)
     if issues and n_core > max(1, len(issues) // 3):
         warn.append((issues[0].line,
             f"{n_core} of {len(issues)} issues are core — a page where a third of the registry is core has no core"))
+
+    # references point at other people's work about this dataset
+    for b in page.references():
+        r, rl = b.data["reference"], b.line
+        for f in REFERENCE_REQUIRED:
+            if not r.get(f):
+                err.append((rl, f"[reference] missing required field: {f}"))
+        rid = r.get("id", "")
+        if rid:
+            if not KEBAB.match(str(rid)):
+                err.append((rl, f"reference id must be kebab-case: {rid!r}"))
+            if rid in seen_ids:
+                err.append((rl, f"duplicate id {rid!r} (first at line {seen_ids[rid]}) "
+                                "— issues, practices and references share one namespace"))
+            seen_ids[rid] = rl
+        url = str(r.get("url") or "").strip()
+        if url and not re.match(r"^https?://\S+$", url):
+            err.append((rl, f"reference url must be a single http(s) URL, got {r.get('url')!r}"))
+        if r.get("kind") and r["kind"] not in REFERENCE_KINDS:
+            warn.append((rl, f"reference kind {r['kind']!r} is outside the recommended set "
+                             f"{sorted(REFERENCE_KINDS)}"))
+        if r.get("maintenance") and r["maintenance"] not in MAINTENANCE:
+            err.append((rl, f"maintenance must be one of {sorted(MAINTENANCE)}, "
+                            f"got {r['maintenance']!r}"))
+        if r.get("kind") == "implementation" and not str(r.get("commit") or "").strip():
+            warn.append((rl, f"reference {rid or url or '?'} points at code with no commit — "
+                             "a reference into a moving repository rots; pin the revision"))
+        sup = r.get("supports")
+        if sup is not None and not (isinstance(sup, list) and all(isinstance(s, str) for s in sup)):
+            err.append((rl, "reference supports must be a list of issue or practice ids"))
+
+    # quotes carry the publisher's own words; ids they support must exist here
+    for b in page.quotes():
+        q, ql = b.data["quote"], b.line
+        for f in QUOTE_REQUIRED:
+            if not q.get(f):
+                err.append((ql, f"[quote] missing required field: {f}"))
+        text = q.get("text")
+        if text is not None and not isinstance(text, str):
+            err.append((ql, "quote text must be a string — the source's words, verbatim"))
+        elif isinstance(text, str) and len(text) > 1200:
+            warn.append((ql, "quote is over 1200 characters — quote the sentence that carries "
+                             "the point, not the page it came from"))
+        src = str(q.get("source") or "").strip()
+        if src and not re.match(r"^https?://\S+$", src):
+            err.append((ql, f"quote source must be a single http(s) URL, got {q.get('source')!r}"))
+        sup = q.get("supports")
+        if sup is not None and not (isinstance(sup, list) and all(isinstance(s, str) for s in sup)):
+            err.append((ql, "quote supports must be a list of issue or practice ids"))
+        else:
+            for ref in sup or []:
+                if ref not in seen_ids:
+                    err.append((ql, f"[quote] supports unknown issue or practice id {ref!r}"))
 
     for b in page.validations():
         v, vl = b.data["validation"], b.line
@@ -324,6 +438,123 @@ def check_page(page, lines):
         elif upd < latest_change:
             err.append((page.blocks[0].line,
                 f"[dataset] updated ({upd}) is older than the newest [change] date ({latest_change})"))
+
+
+# ---------- scanning code for undocumented dataset handling ----------
+
+# Each signal is a shape that working code takes when its author has already
+# learned something about a dataset. A hit is a *candidate*, never a finding:
+# the code proves a workaround exists, not that the reading behind it is right
+# (SPEC §5). The suggested type is a starting guess for whoever writes it up.
+SCAN_SIGNALS = [
+    ("sentinel-comparison", "suppression",
+     re.compile(r"""(?:==|!=|\.eq\(|%in%|\bisin\()\s*[\[(]?\s*['"](?:\*{1,3}|N/?A|n/a|NULL|--?|\?|\.|N|X|Z)['"]"""
+                r"""|[=!]=\s*-9{2,}\b|\b-9{3,}\b""")),
+    ("null-filling", "suppression",
+     re.compile(r"""\.fillna\(|\bfillna\(|\breplace_na\(|\bcoalesce\(|\bna\.omit\(|is\.na\([^)]*\)\s*<-""")),
+    ("era-branch", "format",
+     re.compile(r"""\b(?:year|yr|school_year|end_year|fy)\b\s*[<>]=?\s*['"]?(?:19|20)\d{2}"""
+                r"""|['"]?(?:19|20)\d{2}['"]?\s*[<>]=?\s*\b(?:year|yr|school_year|end_year)\b""")),
+    ("column-rename", "coding",
+     re.compile(r"""\.rename\(\s*columns|\brename\(|\bcolnames\(|\bnames\([A-Za-z_.]+\)\s*<-"""
+                r"""|\b(?:COLUMN_MAP|COL_MAP|RENAMES?|HEADER_MAP)\b""")),
+    ("workbook-layout", "format",
+     re.compile(r"""\bskiprows\s*=|\bskip\s*=\s*\d|\bsheet_name\s*=|\bsheet\s*=\s*['"\d]"""
+                r"""|\bheader\s*=\s*\d|\bread_excel\(|\bread\.xlsx\(|\busecols\s*=""")),
+    ("fixed-width", "format",
+     re.compile(r"""\bread_fwf\(|\bread\.fwf\(|\bcolspecs\s*=|\bwidths\s*=\s*\[""")),
+    ("identifier-padding", "identity",
+     re.compile(r"""\.zfill\(|\bstr_pad\(|\bsprintf\(\s*['"]%0\d|\bformat\(\s*\w+\s*,\s*['"]0\d"""
+                r"""|\bastype\(\s*str\s*\)|\bas\.character\(""")),
+    ("encoding-fallback", "entry",
+     re.compile(r"""\bencoding\s*=\s*['"](?:latin-?1|iso-8859|cp1252|windows-1252|mac_roman)""")),
+    ("parse-guard", "availability",
+     re.compile(r"""\bexcept\s+(?:Exception|ValueError|KeyError|IndexError|TypeError)\b|\bexcept\s*:"""
+                r"""|\btryCatch\(|\bsuppressWarnings\(""")),
+    ("hardcoded-source-url", "availability",
+     re.compile(r"""['"]https?://[^\s'"]{12,}['"]""")),
+    ("flagged-comment", "",
+     re.compile(r"""(?:^|\s)(?:#|//|--|\*)\s*(?:HACK|XXX|FIXME|WORKAROUND|GOTCHA|WEIRD|UGLY|WTF|BUG)\b""",
+                re.I)),
+]
+SCAN_EXT = {".py", ".r", ".rmd", ".sql", ".js", ".ts", ".jl", ".rb", ".go",
+            ".scala", ".java", ".sh", ".pl", ".m", ".do", ".sas"}
+SCAN_MAX_BYTES = 2_000_000
+
+
+def scan_files(paths, anchor_window=3):
+    """Find places where code already handles something about a dataset.
+
+    Returns (candidates, stats). A candidate is a dict with file, line, signal,
+    suggested type, and the source line. Lines already carrying an `ergo:`
+    anchor — or sitting just under one — are skipped: they are documented.
+    """
+    targets = []
+    for raw in paths or ["."]:
+        p = Path(raw)
+        if p.is_file():
+            targets.append(p)
+        elif p.is_dir():
+            targets.extend(repo_files(p))
+    candidates, scanned, anchored = [], 0, 0
+    for path in sorted(set(targets)):
+        if path.suffix.lower() not in SCAN_EXT:
+            continue
+        try:
+            if path.stat().st_size > SCAN_MAX_BYTES:
+                continue
+            blob = path.read_bytes()
+        except OSError:
+            continue
+        if BINARY_HINT.search(blob[:4096]):
+            continue
+        try:
+            text = blob.decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        lines = text.split("\n")
+        scanned += 1
+        anchor_lines = {n for n, l in enumerate(lines) if ANCHOR.search(l)}
+        for n, line in enumerate(lines):
+            if len(line) > 400:
+                continue
+            near_anchor = any((n - k) in anchor_lines for k in range(0, anchor_window + 1))
+            hits = [(name, typ) for name, typ, rx in SCAN_SIGNALS if rx.search(line)]
+            if not hits:
+                continue
+            if near_anchor:
+                anchored += len(hits)
+                continue
+            for name, typ in hits:
+                candidates.append({
+                    "file": str(path), "line": n + 1, "signal": name,
+                    "suggests": typ, "source": line.strip()[:160],
+                })
+    return candidates, {"files_scanned": scanned, "already_anchored": anchored}
+
+
+def render_scan(candidates, stats):
+    out = []
+    by_file = {}
+    for c in candidates:
+        by_file.setdefault(c["file"], []).append(c)
+    for path in sorted(by_file):
+        out.append(path)
+        for c in by_file[path]:
+            suffix = f" → {c['suggests']}" if c["suggests"] else ""
+            out.append(f"  {c['line']:>5}  {c['signal']}{suffix}")
+            out.append(f"         {c['source']}")
+        out.append("")
+    signals = len({c["signal"] for c in candidates})
+    out.append(f"{len(candidates)} candidate(s) across {len(by_file)} file(s) "
+               f"of {stats['files_scanned']} scanned, {signals} signal(s); "
+               f"{stats['already_anchored']} hit(s) skipped as already anchored")
+    out.append("")
+    out.append("Candidates are evidence that someone handled something — not that "
+               "the reading behind it was right. Confirm each against real files "
+               "before it becomes an [issue]; until then the page's confidence is "
+               "'?' and its unknowns say the data has not been examined.")
+    return "\n".join(out) + "\n"
 
 
 def repo_files(root):
@@ -475,10 +706,11 @@ def digest(pages, long=False):
 
 
 def export(pages):
-    doc = {"ergo": "0.4", "pages": []}
+    doc = {"ergo": "0.5", "pages": []}
     for page in pages:
         entry = {"path": str(page.path), "dataset": page.dataset,
-                 "issues": [], "practices": [], "validations": []}
+                 "issues": [], "practices": [], "references": [],
+                 "quotes": [], "validations": []}
         for b in page.issues():
             rec = dict(b.data["issue"])
             rec["_line"] = b.line
@@ -487,6 +719,14 @@ def export(pages):
             rec = dict(b.data["practice"])
             rec["_line"] = b.line
             entry["practices"].append(rec)
+        for b in page.references():
+            rec = dict(b.data["reference"])
+            rec["_line"] = b.line
+            entry["references"].append(rec)
+        for b in page.quotes():
+            rec = dict(b.data["quote"])
+            rec["_line"] = b.line
+            entry["quotes"].append(rec)
         for b in page.validations():
             rec = dict(b.data["validation"])
             rec["_line"] = b.line
@@ -576,6 +816,12 @@ def publish(pages, out_dir, base_url=None):
     for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
         d = page.dataset or {}
         slug = d.get("slug") or page.path.stem
+        for b in page.issues():
+            if b.data["issue"].get("about") == "handling":
+                all_warnings.append(
+                    f"{page.path}:{b.line}: issue {b.data['issue'].get('id', '?')!r} is about "
+                    "your own handling, not the data, and is being published — move it to the "
+                    "derived dataset's page, or wrap its section in ergo:internal markers")
         dest = out / f"{slug}.md"
         src = page.path.read_text(encoding="utf-8")
         marker_err = check_internal_markers(src)
@@ -625,7 +871,7 @@ def publish(pages, out_dir, base_url=None):
         if base:
             rec["page_url"] = base + f"{slug}.md"
         datasets.append(rec)
-    index = {"ergo": "0.4", "datasets": datasets}
+    index = {"ergo": "0.5", "datasets": datasets}
     if base:
         index["base_url"] = base
     (out / "index.json").write_text(
@@ -662,6 +908,8 @@ def directory_entries(pages, bundle_url=None):
     out = []
     for page in sorted(pages, key=lambda p: (p.dataset or {}).get("slug", "")):
         d = page.dataset or {}
+        if d.get("produced_from") and not d.get("subject"):
+            continue   # a dataset this project makes; nobody else publishes it to cluster with
         subject = d.get("subject", "")
         entry = {
             "subject": subject,
@@ -699,7 +947,7 @@ One-paragraph lede: what this dataset is and why the project uses it.
 
 ```toml ergo
 [dataset]
-ergo = "0.4"
+ergo = "0.5"
 slug = "{slug}"
 title = "{title}"
 publisher = ""
@@ -837,10 +1085,29 @@ def main(argv=None):
     p_dir.add_argument("--entries-only", action="store_true",
                        help="emit just the entries array, to paste into an existing directory")
     p_dir.add_argument("--out", metavar="FILE")
+    p_scan = sub.add_parser("scan", help="find code that already handles something about a dataset")
+    p_scan.add_argument("paths", nargs="*")
+    p_scan.add_argument("--json", action="store_true", dest="as_json")
+    p_scan.add_argument("--out", metavar="FILE")
     p_new = sub.add_parser("new")
     p_new.add_argument("slug")
     p_new.add_argument("--dir", default=".")
     args = ap.parse_args(argv)
+
+    if args.cmd == "scan":
+        candidates, stats = scan_files(args.paths)
+        if args.as_json:
+            text = json.dumps({"ergo_scan": "1", "stats": stats,
+                               "candidates": candidates},
+                              indent=2, ensure_ascii=False) + "\n"
+        else:
+            text = render_scan(candidates, stats)
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote {args.out}")
+        else:
+            sys.stdout.write(text)
+        return 0
 
     if args.cmd == "new":
         if not KEBAB.match(args.slug):

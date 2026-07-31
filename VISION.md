@@ -13,12 +13,19 @@ claim can be checked.
 
 - **The issue is the unit.** A stable ID, effect, type, status, scope, misuse,
   and handling link make each caveat findable and actionable.
-- **One human page is the canonical artifact.** Markdown narrative and embedded
-  TOML serve people and machines; digests, public projections, and interop
-  formats are generated renders.
+- **One page in the repository is the canonical artifact.** Not because people
+  read it top to bottom — they don't, and they don't write it by hand either —
+  but because it sits next to the code it describes, diffs legibly in a pull
+  request, and an agent reads it with nothing in between. Digests, public
+  projections, and interop formats are generated renders.
 - **Adoption must be cheap and safe.** A vendorable stdlib tool, progressive
   conformance, explicit internal/public projection, and agent entry points let
   real data projects adopt Ergo without a platform migration.
+- **Capture happens at the moment of learning.** Every prior documentation
+  tradition failed because writing it down was a separate act, done later, by
+  someone who had stopped being confused. An agent working alongside you is
+  present at that moment and holds what the record needs — so the skill, not
+  the format, is what people adopt.
 
 ## Non-goals
 
@@ -36,6 +43,9 @@ claim can be checked.
 - Greppable code anchors close the round trip between documented caveat and
   implemented workaround.
 - Skills and AGENTS/CLAUDE pointers put the right subset of the issue registry
-  into an agent's working context.
+  into an agent's working context, and carry the procedures — consuming a page,
+  registering an issue, reading a page out of an existing implementation.
+- `scan` plus the reading procedure open a dataset that has no documentation
+  anywhere, which is nearly all of them.
 - njschooldata is the first production proving ground; served public bundles
   test the decentralized documentation path.
