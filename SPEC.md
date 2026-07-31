@@ -362,6 +362,12 @@ Field notes:
   offered anywhere public (§9). "Public" prose that a program cannot read is
   the same as no answer.
 
+- **`contribute`** (optional) — one http(s) URL where corrections to *this
+  page* are accepted: an issue tracker, a repository, a mailbox. It travels
+  into the served bundle and into directory entries (§10), and it is how a
+  reader who finds a mistake in a page they did not write knows where to say
+  so. Exactly one page has exactly one of these; see the one-home rule (§10).
+
 - **`subject`** (recommended) — one URL naming **what dataset this page is
   about**. Distinct from `source_urls`, which say where *you* get the bytes:
   two projects documenting the same census product through a mirror and an
@@ -1108,7 +1114,7 @@ One JSON document at a stable URL.
 
 `subject` and `bundle` are required per entry; the rest are conveniences
 copied from the bundle so a directory can be browsed without fetching
-everything it lists. They are a **cache, not a source of truth** — the
+everything it lists. `contribute` is the exception and is discussed below. They are a **cache, not a source of truth** — the
 bundle wins on any disagreement.
 
 `recognizes` is optional and answers the harder question: an agent holding an
@@ -1117,6 +1123,59 @@ filename pattern, or column fingerprint and find a page that way. A column
 fingerprint is the strongest signal for a file that arrived with no
 provenance at all. Report a signature match with its basis ("matched 14 of
 16 column names"); never assert identity from one silently.
+
+### Where corrections go — `contribute`
+
+A directory that holds no content still has to answer the question a reader
+arrives with: *this page is wrong, where do I say so?*
+
+```json
+{
+  "subject": "https://www.census.gov/programs-surveys/acs",
+  "bundle": "https://example.org/data/ergo/",
+  "contribute": "https://github.com/example/data/issues"
+}
+```
+
+`contribute` is optional and copied from the page's manifest (`contribute`,
+§4) like the other conveniences. What makes it worth a field of its own is the
+rule it carries:
+
+> **One home per page.** Exactly one place accepts corrections to a given
+> page, and it is the place that serves the page's bytes. A directory must
+> never name itself in `contribute` for a page it does not serve.
+
+That is §10's opening constraint stated as something a maintainer can check
+rather than a principle they have to remember. A directory that starts
+accepting patches to other people's pages has become a fork of every page in
+it; a directory that points at each publisher's own repo has not.
+
+### Hosting a page nobody else will
+
+The constraint above forbids a directory from patching someone else's page. It
+does not forbid a directory from being the home of a page that has no other
+home — and most datasets have none, because most publishers will never write
+one and most of the projects that could are private.
+
+Such an entry is not structurally special. Its `bundle` is the directory's own
+serving location and its `contribute` is the directory's own repository,
+because the directory really is where that page lives. The rule holds
+unchanged: one home, and it is whoever serves the bytes.
+
+What a directory must not do is hold a *second* copy of a page that already
+has a home elsewhere. The test is not "does the directory store content" but
+"does this page have exactly one place to correct it."
+
+### When a publisher takes over
+
+If a publisher starts serving their own bundle for a dataset the directory has
+been hosting, the hosted page hands off: the entry's `bundle` and `contribute`
+change to the publisher's, and the directory's copy is deleted rather than
+kept in parallel. There is no new mechanism — it is an edit to one entry — but
+it is the expected end state and worth planning for rather than discovering.
+
+Do not keep the old copy "for reference". Two copies with one subject is the
+condition this whole section exists to prevent.
 
 ### Configuring directories
 
@@ -1148,11 +1207,18 @@ Forking someone's page is expected and encouraged — it is how a page finds
 the questions it actually serves. Record it with `derived_from` (§4): the
 upstream URL and the date you took it.
 
-That record is what keeps a remix honest. With a URL and a date, a reader can
-fetch the upstream and see what it has registered since the fork, instead of
-discovering a year later that the original grew twelve issues nobody carried
-across. Computing that divergence is not yet tooled (§16); recording the
-lineage costs two lines now and is what makes the tooling possible later.
+That record is what keeps a remix honest. With a URL, a date, and a `hash` of
+the bytes you took, a reader can see what the upstream has registered since —
+instead of discovering a year later that the original grew twelve issues
+nobody carried across. `ergo diverge` (§12) computes it.
+
+The `hash` is what makes the answer trustworthy rather than approximate. A
+date alone cannot distinguish an upstream that never moved from one that
+changed and changed back, and it cannot tell you whether the copy in front of
+you is the copy that was fetched. The receipt costs one line at fork time and
+is the difference between a comparison and a guess. It is a warning, not an
+error, to omit it — a fork recorded without a hash is still better than a fork
+recorded not at all.
 
 ## 11. Authoring discipline
 
@@ -1197,6 +1263,7 @@ python3 tools/ergo.py export  [PATHS...] [--out FILE]
 python3 tools/ergo.py publish [PATHS...] --dir OUT [--base-url URL]
 python3 tools/ergo.py directory [PATHS...] [--bundle URL] [--entries-only]
 python3 tools/ergo.py scan    [PATHS...] [--json] [--out FILE]
+python3 tools/ergo.py diverge [PATHS...] [--json] [--timeout SECONDS]
 python3 tools/ergo.py new     SLUG [--dir DIR]
 ```
 
@@ -1218,6 +1285,24 @@ python3 tools/ergo.py new     SLUG [--dir DIR]
   subject and its normalized form, bundle URL, and recognition signatures
   derived from the manifest. `--entries-only` gives just the array, to open
   as a PR against someone else's directory.
+- **diverge** — for every page carrying `derived_from` (§4), fetch the
+  upstream and answer three questions in the order they get cheaper to
+  answer: has it moved at all (the `hash` receipt), what does it *say* it
+  changed since you took it (its own `[change]` records dated after your
+  `retrieved`), and which ids does each side carry that the other does not.
+  The last list is the offer-back queue — what you learned that the upstream
+  has not.
+
+  The only command that touches the network. `http(s)://` and `file://` only,
+  no auth, no retries; an upstream that cannot be read exits 1 rather than
+  reporting no difference, because "unreachable" and "unchanged" must never
+  look alike. It prints the upstream's current hash so you can paste it back
+  into `derived_from` once you have reconciled.
+
+  It also reports when the receipt and the upstream's changelog disagree — a
+  hash claiming the upstream never moved, on a page recording changes dated
+  after you took it. One of the two is wrong, and believing either silently is
+  worse than saying so.
 - **scan** — read code that already works with a dataset and list the places
   its author handled something: sentinel comparisons, null filling, year-keyed
   parser branches, column rename maps, sheet and header offsets, fixed-width
@@ -1347,14 +1432,16 @@ in a host project may depend on an export that the page can't regenerate.
   What remains open is whether a produced page should be able to state which
   of its upstream's issues it inherits, rather than leaving a reader to follow
   `produced_from` and work it out.
-- **Cross-project issue sharing and the directory of bundles.** Two
-  projects ingesting the same NJDOE files currently each carry a page. With
-  bundles served over HTTP (§9), the aggregation layer becomes concrete: a
-  directory that indexes many publishers' `index.json` URLs, so an agent
-  asks one place "who has documented this dataset?" and fetches the
-  publisher's own bundle — maintenance stays decentralized, discovery
-  centralizes. An "issues-first awesome list" (the survey found none exists
-  anywhere) is the low-tech first version.
+- **A directory anyone actually runs.** The format is specified (§10) —
+  entries, clustering, `contribute` and the one-home rule, hosting a page
+  that has no other home, handing off when a publisher takes over. What is
+  not specified is the part a format cannot settle: who merges, who
+  adjudicates a disputed issue claim, and how that survives contributions
+  arriving faster than a person can read them. That is ongoing human cost an
+  index does not have, and it is worth paying only once there is evidence
+  that finding a page helps — the measurement ergo still owes (ROADMAP
+  Outcome 2). Building the registry before that evidence would be committing
+  to maintenance on the strength of a plausible argument.
 - **Digest freshness enforcement.** `check` doesn't yet verify INDEX.md is
   current; regenerate-on-commit is convention. A `--check-index` flag is
   cheap if drift shows up in practice.

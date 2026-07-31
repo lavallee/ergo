@@ -10,6 +10,7 @@ Usage:
   python3 ergo.py publish [PATHS...] --dir OUT [--base-url URL]
   python3 ergo.py directory [PATHS...] [--bundle URL] [--name NAME] [--entries-only]
   python3 ergo.py scan    [PATHS...] [--json] [--out FILE]
+  python3 ergo.py diverge [PATHS...] [--json] [--timeout SECONDS]
   python3 ergo.py new     SLUG [--dir DIR]
 
 PATHS are data-page markdown files or directories containing them
@@ -17,11 +18,14 @@ PATHS are data-page markdown files or directories containing them
 """
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
 import sys
 import tomllib
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 FORMAT_VERSIONS = {"0.1", "0.2", "0.3", "0.4", "0.5"}
@@ -65,6 +69,7 @@ VALIDATION_REQUIRED = ("date", "method", "result")
 CHANGE_REQUIRED = ("date", "note")
 
 KEBAB = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+HASH = re.compile(r"^sha256:[0-9a-f]{64}$")
 ANCHOR = re.compile(r"ergo:\s*([a-z0-9][a-z0-9-]*)/([a-z0-9][a-z0-9-]*)")
 FENCE = re.compile(r"^(`{3,})(.*)$")
 HEADING = re.compile(r"^#{1,6}\s")
@@ -122,6 +127,14 @@ def parse_page(path):
     page = Page(path)
     text = Path(path).read_text(encoding="utf-8")
     lines = text.split("\n")
+    page.blocks = parse_blocks(text, page)
+    return page, lines
+
+
+def parse_blocks(text, page):
+    """Every ergo block in `text`, appending parse problems to `page`."""
+    blocks = []
+    lines = text.split("\n")
     i = 0
     while i < len(lines):
         m = FENCE.match(lines[i])
@@ -161,8 +174,8 @@ def parse_page(path):
         kind = tops.pop()
         if is_plain_toml:
             page.warnings.append((start + 1, f"[{kind}] block fenced as plain `toml` — mark it `toml ergo`"))
-        page.blocks.append(Block(kind, data, start + 1))
-    return page, lines
+        blocks.append(Block(kind, data, start + 1))
+    return blocks
 
 
 # ---------- validation ----------
@@ -212,9 +225,12 @@ def check_page(page, lines):
                 err.append((dl, "[dataset] missing required field: source_urls "
                                 "(a dataset this project produces rather than fetches "
                                 "declares `produced_from` instead)"))
-        for f in ("version", "implementation", "subject"):
+        for f in ("version", "implementation", "subject", "contribute"):
             if f in d and not isinstance(d[f], str):
                 err.append((dl, f"{f} must be a string, got {d[f]!r}"))
+        contrib = d.get("contribute")
+        if isinstance(contrib, str) and contrib.strip() and not re.match(r"^https?://\S+$", contrib.strip()):
+            err.append((dl, f"contribute must be a single http(s) URL, got {contrib!r}"))
         if isinstance(d.get("subject"), str) and d["subject"].strip():
             if not re.match(r"^https?://\S+$", d["subject"].strip()):
                 err.append((dl, f"subject must be a single http(s) URL, got {d['subject']!r}"))
@@ -229,8 +245,16 @@ def check_page(page, lines):
                     for f in ("url", "retrieved"):
                         if not str(src.get(f) or "").strip():
                             err.append((dl, f"derived_from[{i}] missing required field: {f}"))
-                    for k in set(src) - {"url", "retrieved", "note"}:
-                        warn.append((dl, f"derived_from[{i}] key {k!r} is outside the recommended set ['note', 'retrieved', 'url']"))
+                    h = str(src.get("hash") or "").strip()
+                    if h and not HASH.match(h):
+                        err.append((dl, f"derived_from[{i}] hash must look like "
+                                        f"'sha256:<64 hex>', got {h!r}"))
+                    elif not h:
+                        warn.append((dl, f"derived_from[{i}] has no hash — without one, "
+                                         "`ergo diverge` cannot tell an upstream that never "
+                                         "moved from one that changed and changed back"))
+                    for k in set(src) - {"url", "retrieved", "note", "hash"}:
+                        warn.append((dl, f"derived_from[{i}] key {k!r} is outside the recommended set ['hash', 'note', 'retrieved', 'url']"))
         unknowns = d.get("unknowns")
         if unknowns is not None and not (isinstance(unknowns, list)
                                          and all(isinstance(u, str) for u in unknowns)):
@@ -554,6 +578,136 @@ def render_scan(candidates, stats):
                "the reading behind it was right. Confirm each against real files "
                "before it becomes an [issue]; until then the page's confidence is "
                "'?' and its unknowns say the data has not been examined.")
+    return "\n".join(out) + "\n"
+
+
+# ---------- divergence from an upstream page ----------
+
+def content_hash(text):
+    """The receipt written into `derived_from.hash` — of the bytes as fetched."""
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def fetch_page_text(url, timeout=20):
+    """Read an upstream page. http(s) and file:// only; no redirect following
+    beyond urllib's default, no auth, no retries. Returns (text, error)."""
+    if not re.match(r"^(https?|file)://", url):
+        return None, f"unsupported url scheme: {url}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:   # noqa: S310 - scheme checked
+            return r.read().decode("utf-8"), None
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as e:
+        return None, f"{type(e).__name__}: {e}"
+    except UnicodeDecodeError:
+        return None, "upstream is not UTF-8 text"
+
+
+def _entry_ids(page):
+    out = {}
+    for b in page.issues():
+        out[str(b.data["issue"].get("id") or "")] = ("issue", b.data["issue"].get("title", ""))
+    for b in page.practices():
+        out[str(b.data["practice"].get("id") or "")] = ("practice", b.data["practice"].get("title", ""))
+    return {k: v for k, v in out.items() if k}
+
+
+def diverge(pages, timeout=20):
+    """For every page with `derived_from`, compare it against its upstream.
+
+    Three questions, answered in the order they can be answered cheaply:
+    has the upstream moved at all (the hash receipt), what does the upstream
+    say it changed since you took it (its own [change] records, dated), and
+    which ids does each side carry that the other does not.
+    """
+    reports = []
+    for page in pages:
+        d = page.dataset or {}
+        for i, src in enumerate(d.get("derived_from") or []):
+            url = str(src.get("url") or "").strip()
+            taken = str(src.get("retrieved") or "")
+            recorded = str(src.get("hash") or "")
+            rep = {"page": str(page.path), "slug": d.get("slug", ""), "upstream": url,
+                   "retrieved": taken, "recorded_hash": recorded or None,
+                   "current_hash": None, "unchanged": None, "inconsistent": False,
+                   "error": None,
+                   "upstream_changes_since": [], "only_upstream": [], "only_here": []}
+            text, error = fetch_page_text(url, timeout=timeout)
+            if error:
+                rep["error"] = error
+                reports.append(rep)
+                continue
+            rep["current_hash"] = current = content_hash(text)
+            if recorded:
+                rep["unchanged"] = (recorded == current)
+            tmp = Path(page.path).with_suffix(".upstream")
+            up = Page(tmp)
+            up.blocks = parse_blocks(text, up)
+            here_ids, up_ids = _entry_ids(page), _entry_ids(up)
+            rep["only_upstream"] = [
+                {"id": k, "kind": up_ids[k][0], "title": up_ids[k][1]}
+                for k in sorted(set(up_ids) - set(here_ids))]
+            rep["only_here"] = [
+                {"id": k, "kind": here_ids[k][0], "title": here_ids[k][1]}
+                for k in sorted(set(here_ids) - set(up_ids))]
+            for b in up.blocks:
+                if b.kind != "change":
+                    continue
+                c = b.data["change"]
+                when = str(c.get("date") or "")
+                if taken and when and when > taken:
+                    rep["upstream_changes_since"].append(
+                        {"date": when, "note": c.get("note", ""),
+                         "issues": c.get("issues", [])})
+            rep["upstream_changes_since"].sort(key=lambda x: x["date"])
+            # The receipt and the upstream's own changelog can disagree. If they
+            # do, one of them is wrong, and silently believing either is worse
+            # than saying so.
+            rep["inconsistent"] = bool(
+                rep["unchanged"] and rep["upstream_changes_since"])
+            reports.append(rep)
+    return reports
+
+
+def render_diverge(reports):
+    out = []
+    for r in reports:
+        out.append(f"{r['page']}  <-  {r['upstream']}")
+        if r["error"]:
+            out.append(f"  could not read the upstream: {r['error']}")
+            out.append("")
+            continue
+        taken = f"taken {r['retrieved']}" if r["retrieved"] else "no retrieved date"
+        if r["unchanged"] is True:
+            out.append(f"  {taken}; upstream is byte-identical to what you took")
+        elif r["unchanged"] is False:
+            out.append(f"  {taken}; upstream has changed since")
+        else:
+            out.append(f"  {taken}; no hash recorded, so 'changed at all?' cannot be answered")
+        out.append(f"  current hash: {r['current_hash']}")
+        for c in r["upstream_changes_since"]:
+            ids = (" [" + ", ".join(c["issues"]) + "]") if c["issues"] else ""
+            out.append(f"    {c['date']}  {c['note']}{ids}")
+        if r.get("inconsistent"):
+            out.append("  ! the hash says this upstream never moved, but it records "
+                       "changes dated after you took it — one of the two is wrong")
+        if r["only_upstream"]:
+            out.append("  upstream has, you do not:")
+            for e in r["only_upstream"]:
+                out.append(f"    {e['id']} ({e['kind']}) — {e['title']}")
+        if r["only_here"]:
+            out.append("  you have, upstream does not (offer these back?):")
+            for e in r["only_here"]:
+                out.append(f"    {e['id']} ({e['kind']}) — {e['title']}")
+        if not (r["only_upstream"] or r["only_here"] or r["upstream_changes_since"]):
+            out.append("  no difference in registered ids")
+        out.append("")
+    if not reports:
+        out.append("no page here records a `derived_from` upstream — nothing to compare")
+    else:
+        moved = sum(1 for r in reports if r["unchanged"] is False)
+        broken = sum(1 for r in reports if r["error"])
+        out.append(f"{len(reports)} upstream(s): {moved} changed since you took them, "
+                   f"{broken} unreadable")
     return "\n".join(out) + "\n"
 
 
@@ -920,6 +1074,8 @@ def directory_entries(pages, bundle_url=None):
             "publisher": d.get("publisher", ""),
             "updated": page.updated(),
         }
+        if d.get("contribute"):
+            entry["contribute"] = d["contribute"]
         cov = d.get("coverage") or {}
         recognizes = {}
         hosts = []
@@ -1085,6 +1241,11 @@ def main(argv=None):
     p_dir.add_argument("--entries-only", action="store_true",
                        help="emit just the entries array, to paste into an existing directory")
     p_dir.add_argument("--out", metavar="FILE")
+    p_div = sub.add_parser("diverge", help="compare pages against the upstream they were forked from")
+    p_div.add_argument("paths", nargs="*")
+    p_div.add_argument("--json", action="store_true", dest="as_json")
+    p_div.add_argument("--timeout", type=int, default=20, metavar="SECONDS")
+    p_div.add_argument("--out", metavar="FILE")
     p_scan = sub.add_parser("scan", help="find code that already handles something about a dataset")
     p_scan.add_argument("paths", nargs="*")
     p_scan.add_argument("--json", action="store_true", dest="as_json")
@@ -1145,6 +1306,20 @@ def main(argv=None):
         else:
             sys.stdout.write(text)
         return 0
+
+    if args.cmd == "diverge":
+        reports = diverge(pages, timeout=args.timeout)
+        if args.as_json:
+            text = json.dumps({"ergo_diverge": "1", "upstreams": reports},
+                              indent=2, ensure_ascii=False) + "\n"
+        else:
+            text = render_diverge(reports)
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote {args.out}")
+        else:
+            sys.stdout.write(text)
+        return 1 if any(r["error"] for r in reports) else 0
 
     if args.cmd == "directory":
         entries = directory_entries(pages, bundle_url=args.bundle)

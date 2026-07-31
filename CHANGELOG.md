@@ -1,5 +1,55 @@
 # Changelog
 
+## Unreleased
+
+### Divergence from an upstream
+
+- **`derived_from.hash` — the fetch receipt.** A `sha256:<64 hex>` of the
+  upstream bytes as you took them. A date alone cannot distinguish an upstream
+  that never moved from one that changed and changed back, nor tell you whether
+  the copy in front of you is the copy that was fetched. Warned, not required:
+  a fork recorded without a hash still beats a fork not recorded.
+- **`ergo diverge` — what your fork and its upstream now disagree about.**
+  Three questions in increasing cost: has it moved (the hash), what does it say
+  it changed since you took it (its own `[change]` records dated after your
+  `retrieved`), and which ids does each side carry that the other does not. The
+  last list is the offer-back queue — what you learned that the upstream has not.
+- **The only command that touches the network**, and it is careful about it:
+  `http(s)://` and `file://` only, no auth, no retries, and an upstream that
+  cannot be read exits 1 rather than reporting no difference, because
+  "unreachable" and "unchanged" must never look alike. It prints the current
+  hash so you can paste it back once you have reconciled.
+- **It reports when the receipt and the changelog disagree** — a hash claiming
+  the upstream never moved, on a page recording changes dated after you took
+  it. One of the two is wrong; believing either silently is worse than saying so.
+- §10 no longer says divergence is untooled, and §16 loses that question.
+
+### The registry, as a format
+
+- **`contribute` (manifest, optional)** — one URL where corrections to *this
+  page* are accepted. It travels into the served bundle and into directory
+  entries, and it answers the question a reader actually arrives with: this is
+  wrong, where do I say so?
+- **The one-home rule, stated so a maintainer can check it.** Exactly one place
+  accepts corrections to a page, and it is the place that serves its bytes; a
+  directory must never name itself in `contribute` for a page it does not
+  serve. That is §10's founding constraint turned from a principle into a test.
+- **Hosting a page nobody else will.** The constraint forbids a directory from
+  patching someone else's page; it does not forbid a directory from being the
+  home of a page that has no other home — which is most datasets, because most
+  publishers will never write one. Such an entry is not structurally special:
+  its `bundle` and `contribute` are the directory's own, because the directory
+  really is where that page lives.
+- **Handing off when a publisher takes over.** The entry's `bundle` and
+  `contribute` change to the publisher's and the hosted copy is deleted, not
+  kept in parallel. No new mechanism — one edit — but it is the expected end
+  state and worth planning for rather than discovering.
+- **What is deliberately not built.** Nobody is running a directory yet, and
+  §16 now says why: the open part is governance — who merges, who adjudicates a
+  disputed claim, how that survives agent-paced contribution — which is human
+  cost worth paying only once there is evidence that finding a page helps.
+  That measurement is still owed (ROADMAP Outcome 2).
+
 ## 0.5 — 2026-07-31
 
 The release that stops treating a data page as a description of a file and

@@ -6,6 +6,7 @@
     "title": "NJ School Performance Reports",
     "publisher": "NJ Dept. of Education, Office of Performance Reports",
     "subject": "https://www.nj.gov/education/spr/",
+    "contribute": "https://github.com/lavallee/ergo/issues",
     "source_urls": [
       "https://www.nj.gov/education/spr/"
     ],
@@ -78,7 +79,7 @@
       "scope": {
         "all": true
       },
-      "_line": 88
+      "_line": 89
     },
     {
       "id": "layout-types-lie",
@@ -100,7 +101,7 @@
         ],
         "all": true
       },
-      "_line": 109
+      "_line": 110
     },
     {
       "id": "rate-prose-suppression",
@@ -138,7 +139,7 @@
           "a rate column parses as numeric for some rows and prose for others"
         ]
       },
-      "_line": 132
+      "_line": 133
     },
     {
       "id": "grad-state-vs-federal",
@@ -163,7 +164,7 @@
         ],
         "years": "all"
       },
-      "_line": 162
+      "_line": 163
     },
     {
       "id": "grade-mix-context",
@@ -179,7 +180,7 @@
         ],
         "all": true
       },
-      "_line": 186
+      "_line": 187
     }
   ],
   "practices": [
@@ -199,7 +200,7 @@
         "tools/build_spr_db.py#headline"
       ],
       "residual": "We inherit NJDOE's own inclusions and exclusions, which are not fully documented; our figure matches the published one and is no more transparent than it.",
-      "_line": 208
+      "_line": 209
     },
     {
       "id": "grad-calcs-stay-separate",
@@ -218,7 +219,7 @@
       ],
       "contested": true,
       "because_not": "We considered publishing only the Federal rate for cross-state comparability and rejected it: with one populated year it answers almost no question a reader actually asks about NJ.",
-      "_line": 228
+      "_line": 229
     }
   ],
   "references": [
@@ -230,7 +231,7 @@
       "commit": "9c34401276d3d7fb45bdbd62ef927db6e252b933",
       "covers": "R fetchers for NJ DOE series; fetch_spr() builds SPR database URLs for end_year 2017-2025 at school or district level.",
       "maintenance": "active",
-      "_line": 252
+      "_line": 253
     }
   ],
   "quotes": [
@@ -242,7 +243,7 @@
         "headline-proficiency-as-published"
       ],
       "note": "A reader-facing publication, which is why suppression arrives as prose in a cell and why the headline figures are NJDOE's to compute, not ours.",
-      "_line": 67
+      "_line": 68
     }
   ],
   "validations": [
@@ -250,29 +251,29 @@
       "date": "2026-06-14",
       "method": "confirmed from real data — 2024-25 District/State file",
       "result": "codes are zero-padded TEXT; All-Students label is 'All Students'; suppression is prose sentences; SchoolYear format matches warehouse",
-      "_line": 269
+      "_line": 270
     }
   ],
   "changes": [
     {
       "date": "2026-07-10",
       "note": "Page created in ergo format; 5 issues registered from the 2024-25 acquisition notes.",
-      "_line": 284
+      "_line": 285
     },
     {
       "date": "2026-07-30",
       "note": "Quoted NJDOE's own statement of what the reports are for, under What it is.",
-      "_line": 290
+      "_line": 291
     },
     {
       "date": "2026-07-31",
       "note": "Recorded almartin82/njschooldata as an existing R implementation of these workbooks.",
-      "_line": 296
+      "_line": 297
     },
     {
       "date": "2026-07-31",
       "note": "Added the acquisition table: access level, terms, cadence, lag, and how to tell a new release landed.",
-      "_line": 302
+      "_line": 303
     }
   ],
   "prose": {

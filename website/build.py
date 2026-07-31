@@ -102,6 +102,7 @@ slug = "ridgeway-311"
 title = "Ridgeway County 311 service requests"
 publisher = "Ridgeway County Office of Constituent Services"
 subject = "https://data.ridgeway.example.gov/311"
+contribute = "https://github.com/ridgeway-times/data/issues"
 source_urls = ["https://data.ridgeway.example.gov/311/requests.csv"]
 pitfall = "Every ticket still open when the county switched ticket systems was closed on the migration date, so response times computed across March 2021 are worthless unless those rows are excluded."
 status = "live"
@@ -1331,6 +1332,7 @@ COMMANDS = [
     ("publish", "The servable bundle: index.json plus each page's public projection."),
     ("directory", "This project's entries for a directory of bundles, with recognition signatures."),
     ("scan", "Read code that already works with a dataset and list what its author handled."),
+    ("diverge", "Compare a forked page against its upstream: what moved, what they added, what you have that they don't."),
     ("new", "Scaffold a fresh page from the template."),
 ]
 

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-07-31T11:07:57+00:00",
+  "generated": "2026-07-31T11:30:25+00:00",
   "tool_version": "0.5.0",
   "format_version": "0.5",
-  "revision": "aa28530",
+  "revision": "e260c30",
   "spec_status": "draft v0.5 · 2026-07-31",
-  "spec_lines": 1363,
+  "spec_lines": 1450,
   "spec_sections": 16,
-  "tool_lines": 1205,
-  "checks": 79,
+  "tool_lines": 1380,
+  "checks": 90,
   "dependencies": [],
   "requires_python": "3.11",
   "license": "MIT",
@@ -41,6 +41,11 @@
       "name": "scan",
       "summary": "Read code that already works with a dataset and list what its author handled.",
       "usage": "ergo.py scan [-h] [--json] [--out FILE] [paths ...]"
+    },
+    {
+      "name": "diverge",
+      "summary": "Compare a forked page against its upstream: what moved, what they added, what you have that they don't.",
+      "usage": "ergo.py diverge [-h] [--json] [--timeout SECONDS] [--out FILE] [paths ...]"
     },
     {
       "name": "new",

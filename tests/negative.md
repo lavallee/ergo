@@ -16,6 +16,8 @@ status = "sideways"
 version = 3
 unknowns = "not a list"
 
+contribute = "send us a postcard"
+
 [dataset.acquisition]
 terms = "public-ish"
 credentials = 42

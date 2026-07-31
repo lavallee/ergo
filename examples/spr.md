@@ -13,6 +13,7 @@ slug = "spr"
 title = "NJ School Performance Reports"
 publisher = "NJ Dept. of Education, Office of Performance Reports"
 subject = "https://www.nj.gov/education/spr/"
+contribute = "https://github.com/lavallee/ergo/issues"
 source_urls = ["https://www.nj.gov/education/spr/"]
 pitfall = "NJ publishes two 4-year graduation rates; only the State calculation has a multi-year trend — plotting the Federal rate as a trend (it has one point) is the classic misread."
 status = "live"

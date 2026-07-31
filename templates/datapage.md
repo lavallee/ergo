@@ -10,6 +10,7 @@ slug = "my-dataset"              # kebab-case; unique within the project
 title = "<Dataset title>"
 publisher = "<agency / org, office if known>"
 subject = "https://…"            # WHAT this documents — one URL; how directories cluster pages (§10)
+# contribute = "https://…"       # where corrections to THIS page go; exactly one place (§10)
 source_urls = ["https://…"]      # where YOU get the bytes; a dataset can have several faces
 # produced_from = ["upstream-slug"]  # INSTEAD of source_urls, when this is a dataset YOU make
 #                                    # (a warehouse table, a curated list, a joined layer).
@@ -32,6 +33,7 @@ unknowns = [                     # where your knowledge stops — silence reads 
 # [[dataset.derived_from]]
 # url = "https://example.org/ergo/their-page.md"
 # retrieved = "YYYY-MM-DD"
+# hash = "sha256:…"            # of the bytes you took; `ergo diverge` prints the current one
 # note = "Why you forked, and what you changed."
 
 [dataset.coverage]
