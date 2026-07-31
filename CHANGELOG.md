@@ -44,11 +44,17 @@
   `contribute` change to the publisher's and the hosted copy is deleted, not
   kept in parallel. No new mechanism — one edit — but it is the expected end
   state and worth planning for rather than discovering.
-- **What is deliberately not built.** Nobody is running a directory yet, and
-  §16 now says why: the open part is governance — who merges, who adjudicates a
-  disputed claim, how that survives agent-paced contribution — which is human
-  cost worth paying only once there is evidence that finding a page helps.
-  That measurement is still owed (ROADMAP Outcome 2).
+- **The default directory now enforces the rule rather than stating it.**
+  `ergo-directory` accepts `contribute`, warns on an entry without one, and
+  **errors** on an entry that names the directory itself while its bundle is
+  served elsewhere — a page claiming a home it does not have. Its CONTRIBUTING
+  covers hosting a page with no other home, and handing off when a publisher
+  takes over.
+- **What is still open is scale, not shape.** Every entry in the default
+  directory today comes from one publisher, so nothing has tested who merges,
+  who adjudicates a disputed claim, or how either survives agent-paced
+  contribution. §16 says so. A second independent publisher is what would make
+  those costs concrete.
 
 ## 0.5 — 2026-07-31
 

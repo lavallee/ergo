@@ -1432,16 +1432,15 @@ in a host project may depend on an export that the page can't regenerate.
   What remains open is whether a produced page should be able to state which
   of its upstream's issues it inherits, rather than leaving a reader to follow
   `produced_from` and work it out.
-- **A directory anyone actually runs.** The format is specified (§10) —
-  entries, clustering, `contribute` and the one-home rule, hosting a page
-  that has no other home, handing off when a publisher takes over. What is
-  not specified is the part a format cannot settle: who merges, who
-  adjudicates a disputed issue claim, and how that survives contributions
-  arriving faster than a person can read them. That is ongoing human cost an
-  index does not have, and it is worth paying only once there is evidence
-  that finding a page helps — the measurement ergo still owes (ROADMAP
-  Outcome 2). Building the registry before that evidence would be committing
-  to maintenance on the strength of a plausible argument.
+- **A directory at more than one publisher's scale.** One exists —
+  [ergo-directory](https://github.com/lavallee/ergo-directory), the default
+  in `ergo-sources.toml`, with its own validator that enforces the one-home
+  rule mechanically. Every entry in it today comes from a single publisher,
+  so nothing has yet tested the parts a format cannot settle: who merges, who
+  adjudicates a disputed issue claim, and how either survives contributions
+  arriving faster than a person can read them. Those costs are real and an
+  index does not have them; a second independent publisher is what would make
+  them concrete rather than hypothetical.
 - **Digest freshness enforcement.** `check` doesn't yet verify INDEX.md is
   current; regenerate-on-commit is convention. A `--check-index` flag is
   cheap if drift shows up in practice.
