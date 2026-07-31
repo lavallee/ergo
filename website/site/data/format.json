@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-31T13:40:07+00:00",
+  "generated": "2026-07-31T13:52:01+00:00",
   "blocks": [
     {
       "table": "dataset",
@@ -356,8 +356,8 @@
     },
     {
       "number": "10",
-      "title": "Directories — finding pages you didn't write",
-      "anchor": "10-directories--finding-pages-you-didnt-write"
+      "title": "Directories — where pages live, and how they are found",
+      "anchor": "10-directories--where-pages-live-and-how-they-are-found"
     },
     {
       "number": "11",

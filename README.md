@@ -18,7 +18,7 @@ left to rediscover dataset issues unaided find roughly a third of them.
 | **Before you fetch anything** | Find out what's already known about this dataset — in your repo, from the publisher, from a directory, or by reading a parser someone else wrote |
 | **While you build** | Work around the known issues, and leave a greppable anchor in the code pointing at the one you're handling |
 | **When something bites** | Record it where the next person will find it, at the moment you learned it |
-| **Later, deliberately** | Offer the shareable part upstream. Never automatically, and never for a dataset that isn't public |
+| **Later, deliberately** | Offer the shareable part upstream — usually to a directory, since a private repo's page is published but unpatchable. Never automatically, and never for a dataset that isn't public |
 
 Most of that runs through the [skill](skills/ergo/SKILL.md): the agent already
 in your session is the one that just helped you work around a jam value, and

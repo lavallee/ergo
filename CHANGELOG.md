@@ -44,6 +44,25 @@
   `contribute` change to the publisher's and the hosted copy is deleted, not
   kept in parallel. No new mechanism — one edit — but it is the expected end
   state and worth planning for rather than discovering.
+- **§10 inverts: a directory holds the pages that have nowhere else to live.**
+  The earlier constraint — a directory holds no page content — defended
+  against a real harm, but the harm needs somewhere else to exist, and a
+  directory cannot fork a page that has no other home. Most pages have none:
+  publishers will not write them, the projects that do are usually private,
+  and **a public bundle served from a private repository is published but
+  unpatchable** — readable by anyone, fixable by no one. A page nobody can
+  patch is a document, not a commons. So the default runs the other way: a
+  page is canonical in the directory unless its author can accept corrections
+  publicly.
+- **What survives is one home per page**: exactly one place holds the
+  canonical copy and takes corrections, and a directory must never hold a
+  second copy of a page canonical elsewhere. A directory that hosts pages is,
+  for those pages, a publisher like any other — same bundle, same
+  `contribute`, no new entry field.
+- **The loop for a private project**, in §10 and the skill: author privately →
+  `ergo publish` for the projection → PR it to the directory, which becomes
+  canonical → record `derived_from` with the hash → `ergo diverge` keeps the
+  two in step, and its "you have, upstream does not" list is what you owe back.
 - **The default directory now enforces the rule rather than stating it.**
   `ergo-directory` accepts `contribute`, warns on an entry without one, and
   **errors** on an entry that names the directory itself while its bundle is

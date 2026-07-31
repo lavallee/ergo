@@ -1,10 +1,10 @@
 {
-  "generated": "2026-07-31T13:40:07+00:00",
+  "generated": "2026-07-31T13:52:01+00:00",
   "tool_version": "0.5.0",
   "format_version": "0.5",
-  "revision": "7134ff4",
+  "revision": "4a258ce",
   "spec_status": "draft v0.5 · 2026-07-31",
-  "spec_lines": 1449,
+  "spec_lines": 1516,
   "spec_sections": 16,
   "tool_lines": 1380,
   "checks": 90,

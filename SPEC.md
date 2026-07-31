@@ -1038,15 +1038,77 @@ Three rules make it findable and trustworthy:
 This is the decentralized half of a larger shape: every publisher serves
 its own bundle, and directories index those bundles (§10).
 
-## 10. Directories — finding pages you didn't write
+## 10. Directories — where pages live, and how they are found
 
-A **directory** is an index of bundles. It holds no page content: entries
-point at other people's bundles by URL. That constraint is the whole design —
-a directory that accepted content patches would become a fork of every page
-in it, and corrections would stop flowing to the publishers who own them.
+A **directory** answers one question: *does anyone document this dataset?*
+It carries an index of entries clustered by subject, and — for pages that have
+nowhere else to live — the pages themselves.
 
 Nothing here is required to use ergo. A project that documents its own
 datasets and never joins a directory is unaffected by this section.
+
+### Two kinds of entry, and why the second is the common one
+
+| | canonical page lives | corrections go to |
+|---|---|---|
+| **indexed** | the publisher's own repository | that repository |
+| **hosted** | this directory | this directory |
+
+Earlier drafts of this spec allowed only the first, on the grounds that a
+directory holding content would become a fork of every page in it. That
+argument is sound and it is preserved below — but it defends against a
+specific harm, and the harm needs somewhere else to exist. **A directory
+cannot fork a page that has no other home.**
+
+And most pages have no other home. Three things are true at once in practice:
+
+- the dataset's publisher will not write a page — agencies do not, and will
+  not;
+- the projects that *do* write pages are very often private, because a data
+  team's repository contains more than its documentation;
+- a public bundle served from a private repository is **published but
+  unpatchable**. You can fetch the page. There is nowhere to send a
+  correction, no pull request to open, and no one else can ever improve it.
+
+That third case is the one that matters, and an index alone cannot serve it.
+A page nobody can patch is a document, not a commons. So the default runs the
+other way from the earlier draft: **a page is canonical in the directory
+unless its author can accept corrections publicly.** A public repository that
+takes pull requests keeps its own page and is indexed; everyone else
+contributes the page itself.
+
+### The constraint that survives
+
+> **One home per page.** Exactly one place holds the canonical copy and
+> accepts corrections to it. A directory must never hold a second copy of a
+> page that is canonical somewhere else.
+
+That is the anti-fork rule, stated in terms of what actually goes wrong. It
+forbids the directory from shadowing a maintained page; it does not forbid
+the directory from being where a page lives.
+
+A directory that hosts pages is, for those pages, **a publisher like any
+other** — it serves a bundle (§9), its entries point at that bundle, and its
+`contribute` names itself truthfully. No new entry field is required.
+
+### Contributing a page from a private project
+
+The loop for a team whose repository cannot be public:
+
+1. Author the page privately, next to the code it describes.
+2. `ergo publish` produces the public projection — internal regions and
+   repo-pointing fields removed (§9).
+3. Open a pull request adding that projection to the directory, which becomes
+   the canonical copy.
+4. Record the lineage in the local copy: `[[dataset.derived_from]]` with the
+   directory's URL, the date, and the `hash` (§4).
+5. `ergo diverge` (§12) then keeps the two in step — it reports what the
+   canonical page has gained since you last took it, and what your local copy
+   carries that the canonical one does not. The second list is what you owe
+   upstream.
+
+Step 5 is what makes this a sync rather than a hand-off. The private copy
+stays the working copy; the public one stays the copy anyone can fix.
 
 ### The premise: many pages per dataset, and that is correct
 
@@ -1116,6 +1178,11 @@ One JSON document at a stable URL.
 copied from the bundle so a directory can be browsed without fetching
 everything it lists. `contribute` is the exception and is discussed below. They are a **cache, not a source of truth** — the
 bundle wins on any disagreement.
+
+For a hosted page the `bundle` is the directory's own served location and
+`contribute` is the directory's own repository. For an indexed page both point
+outward. Nothing distinguishes the two structurally, which is deliberate: a
+consumer resolving a page should not have to care where it happens to live.
 
 `recognizes` is optional and answers the harder question: an agent holding an
 unfamiliar file, with no idea what it is, can match on publisher domain,

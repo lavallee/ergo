@@ -114,12 +114,23 @@ about the publisher's data.
    url = "https://data.example-news.org/ergo/directory.json"
    ```
 
-   To contribute your own pages to a directory:
+   **Contributing your own pages depends on whether anyone can patch them.**
+   If your repository is public and takes pull requests, keep the page and
+   contribute an index entry:
    `python3 tools/ergo.py directory <pages-dir> --bundle <your-bundle-url>
-   --entries-only` and open a PR against that directory's repo. Corrections
-   to *someone else's* page go to that publisher's repo, never to the
-   directory — a directory that accepts content patches becomes a fork of
-   everything in it.
+   --entries-only`, then open a PR against the directory's repo.
+
+   If your repository is private — which is usual — a served bundle is
+   *published but unpatchable*: anyone can read the page and nobody can fix
+   it. Contribute the page itself instead. `ergo publish` gives you the
+   public projection; the directory holds it as canonical; your local copy
+   records `[[dataset.derived_from]]` with the directory's URL, the date, and
+   the `hash`, and `ergo diverge` keeps the two in step afterwards.
+
+   Corrections to a page you did not write go where its `contribute` says.
+   The rule is **one home per page**: exactly one place holds the canonical
+   copy and accepts corrections. A directory may be that place; what it must
+   never do is hold a second copy of a page that is canonical elsewhere.
 12. **Forking a page you found?** Set `subject` to the same URL so it still
    clusters, and record `[[dataset.derived_from]]` with the upstream url and
    today's date. That is what later lets anyone see what the upstream has
