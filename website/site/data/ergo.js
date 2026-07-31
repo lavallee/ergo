@@ -1,8 +1,8 @@
 window.__ERGO_META__ = {
-  "generated": "2026-07-31T11:07:23+00:00",
+  "generated": "2026-07-31T11:07:57+00:00",
   "tool_version": "0.5.0",
   "format_version": "0.5",
-  "revision": "5d7b69a",
+  "revision": "aa28530",
   "spec_status": "draft v0.5 · 2026-07-31",
   "spec_lines": 1363,
   "spec_sections": 16,
