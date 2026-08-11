@@ -26,13 +26,28 @@ practices share one namespace — and appear in code as anchor comments:
 not you exist. A practice is a decision about what may be computed and how —
 sometimes ours, sometimes the publisher's. Read both.
 
+**A fact about how this project handles the data is not an issue about the
+data.** It belongs on the page for the dataset the project *produces* — one
+that declares `produced_from` instead of `source_urls` and carries no
+`subject`, because nobody else publishes it. Where that page is more ceremony
+than it is worth, the issue is marked `about = "handling"`: true here, not
+true for whoever else uses this dataset. Never carry such a claim into work
+about the publisher's data.
+
 ## Consuming (before you touch the data)
 
 1. **Read the digest** (`INDEX.md`): one line per dataset, with the `pitfall` —
    the single most likely way to get burned.
-2. **Skim the page** for the dataset you're using: the manifest (keys,
+2. **Read `[dataset.acquisition]` before you fetch anything.** It is the
+   acquisition stage in one table: `access` (`public`/`conditional`/
+   `restricted`), `terms`, what `credentials` are needed, what `format`
+   actually arrives, the `method`, `cadence` and `lag`, how to `verify` a new
+   release landed, and `via` — whose copy you are fetching, when it is not the
+   publisher's. A mirror is a separate provenance hop with its own schedule.
+   Defects in fetching are issues like any other (`type = "acquisition"`).
+3. **Skim the page** for the dataset you're using: the manifest (keys,
    builders, coverage) and the issue titles.
-3. **Read every `core = true` issue in full before touching the data** —
+4. **Read every `core = true` issue in full before touching the data** —
    core issues apply regardless of your slice. Then load supplemental
    issue sections whose scope intersects your task; scope fields (`years`,
    `tables`, `columns`, `rows`, `entities`) are structured for exactly this
@@ -40,11 +55,11 @@ sometimes ours, sometimes the publisher's. Read both.
    ingestion; `"misleads"` and `"context"` constrain analysis and prose.
    Under context pressure, drop supplemental issues to their titles first;
    core issues stay whole; the manifest and `pitfall` never leave.
-4. **Honor `misuse` fields** when writing analysis, charts, or copy — they
+5. **Honor `misuse` fields** when writing analysis, charts, or copy — they
    name the foreseeable misread, and `instead` names the sanctioned move.
    If your draft does the thing a `misuse` field warns about, that is a bug
    in the draft.
-5. **Read the practices before computing anything.** They are indexed by
+6. **Read the practices before computing anything.** They are indexed by
    `question` — find the one matching the task you are doing. `rule` is the
    sanctioned move and `naive` is the wrong move it replaces; if your plan
    is the `naive` one, stop. `authority = "publisher"` means the decision is
@@ -54,14 +69,26 @@ sometimes ours, sometimes the publisher's. Read both.
    team could rightly differ; you may too, deliberately and in writing.
    Check `irreversible` before assuming you can recover an underlying value,
    and `residual` before describing a mitigated number as clean.
-6. **Read `unknowns` in the manifest.** It names where the page's knowledge
+7. **Read `unknowns` in the manifest.** It names where the page's knowledge
    stops. Absence of an issue in an area listed there is not evidence of
    absence — treat it as unexamined and say so rather than implying it is
    clean. A page with no `unknowns` is claiming completeness; be sceptical.
-7. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
+8. **Prefer a `[quote]` to your own paraphrase.** A `[quote]` block carries
+   the source's exact words with the URL and the date they were seen there.
+   When someone asks what the publisher actually says, show `text` — do not
+   restate it. Everything in `text` is theirs; everything in `note` is the
+   page author's. Keep that boundary when you repeat either one.
+9. **Check `[reference]` blocks before writing a loader.** They name what
+   already exists for this dataset — implementations, documentation, articles.
+   Read `covers` to see whether it does what you need, `edition` for which
+   vintage of the source it actually serves, and `maintenance` for whether it
+   is still alive. `caveat` is the page author's judgment of it, not a fact
+   about the dataset; weigh it as an opinion with a name attached. A reference
+   is not an endorsement.
+10. **Treat anchors as links to authority.** A comment `ergo: <slug>/<id>`
    means the weird code below it is deliberate; read that issue before
    "fixing" the code.
-8. **No page in this repo? Look outward before writing a loader.** Order,
+11. **No page in this repo? Look outward before writing a loader.** Order,
    cheapest first — stop at the first hit:
    1. **In-repo** — grep for `toml ergo` fences and `INDEX.md`.
    2. **The publisher's own bundle**, if the dataset has one: `<base>/index.json`.
@@ -87,21 +114,100 @@ sometimes ours, sometimes the publisher's. Read both.
    url = "https://data.example-news.org/ergo/directory.json"
    ```
 
-   To contribute your own pages to a directory:
+   **Contributing your own pages depends on whether anyone can patch them.**
+   If your repository is public and takes pull requests, keep the page and
+   contribute an index entry:
    `python3 tools/ergo.py directory <pages-dir> --bundle <your-bundle-url>
-   --entries-only` and open a PR against that directory's repo. Corrections
-   to *someone else's* page go to that publisher's repo, never to the
-   directory — a directory that accepts content patches becomes a fork of
-   everything in it.
-9. **Forking a page you found?** Set `subject` to the same URL so it still
+   --entries-only`, then open a PR against the directory's repo.
+
+   If your repository is private — which is usual — a served bundle is
+   *published but unpatchable*: anyone can read the page and nobody can fix
+   it. Contribute the page itself instead. `ergo publish` gives you the
+   public projection; the directory holds it as canonical; your local copy
+   records `[[dataset.derived_from]]` with the directory's URL, the date, and
+   the `hash`, and `ergo diverge` keeps the two in step afterwards.
+
+   Corrections to a page you did not write go where its `contribute` says.
+   The rule is **one home per page**: exactly one place holds the canonical
+   copy and accepts corrections. A directory may be that place; what it must
+   never do is hold a second copy of a page that is canonical elsewhere.
+12. **Forking a page you found?** Set `subject` to the same URL so it still
    clusters, and record `[[dataset.derived_from]]` with the upstream url and
    today's date. That is what later lets anyone see what the upstream has
    added since you forked, instead of drifting quietly out of date.
-10. **Working outside the repo?** Projects that serve a bundle expose
+13. **Working outside the repo?** Projects that serve a bundle expose
    `<base>/index.json` (every dataset's facts + issue list) and
    `<base>/<slug>.md` (the full page) over HTTP — fetch those instead of
    spelunking the code host. Check `updated` and the page's Changelog
    against when you last read it; the changelog tells you what's new.
+
+## Bootstrapping a page from code that already works
+
+When a dataset has no page anywhere — not in the repo, not in a bundle, not in
+a configured directory — but something in the codebase already reads it, the
+implementation is the record of what its author learned.
+
+1. `python3 tools/ergo.py scan <src-dir>` (add `--json` to consume it). It
+   lists candidate sites: sentinel comparisons, null filling, year-keyed
+   parser branches, rename maps, sheet/header offsets, identifier padding,
+   encoding fallbacks, parse guards, source URLs, and flagged comments.
+   Anything already anchored is skipped.
+
+   **This is a pre-pass, not an analysis.** Eleven regexes find places to
+   look; they cannot tell whether a workaround was right, cannot see that
+   four scattered branches are one problem, and cannot read the paragraph
+   above the function explaining why. For anything beyond a quick survey,
+   read **[reading-implementations.md](reading-implementations.md)** and
+   follow it — it puts tests, fixtures, NEWS files, and commit history ahead
+   of the parsing code, because that is where the reasons are.
+2. **Read the candidate in context before believing it.** A hit proves someone
+   handled something; it does not prove the reading behind it was right. They
+   may have been wrong, or solving a different problem, or working around a
+   bug of their own.
+3. **Use git for the why.** `git log -S'<the constant>' -- <file>` finds the
+   commit that introduced the workaround; the message usually says what the
+   data did, and the diff shows it. A commit message is quotable — author,
+   date, SHA — so cite it by permalink rather than paraphrasing it.
+4. Draft the page honestly. The code proves `handled_by` and (via blame)
+   `discovered`, and `status = "mitigated"` is true by construction. The
+   nature of the defect is **inferred**: set `confidence = "?"` on the
+   manifest and put an `unknowns` entry saying the implementation was read and
+   the data was not. That is the difference between a good hypothesis and a
+   claim.
+5. Confirm what you can against real files and add a `[validation]` record for
+   each. That is what turns a mined page into documentation.
+
+Scanning someone else's library produces a page about **the dataset**, not
+about the library: cite their code by permalink, never copy it in. Judgments
+about the implementation itself ("this wrapper drops the margin of error") are
+claims about a maintained project — keep them separate from claims about the
+data, and tell the maintainers, who are best placed to say you are wrong.
+
+## Acquiring an edition — read the parts that are not data
+
+Publishers put their cautions where a parser never looks: a notes tab, a
+readme sheet, a cover page, a legend, a technical guide. They add them
+**precisely in the editions where something went wrong** — a pandemic year, a
+waiver, a methodology change — which is exactly when a process that reads only
+values will miss them.
+
+1. On every edition you acquire, list the non-data parts and open them. A
+   workbook tab called "Important Notes — Please Read Before Using Data" is
+   the publisher handing you issues already written.
+2. What you find is usually an `[issue]`, scoped to that edition, with a
+   `misuse` naming what a reasonable reader would wrongly do. A caution that
+   one year's figures are not comparable to adjacent years is
+   `effect = "misleads"`, `type = "measurement"`, `[issue.scope] years = [...]`
+   — not a general warning in prose.
+3. **Quote them, do not paraphrase them** (`[quote]`, with `source` and
+   `retrieved`). For a publisher caution the defensible artifact is their
+   wording and where it appeared, not your summary of it.
+4. If a specific question needs a rule on top of the issue, write a
+   `[practice]` with `authority = "publisher"` that `addresses` it.
+5. **Record where you looked and found nothing.** A `[validation]` record —
+   *opened the notes sheets on all ten editions; guidance present only in
+   2020-21* — is the difference between "the publisher was silent" and "nobody
+   checked". Only one of those is evidence.
 
 ## When you hit something weird in the data
 
@@ -136,6 +242,36 @@ Register the issue in the same change as the workaround:
 2. Follow the block with prose: how it was found, concrete examples,
    quantities ("non-empty in 27,115 of 27,201 rows" beats "mostly
    populated"). Facts in the block are not restated in the prose.
+
+   Before writing it, ask whether it is a fact about the data or about your
+   pipeline. If it would stop being true the day your project shut down, it is
+   not an issue about the dataset: put it on the produced dataset's page, or
+   mark it `about = "handling"` if that page is not worth writing.
+
+   The prose is **evidence, not explanation**. Nobody reads this page top to
+   bottom; an agent pulls a paragraph out and shows it to someone. Write what
+   survives that: a figure, a filename, a date, a row count, an example.
+   General exposition is the part a reader can reconstruct without you.
+
+   **Where the source already says it, quote it instead of composing a
+   sentence.** This is the one place a fluent draft does real damage — a
+   caveat you phrased becomes a caveat the publisher never wrote. Quote only
+   words you have actually seen at a URL you have actually loaded; if you
+   have not, say so and leave the quote out rather than reconstructing what
+   the agency probably says.
+
+   ```toml ergo
+   [quote]
+   text = "the source's exact words, verbatim"
+   source = "https://…"             # the page they appear on
+   retrieved = "2026-07-30"         # when you saw them there
+   supports = ["kebab-symptom-name"]  # ids on this page it backs
+   note = "why it is here — your framing, kept out of `text`"
+   ```
+
+   A quote is the strongest support a `[practice]` with
+   `authority = "publisher"` can carry: it shows the decision is genuinely
+   upstream rather than something someone inferred was upstream.
 3. **Anchor the code**: put `# ergo: <slug>/<id>` in a comment adjacent to
    the workaround. Anchor + one line of "why this looks weird" — never a
    paraphrase of the page.

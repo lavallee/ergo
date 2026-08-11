@@ -8,17 +8,18 @@ for academic-outcome reporting.
 
 ```toml ergo
 [dataset]
-ergo = "0.4"
+ergo = "0.5"
 slug = "spr"
 title = "NJ School Performance Reports"
 publisher = "NJ Dept. of Education, Office of Performance Reports"
 subject = "https://www.nj.gov/education/spr/"
+contribute = "https://github.com/lavallee/ergo/issues"
 source_urls = ["https://www.nj.gov/education/spr/"]
 pitfall = "NJ publishes two 4-year graduation rates; only the State calculation has a multi-year trend — plotting the Federal rate as a trend (it has one point) is the classic misread."
 status = "live"
 version = "2024-25 edition"
 confidence = "A"
-updated = "2026-07-26"
+updated = "2026-07-31"
 implementation = "https://github.com/lavallee/njschooldata"
 unknowns = [
   "Pre-2015-16 editions have not been examined; the format eras before that are unknown to us.",
@@ -39,6 +40,17 @@ keys = ["county_code", "district_code", "school_code", "school_year"]
 raw = "data/raw/spr/"
 builders = ["tools/build_spr_db.py"]
 feeds = ["grad_rate", "assessment", "assessment_grade", "absenteeism", "growth"]
+
+[dataset.acquisition]
+access = "public"
+terms = "Public NJ education records; preserve NJDOE's own terms on redistribution."
+credentials = "none"
+format = "One XLSX workbook per year, ~80 tabs; a companion layout workbook is the data dictionary."
+method = "Published index page, then direct per-year file URLs."
+cadence = "annual"
+lag = "Published the autumn after the school year it describes."
+verification = "Watch the index for a new workbook and record the first date seen."
+size = "~330 MB at school level for the current year."
 ```
 
 ## What it is
@@ -48,6 +60,19 @@ growth percentiles, graduation and dropout, chronic absenteeism, and more,
 disaggregated by student group. One monolithic workbook per year (~80 tabs,
 330 MB at school level), with a companion layout workbook as the data
 dictionary.
+
+NJDOE says what the reports are for, and it explains a good deal about their
+shape — this is a communication product aimed at families, not a data release
+aimed at analysts:
+
+```toml ergo
+[quote]
+text = "The School Performance Reports reflect the New Jersey Department of Education's (NJDOE) commitment to providing parents, students, and school communities with a large variety of information about each school, each district, and the state overall."
+source = "https://www.nj.gov/education/spr/"
+retrieved = "2026-07-30"
+supports = ["headline-proficiency-as-published"]
+note = "A reader-facing publication, which is why suppression arrives as prose in a cell and why the headline figures are NJDOE's to compute, not ours."
+```
 
 ## Joins
 
@@ -223,6 +248,23 @@ Cross-state comparison is the one job the Federal rate does better, and it
 is worth saying out loud that another newsroom covering multiple states
 might reasonably invert this call.
 
+## Prior work
+
+```toml ergo
+[reference]
+id = "njschooldata"
+kind = "implementation"
+url = "https://github.com/almartin82/njschooldata"
+observed = "2026-07-30"
+commit = "9c34401276d3d7fb45bdbd62ef927db6e252b933"
+covers = "R fetchers for NJ DOE series; fetch_spr() builds SPR database URLs for end_year 2017-2025 at school or district level."
+maintenance = "active"
+```
+
+Recorded because it is the shortest route to the same workbooks for anyone
+working in R, not as an endorsement — no `caveat` here means it has not been
+judged, only observed.
+
 ## Validation
 
 ```toml ergo
@@ -244,4 +286,22 @@ to 2011-12 (legacy years via a separate archive). Working copy fetched
 [change]
 date = "2026-07-10"
 note = "Page created in ergo format; 5 issues registered from the 2024-25 acquisition notes."
+```
+
+```toml ergo
+[change]
+date = "2026-07-30"
+note = "Quoted NJDOE's own statement of what the reports are for, under What it is."
+```
+
+```toml ergo
+[change]
+date = "2026-07-31"
+note = "Recorded almartin82/njschooldata as an existing R implementation of these workbooks."
+```
+
+```toml ergo
+[change]
+date = "2026-07-31"
+note = "Added the acquisition table: access level, terms, cadence, lag, and how to tell a new release landed."
 ```

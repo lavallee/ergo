@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "review/**"
       - "SPEC.md"
       - "tools/ergo.py"
       - "examples/**"
@@ -42,12 +43,15 @@ jobs:
       # what the site describes is what this revision enforces. Any drift —
       # a vocabulary the spec no longer names, a command that vanished, a
       # refusal that stopped refusing — fails here rather than shipping.
-      - name: Build the artifact
-        run: artoo build website
+      - name: Build the artifacts
+        run: |
+          artoo build website
+          artoo build review
 
       - name: Firewall and coherence checks
         run: |
           artoo status website
+          artoo status review
           artoo doctor .
 
       # The site renders this page, so it must validate before it is published.
@@ -57,10 +61,22 @@ jobs:
         run: |
           python3 tools/ergo.py check examples/spr.md
 
+      # One Pages artifact, two artoo artifacts: the site at the root and the
+      # research review beneath /review/. Staged by copy so neither artifact's
+      # own build has to know about the other's layout.
+      - name: Stage the site
+        run: |
+          mkdir -p _pages
+          cp -r website/site/. _pages/
+          mkdir -p _pages/review
+          cp -r review/site/. _pages/review/
+          test -f _pages/review/index.html
+          test ! -e _pages/review/work
+
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: website/site
+          path: _pages
           # v5 excludes dotfiles by default; the site ships .nojekyll, which
           # artoo's firewall allow-lists precisely so it reaches the root.
           include-hidden-files: true

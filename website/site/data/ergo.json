@@ -1,13 +1,13 @@
 {
-  "generated": "2026-07-28T13:51:04+00:00",
-  "tool_version": "0.4.0",
-  "format_version": "0.4",
-  "revision": "2d3dbb2",
-  "spec_status": "draft v0.4 · 2026-07-26",
-  "spec_lines": 1030,
+  "generated": "2026-08-11T20:17:38+00:00",
+  "tool_version": "0.5.0",
+  "format_version": "0.5",
+  "revision": "9160319",
+  "spec_status": "draft v0.5 · 2026-07-31",
+  "spec_lines": 1516,
   "spec_sections": 16,
-  "tool_lines": 938,
-  "checks": 44,
+  "tool_lines": 1380,
+  "checks": 90,
   "dependencies": [],
   "requires_python": "3.11",
   "license": "MIT",
@@ -38,12 +38,22 @@
       "usage": "ergo.py directory [-h] [--bundle URL] [--name NAME] [--entries-only] [--out FILE] [paths ...]"
     },
     {
+      "name": "scan",
+      "summary": "Read code that already works with a dataset and list what its author handled.",
+      "usage": "ergo.py scan [-h] [--json] [--out FILE] [paths ...]"
+    },
+    {
+      "name": "diverge",
+      "summary": "Compare a forked page against its upstream: what moved, what they added, what you have that they don't.",
+      "usage": "ergo.py diverge [-h] [--json] [--timeout SECONDS] [--out FILE] [paths ...]"
+    },
+    {
       "name": "new",
       "summary": "Scaffold a fresh page from the template.",
       "usage": "ergo.py new [-h] [--dir DIR] slug"
     }
   ],
-  "issue_types": 15,
+  "issue_types": 16,
   "example": {
     "path": "examples/spr.md",
     "issues": 5,

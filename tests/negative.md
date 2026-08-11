@@ -16,6 +16,13 @@ status = "sideways"
 version = 3
 unknowns = "not a list"
 
+contribute = "send us a postcard"
+
+[dataset.acquisition]
+terms = "public-ish"
+credentials = 42
+whatever = "unknown key"
+
 [dataset.missingness]
 zero_is_missing = "yes"
 source_tokens = [1, 2]
@@ -33,6 +40,7 @@ title = "Mitigated but unhandled, bad effect, bad status, unknown type"
 effect = "explodes"
 type = "vibes"
 status = "mitigated"
+about = "ours"
 
 [issue.scope]
 nonsense = "x"
@@ -70,6 +78,47 @@ addresses = ["no-such-issue"]
 
 [practice.scope]
 all = true
+```
+
+## Prior work
+
+### A reference nobody could check or trust
+
+```toml ergo
+[reference]
+kind = "wrapper"
+url = "github.com/someone/thing"
+maintenance = "abandoned"
+supports = "not-a-list"
+```
+
+### A reference into a moving repository
+
+```toml ergo
+[reference]
+id = "shared-id"
+kind = "implementation"
+url = "https://github.com/someone/thing"
+observed = "2026-01-01"
+```
+
+## Quotes
+
+### A quote with nothing a reader could re-check
+
+```toml ergo
+[quote]
+text = "Estimates are subject to sampling variability."
+supports = ["no-such-id"]
+```
+
+### A quote whose source is not a URL, and which quotes far too much
+
+```toml ergo
+[quote]
+text = "Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. Padding to exceed the length warning. "
+source = "the agency website"
+retrieved = "2026-01-01"
 ```
 
 ## Changelog

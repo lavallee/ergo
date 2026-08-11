@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .playwright-mcp/
+
+# Harness state: skill projections point into a machine-local cache.
+.claude/

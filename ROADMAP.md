@@ -59,35 +59,88 @@ fits njschooldata, narrow its claim and stop expanding the taxonomy.
 external consumer uses a generated representation. *Kill:* checks or exports
 that duplicate project code or drift from the page remain out of core.
 
-## Outcome 4 — A directory that publishes its own vocabulary
+## Outcome 4 — A directory that is where most pages live
+
+*Revised 2026-08 (ergo 0.5). The earlier version of this outcome said the
+directory holds no page content and killed on accepting patches. That inverted:
+a public bundle served from a private repository is **published but
+unpatchable**, and a directory cannot fork a page that has no other home. Most
+pages have none.*
 
 Agents are effectively the entire audience for these pages, and they read
 unfamiliar vocabulary without difficulty. The goal is therefore faithful
 transmission, not a complete classification of every data problem on earth.
 That changes what the format should be strict about: **close a vocabulary only
 where a reader's behaviour branches on it.** `effect`, `status`, `core`,
-`scope` and `authority` all change what a consumer does; `type` does not — it
-is a browsing aid, and adopters already write values outside the recommended
-list without anything breaking.
+`scope`, `authority` and `access` all change what a consumer does; `type` does
+not — it is a browsing aid, and adopters already write values outside the
+recommended list without anything breaking.
 
-- Stand up a directory that indexes served bundles by URL — publishers keep
-  their own pages, discovery centralizes, corrections are PRs to the
-  publisher, never to the directory.
-- Have it publish the **observed vocabulary**: every `type` value in use,
-  with counts and one example each, so authors converge by looking rather
-  than by decree.
-- Open `type` in the spec once that exists. Not before: without a mirror,
-  an open vocabulary drifts and cross-publisher questions stop working.
+- **Done (0.5).** The one-home rule is mechanical: `ergo-directory`'s `check.py`
+  errors on an entry naming the directory while its bundle is served elsewhere,
+  and on a hosted page with no file. `contribute` says where corrections go.
+- Get a **second independent publisher** into the directory. Today 11 of 12
+  entries come from one, so nothing has tested who merges, who adjudicates a
+  disputed claim, or how either survives agent-paced contribution.
+- Have it publish the **observed vocabulary**: every `type` value in use, with
+  counts and one example each, so authors converge by looking rather than by
+  decree. One real corpus used 92 distinct `type` values across 105 findings,
+  so convergence will not happen by publication alone — the skill has to
+  propose existing values while an issue is being written.
+- Open `type` in the spec once that exists.
 - Carry recognition signatures (publisher domain, filename patterns, column
   fingerprints) so a consumer holding an unfamiliar file can ask one place
   whether anyone documents it.
 
 *Graduation:* an agent that has never seen a dataset finds its page from the
-file alone, and two independent publishers converge on the same word for the
-same kind of problem without being told to. *Kill:* if the directory starts
-accepting content patches it has become a fork of every page in it — stop.
+file alone, and a publisher outside this household contributes and is merged.
+*Kill:* if the directory ends up holding a second copy of a page that is
+canonical elsewhere, the anti-fork rule has failed and the hosting model was
+wrong.
+
+## Outcome 5 — Cover the failure modes the literature actually measures
+
+*Opened 2026-08 from twelve sources on how models fail at data work. The format
+turned out to be thin in places nobody here would have guessed, and ahead of
+the evidence in others.*
+
+- **Column-level structure.** Schema linking is the most-measured failure in
+  the entire literature — 41.6% (BIRD), 27.6% (Spider 2.0), 35.2% (BEAVER),
+  81.2% of all execution failures — and ergo has none. §14 leaves DDI `<var>`
+  as future work. Decide whether a page carries per-column facts or
+  deliberately refuses to, and say which in the spec.
+- **Implicit conditions, of which mixed grain is one.** DataGovBench's largest
+  single error category is "Condition Filter Error" at 32.4% — failing to apply
+  a condition the question did not state. Mixed-grain tables ("male / female /
+  total" rows in one file) are the paper's illustrative example of it and carry
+  **no separate count**; date ranges, status codes and universe restrictions
+  land in the same bucket, and the taxonomy is computed over one model-scaffold
+  pair's errors, not a model set. So the open question is narrower than first
+  written: does a structural property a reader must know before querying —
+  mixed grain being the clearest case — deserve a manifest flag like
+  `zero_is_missing`, or is the issue registry already its home?
+- **Units, magnitudes, scaling.** No field anywhere records units, "figures in
+  thousands", currency year, or percent-versus-proportion.
+- **General lore.** Some knowledge is true of every dataset of a shape, not of
+  one dataset — unarmored zip codes, Excel serial dates, money as floats.
+  `tools/ergo.py`'s `SCAN_SIGNALS` already encodes eleven such rules as Python
+  regexes, which is exactly the failure this project names for parsers: earned
+  wisdom baked into code and nowhere else.
+- **Say publicly where ergo is ahead of the evidence.** No evaluation exists
+  for numeric sentinels, suppressed cells, survey weights and margins of error,
+  or comparing incompatible vintages. Those are gaps in the literature, not the
+  format, and worth stating.
+
+*Graduation:* a documented failure mode from the literature can be expressed in
+a page, and an adopting corpus uses the affordance without being told to.
+*Kill:* an affordance that no adopter populates after two releases is ceremony
+and comes out.
 
 ## Keeping this file honest
 
 Released capabilities move to `CHANGELOG.md`. Roadmap items require evidence
 from an adopting repository, not only design plausibility.
+
+Numbers cited here carry their date, because they move. DABstep's hard split
+went from 14.55% to 89.95% in eighteen months; BIRD's external-knowledge gain
+held across three years. An undated benchmark figure in this file is a bug.

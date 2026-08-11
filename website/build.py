@@ -97,11 +97,12 @@ counts, and every oddity worth knowing before you publish a response time.
 
 MANIFEST = """```toml ergo
 [dataset]
-ergo = "0.4"
+ergo = "0.5"
 slug = "ridgeway-311"
 title = "Ridgeway County 311 service requests"
 publisher = "Ridgeway County Office of Constituent Services"
 subject = "https://data.ridgeway.example.gov/311"
+contribute = "https://github.com/ridgeway-times/data/issues"
 source_urls = ["https://data.ridgeway.example.gov/311/requests.csv"]
 pitfall = "Every ticket still open when the county switched ticket systems was closed on the migration date, so response times computed across March 2021 are worthless unless those rows are excluded."
 status = "live"
@@ -127,6 +128,17 @@ keys = ["request_id"]
 raw = "data/raw/ridgeway-311/"
 builders = ["tools/load_311.py"]
 feeds = ["requests", "response_times"]
+
+[dataset.acquisition]
+access = "public"
+terms = "County open-data terms; attribution requested, redistribution unrestricted."
+credentials = "none"
+format = "One CSV per calendar year, plus a rolling current-year file."
+method = "Direct file URLs from the county's open-data index."
+cadence = "annual, with the current year refreshed nightly"
+lag = "Closed requests appear the following business day."
+verification = "Compare the new year file's row count against the county's published annual total."
+size = "About 40 MB per year."
 ```
 
 ## What it is
@@ -314,7 +326,33 @@ newsroom that wanted to hold the county to its own published method would
 rightly make the opposite call — hence `contested`.
 """
 
-VALIDATION = """## Validation
+REFERENCE = """## Prior work
+
+```toml ergo
+[reference]
+kind = "documentation"
+url = "https://ridgeway.example.gov/311/data-dictionary"
+observed = "2026-07-28"
+covers = "The county's field-by-field dictionary for the 311 export, including the closure-code list."
+maintenance = "dated"
+caveat = "Last revised before the 2023 code change; three closure codes in the current export are absent from it."
+```
+"""
+
+VALIDATION = """## Evidence
+
+The county publishes its own figure, so quote it rather than paraphrase it —
+`text` is theirs, `note` is ours, and `retrieved` is what makes it re-checkable
+a year from now when the page has been rewritten.
+
+```toml ergo
+[quote]
+text = "Across all service requests closed in 2024, the median time to close was 42 hours."
+source = "https://ridgeway.example.gov/311/annual-report-2024"
+retrieved = "2026-07-28"
+supports = ["median-response-worked-only"]
+note = "Their 42 hours counts the four boroughs; ours does not, and that is the whole of the gap below."
+```
 
 ```toml ergo
 [validation]
@@ -436,6 +474,7 @@ SECTION_ORDER = [
     "issue-zero",
     "tombstone",
     "practices",
+    "reference",
     "validation",
     "rebuild",
     "changelog",
@@ -805,14 +844,15 @@ def step_plan() -> list[dict]:
             ),
             "title": "Record the reconciliation",
             "narrative": (
-                "A caveat you have not tested is a hypothesis. Validation records are "
-                "dated and quantified — reconciliation against an independent "
-                "publication, or confirmation of a claim against real files — and "
-                "they accumulate: never edit an old record, add a new one. The "
-                "numbers are what let the *next* check detect drift."
+                "A caveat you have not tested is a hypothesis. Two blocks answer "
+                "that: a quote shows what the source itself says, verbatim and "
+                "dated, so nobody has to trust a paraphrase; a validation record "
+                "shows what happened when the claim met real files. Both "
+                "accumulate — never edit an old record, add a new one. The numbers "
+                "are what let the *next* check detect drift."
             ),
             "spec": "8",
-            "edits": {"page": {"validation": VALIDATION}},
+            "edits": {"page": {"reference": REFERENCE, "validation": VALIDATION}},
             "commands": [["check", "docs/data", "--repo", "."]],
             "record": {
                 "kind": "block",
@@ -1183,6 +1223,24 @@ BLOCKS = [
         ],
     },
     {
+        "table": "reference",
+        "label": "A reference",
+        "spec": "8",
+        "summary": "Other people's work on this dataset — what exists, which edition it serves, whether it is still maintained.",
+        "one_per_page": False,
+        "required_from": "REFERENCE_REQUIRED",
+        "optional": ["id", "covers", "commit", "edition", "maintenance", "caveat", "supports"],
+    },
+    {
+        "table": "quote",
+        "label": "A quote",
+        "spec": "8",
+        "summary": "The source's own words, with the URL and the date they were seen there — so a reader never has to trust a paraphrase.",
+        "one_per_page": False,
+        "required_from": "QUOTE_REQUIRED",
+        "optional": ["supports", "note"],
+    },
+    {
         "table": "validation",
         "label": "A validation record",
         "spec": "8",
@@ -1273,6 +1331,8 @@ COMMANDS = [
     ("export", "Everything machine-readable as one JSON document, for renders and interop."),
     ("publish", "The servable bundle: index.json plus each page's public projection."),
     ("directory", "This project's entries for a directory of bundles, with recognition signatures."),
+    ("scan", "Read code that already works with a dataset and list what its author handled."),
+    ("diverge", "Compare a forked page against its upstream: what moved, what they added, what you have that they don't."),
     ("new", "Scaffold a fresh page from the template."),
 ]
 
@@ -1331,7 +1391,7 @@ def build_format(tool, sections: dict[str, dict], exported: dict, demo_page: str
             "values": [
                 "definitional", "universe", "coverage", "suppression", "geography",
                 "revision", "coding", "format", "entry", "linkage", "uncertainty",
-                "availability", "measurement", "identity", "policy",
+                "availability", "measurement", "identity", "policy", "acquisition",
             ],
             "from": tool.TYPES,
         },
@@ -1388,6 +1448,8 @@ def build_format(tool, sections: dict[str, dict], exported: dict, demo_page: str
         "dataset": set(page["dataset"]),
         "issue": set().union(*(set(i) for i in page["issues"])),
         "practice": set().union(*(set(p) for p in page["practices"])),
+        "quote": set().union(*(set(q) for q in page["quotes"])),
+        "reference": set().union(*(set(r) for r in page["references"])),
         "validation": set().union(*(set(v) for v in page["validations"])),
         "change": set().union(*(set(c) for c in page["changes"])),
     }

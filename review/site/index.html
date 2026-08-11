@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Models and data: what changed, what didn&#x27;t, and what to watch</title>
+<meta name="description" content="How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes.">
+<link rel="icon" href="lib/artoo-kit/favicon.svg">
+<link rel="stylesheet" href="lib/artoo-kit/tokens.css">
+<link rel="stylesheet" href="lib/artoo-kit/base.css">
+<link rel="stylesheet" href="lib/artoo-kit/article.css">
+<link rel="stylesheet" href="lib/artoo-kit/components.css">
+<style>
+  .cov td { text-align: center; }
+  .cov td:first-child { text-align: left; }
+  .cov td.c { font-size: 1.05em; }
+  .cov td.p { opacity: .8; font-size: 1.05em; }
+  .muted { opacity: .68; }
+  .gen { font-size: .82em; opacity: .75; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<header class="article-masthead">
+  <a class="article-masthead__name" href="index.html">Models and data: what changed, what didn&#x27;t, and what to watch</a>
+  <a class="article-masthead__label" href="../index.html">← ergo</a>
+</header>
+<main class="article">
+  <header class="article-header">
+    <div class="article-kicker">research-review</div>
+    <h1 class="article-title">Models and data: what changed, what didn&#x27;t, and what to watch</h1>
+    <p class="article-dek">How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes.</p>
+    <p class="article-byline">Published <time datetime="2026-08-11">2026-08-11</time> · figures verified 2026-08-11</p>
+  </header>
+
+  <p class="article-lede">If you are about to point a model at a dataset you
+  have not used before, you want to know which parts of that job you can hand
+  over and which parts you still have to check yourself. Public benchmarks
+  answer this better than intuition does — but only with the dates, the models
+  and the exact task attached, because all three change the answer.</p>
+
+  <h2>The same benchmark, the same questions: 14.55% then 89.95%</h2>
+
+  <p><a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a> is 450
+  data-analysis questions built by the payments company Adyen from its own
+  internal documentation and files — tasks where answering correctly means
+  reading a manual, not just writing a query. Its questions come in an
+  <em>easy</em> tier and a <em>hard</em> tier.</p>
+
+  <p>In April 2025 the best configuration its authors tested — OpenAI&#x27;s o4-mini,
+  prompted to reason, in a ten-step loop that let it alternate between thinking
+  and running code — scored <strong>14.55%</strong> on the hard tier. Ten months
+  later the top entry on the <em>validated</em> leaderboard scored
+  <strong>89.95%</strong> on the same questions.</p>
+
+  <p>Validated matters. The board has a checked tier and an open one, and the
+  open tier holds several undisclosed entries claiming 100%, which makes it
+  useless as evidence. And that 89.95% is now frozen: DABstep
+  <strong>closed validation to new submissions</strong> pending a second
+  version, so it cannot move however much systems improve. A live benchmark and
+  a live leaderboard are different things.</p>
+
+  <p>It is also not one model. The entry is NVIDIA&#x27;s KGMON Data Explorer, in
+  which Claude Opus 4.5/4.6 writes helper functions offline, Haiku 4.5 runs
+  them, and Opus or Sonnet 4.6 reviews the output. Almost every score in this
+  piece belongs to a <strong>scaffold</strong> — the harness of prompts, tools
+  and retry logic wrapped around one or more models — and changing the scaffold
+  can matter as much as changing the model. Every figure below therefore names
+  both, with the date it was set.</p>
+
+  <p>One more marker, used throughout. Model generations turn over roughly
+  twice a year, so a score is partly a statement about when it was set.
+  <span class="gen">CURRENT</span> means the model is still at or near the
+  frontier as of August 2026; <span class="gen">PRIOR</span> means a newer
+  generation of the same family exists;
+  <span class="gen">OBSOLETE</span> means two or more generations behind. Where
+  a headline is held by an obsolete model, that is worth noticing on its own.</p>
+
+  <h2>Eight benchmarks, and the job each one tests</h2>
+
+  <p>&quot;Can models do data analysis&quot; is too coarse to have an answer.
+  These eight test genuinely different work, and a system strong at one can be
+  weak at the next.</p>
+
+  <figure class="article-figure">
+    <table>
+      <thead>
+        <tr><th>Benchmark</th><th>The job</th><th>Data</th><th>Scored by</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a></td>
+          <td>Answer analysis questions that require reading the manual</td>
+          <td>One payments firm&#x27;s files and internal docs</td>
+          <td>Exact answer match, easy and hard tiers</td>
+        </tr>
+        <tr>
+          <td><a href="https://bird-bench.github.io/">BIRD</a></td>
+          <td>Write SQL from a question; ships a domain note that can be withheld</td>
+          <td>95 databases, 37 domains</td>
+          <td>Execution accuracy — does the query return the right rows</td>
+        </tr>
+        <tr>
+          <td><a href="https://spider2-sql.github.io/">Spider 2.0</a></td>
+          <td>The same, at enterprise scale, plus authoring a dbt project</td>
+          <td>Real warehouses, hundreds of columns per database</td>
+          <td>Execution accuracy, three tracks</td>
+        </tr>
+        <tr>
+          <td><a href="https://beaverbench.github.io/">BEAVER</a></td>
+          <td>Query warehouses no model was trained on; five sub-skills scored apart</td>
+          <td><em>Private</em> company warehouses</td>
+          <td>Execution accuracy, plus per-sub-skill F1</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/uiuc-kang-lab/ELT-Bench">ELT-Bench</a></td>
+          <td>Build a pipeline: <em>extract</em> from sources, <em>load</em> to a warehouse, <em>transform</em> into modelled tables</td>
+          <td>Source systems plus a live warehouse</td>
+          <td>Success rate per stage</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a></td>
+          <td>Find a defect nobody pointed at, with four levels of hint</td>
+          <td>Curated public datasets with known flaws</td>
+          <td>Detection rate at each hint level</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/2601.02598">LongDA</a></td>
+          <td>Reproduce published statistics from microdata and its codebook</td>
+          <td>17 US federal surveys; codebooks average 263,500 tokens</td>
+          <td>Match against the official published figure</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/2607.06482">DataGovBench</a></td>
+          <td>Answer questions over government open-data files</td>
+          <td>178 open-data datasets</td>
+          <td>Answer quality, 0–1</td>
+        </tr>
+      </tbody>
+    </table>
+    <figcaption>Published between 2024 and July 2026. Scores from these
+    benchmarks are never comparable to each other.</figcaption>
+  </figure>
+
+  <h2>Where they sit in the actual work</h2>
+
+  <p>A newsroom data project runs through roughly eight stages. Walking them in
+  order shows where the measurements are — and the answer is that they bunch
+  heavily in the middle, where a question already exists and the data is
+  already in hand.</p>
+
+  <h3>1. Find — which dataset answers this, and where is it published?</h3>
+
+  <p>The newest category and the weakest results. <a href="https://arxiv.org/abs/2606.15300">CoDA-Bench</a>
+  drops an agent into a sandbox of about 980 files and asks it to locate what it
+  needs; the best system reaches <strong>83.0</strong> on discovery and
+  <strong>61.1</strong> end-to-end, at roughly $0.39 a task. <a href="https://github.com/mitdbg/KramaBench">KramaBench</a>
+  runs a similar test across eight real-world pipelines and tops out at
+  <strong>62.81</strong> against a human baseline of <strong>76.75</strong>.
+  <a href="https://lakeqa-bench.github.io/">LakeQA</a> is the closest to a
+  journalist&#x27;s situation — a 9.5 TB lake that includes data.gov — and the best
+  score is <strong>32.87%</strong> exact match. Every one of these appeared in
+  2026. This stage was essentially unmeasured a year ago.</p>
+
+  <h3>2. Acquire — get the bytes</h3>
+
+  <p>Largely solved, and quickly. <a href="https://github.com/uiuc-kang-lab/ELT-Bench">ELT-Bench</a>&#x27;s
+  extract-and-load stage went from <strong>37%</strong> to <strong>96%</strong>
+  on a model upgrade alone, and its authors now describe it that way. This is
+  the stage most amenable to delegation.</p>
+
+  <h3>3. Understand — read the codebook</h3>
+
+  <p>The most heavily measured stage, and the one this piece is mostly about.
+  <a href="https://bird-bench.github.io/">BIRD</a> supplies a domain note that
+  can be withheld; <a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a>
+  mounts a manual the agent must consult;
+  <a href="https://arxiv.org/abs/2601.02598">LongDA</a> gives real federal
+  codebooks averaging 263,500 tokens; <a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a>
+  asks whether a defect can be found with no one pointing at it. Their results
+  are the subject of the next two sections.</p>
+
+  <h3>4. Clean — types, encodings, missing-value codes</h3>
+
+  <p>Two findings that pull in opposite directions.
+  <a href="https://github.com/TsinghuaDatabaseGroup/prepbench">PrepBench</a>
+  scores <strong>54.9%</strong> on writing preparation code — rising to
+  <strong>85.3%</strong> when the task&#x27;s ambiguity is removed, which says most
+  of the failure is unclear requirements rather than unclear code. And a 2022
+  result that still stands: error detection on a hospital dataset went from
+  <strong>0.0 to 99.1 F1</strong> given ten worked examples
+  (<a href="https://github.com/HazyResearch/fm_data_tasks">Can Foundation Models
+  Wrangle Your Data?</a>). Cleaning responds enormously to a small number of
+  demonstrations.</p>
+
+  <h3>5. Join — link it to something else</h3>
+
+  <p>Split sharply. Matching <em>entities</em> is close to saturated: one set of
+  755,540 record pairs is answered at <strong>98.95 F1</strong> by GPT-4o with
+  no scaffold. Matching <em>schemas</em> is nearly as good —
+  <a href="https://github.com/wbsg-uni-mannheim/MaDI-Bench">MaDI-Bench</a>
+  reports perfect schema-match F1 in three of five domains. But integrating them
+  into one coherent table falls to <strong>84.87</strong>, and picking the right
+  join key from a schema alone scores <strong>35.5</strong> on
+  <a href="https://beaverbench.github.io/">BEAVER</a>. Knowing two columns refer
+  to the same thing is solved; knowing which columns <em>should</em> be joined
+  is not.</p>
+
+  <h3>6. Analyse — compute the number</h3>
+
+  <p>Well covered and improving. <a href="https://spider2-sql.github.io/">Spider 2.0</a>
+  measures SQL against real warehouses; <a href="https://tablebench.github.io/">TableBench</a>
+  and <a href="https://arxiv.org/abs/2506.05587">MMTU</a> cover table reasoning
+  at scale. It is also where the effect of the harness around the model is
+  measured most directly — on <a href="https://ucbepic.github.io/DataAgentBench/">DataAgentBench</a>,
+  a controlled comparison holding the model fixed found a scaffold worth
+  <strong>seven points</strong>.</p>
+
+  <h3>7. Validate — is the conclusion actually supported?</h3>
+
+  <p>Almost empty, and what exists scores badly.
+  <a href="https://arxiv.org/abs/2608.07437">P-Bench</a> asks not whether code
+  ran but whether the resulting <em>p</em>-value is valid — whether the test
+  suits the data, the assumptions hold, the correction was applied. The best
+  score on its hard split is <strong>33.0%</strong>.
+  <a href="https://statqa.github.io/">StatQA</a> reaches 64.83% on a more
+  forgiving version. Both are recent; nothing older exists to compare against.</p>
+
+  <h3>8. Publish — what may honestly be said</h3>
+
+  <p>Nothing measures this. No benchmark scores whether a model respects a
+  suppression rule, distinguishes a sentinel code from a real value, applies a
+  survey weight correctly, or reports uncertainty a reader could act on. LongDA
+  comes nearest and explicitly places variance estimation out of scope.</p>
+
+  <figure class="article-figure">
+    <table class="cov">
+      <thead>
+        <tr><th>Benchmark</th><th>Find</th><th>Acquire</th><th>Understand</th><th>Clean</th><th>Join</th><th>Analyse</th><th>Validate</th><th>Publish</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>DABstep</td><td></td><td></td><td class="c">●</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>BIRD</td><td></td><td></td><td class="c">●</td><td></td><td class="p">○</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>Spider 2.0</td><td></td><td></td><td class="p">○</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>BEAVER</td><td></td><td></td><td class="p">○</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>ELT-Bench</td><td class="p">○</td><td class="c">●</td><td class="c">●</td><td class="p">○</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>DCA-Bench</td><td></td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>LongDA</td><td></td><td></td><td class="c">●</td><td class="p">○</td><td></td><td class="c">●</td><td class="p">○</td><td></td></tr>
+        <tr><td>DataGovBench</td><td></td><td></td><td class="p">○</td><td class="p">○</td><td class="p">○</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>CoDA-Bench, KramaBench, LakeQA</td><td class="c">●</td><td class="p">○</td><td></td><td></td><td></td><td class="p">○</td><td></td><td></td></tr>
+        <tr><td>PrepBench, Wrangle Your Data</td><td></td><td></td><td></td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>MaDI-Bench, OpenSanctions pairs</td><td></td><td></td><td></td><td class="p">○</td><td class="c">●</td><td></td><td></td><td></td></tr>
+        <tr><td>TableBench, MMTU, DataAgentBench</td><td></td><td></td><td class="p">○</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>P-Bench, StatQA</td><td></td><td></td><td></td><td></td><td></td><td class="p">○</td><td class="c">●</td><td></td></tr>
+      </tbody>
+    </table>
+    <figcaption><strong>●</strong> central to the benchmark ·
+    <strong>○</strong> tested incidentally · blank, not tested. The two columns
+    at the ends are the story: <strong>Find</strong> was unmeasured until 2026,
+    and <strong>Publish</strong> is unmeasured still.</figcaption>
+  </figure>
+
+  <h2>What has moved since early 2026</h2>
+
+  <figure class="article-figure">
+    <table>
+      <thead>
+        <tr><th>Benchmark &amp; track</th><th>Then</th><th>Now</th><th>System behind &quot;now&quot;</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Spider 2.0-Lite</td>
+          <td>60.15 (2026-02)</td><td><strong>76.23</strong> (2026-07-28)</td>
+          <td>Tianqiong Data Agent + GLM 5.2 <span class="gen">CURRENT</span></td>
+        </tr>
+        <tr>
+          <td>ELT-Bench, extract &amp; load</td>
+          <td>37% (Sonnet 3.5)</td><td><strong>96%</strong> (2026-03-31)</td>
+          <td>SWE-Agent + Claude Sonnet 4.5 <span class="gen">PRIOR</span> — model change only</td>
+        </tr>
+        <tr>
+          <td>ELT-Bench, transformation</td>
+          <td>3.9% (2025)</td><td><strong>22.66%</strong> (2026-03-31)</td>
+          <td>SWE-Agent + Claude Sonnet 4.5 <span class="gen">PRIOR</span></td>
+        </tr>
+        <tr>
+          <td>BIRD, single trained model</td>
+          <td>77.14 (2026-03-12)</td><td><strong>80.04</strong> (2026-06-03)</td>
+          <td>Gemini-SQL2 <span class="gen">CURRENT</span></td>
+        </tr>
+        <tr class="muted">
+          <td>BIRD, test with oracle knowledge</td>
+          <td>81.95 (2025-12-16)</td><td>81.95 — unbeaten</td>
+          <td>AskData + GPT-4o <span class="gen">OBSOLETE</span>; 15 newer entries, none ahead</td>
+        </tr>
+        <tr class="muted">
+          <td>DABstep, hard (validated)</td>
+          <td>89.95 (2026-02-22)</td><td>89.95 — board closed</td>
+          <td>NVIDIA KGMON, multi-model pipeline</td>
+        </tr>
+        <tr class="muted">
+          <td>BEAVER, end-to-end</td>
+          <td>—</td><td><strong>11.4%</strong> (2026-05-13, v3)</td>
+          <td>ReFoRCE + Claude-4.5-Sonnet <span class="gen">PRIOR</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <figcaption>Greyed rows have not improved. Compare only within a row —
+    across rows the tasks, data and scoring all differ.</figcaption>
+  </figure>
+
+  <figure class="article-figure">
+    <svg viewBox="0 0 760 330" role="img" aria-label="Benchmark scores at an earlier and later date" style="width:100%;height:auto">
+    <style>.sl{font:11px system-ui,sans-serif}.slb{font:600 11px system-ui,sans-serif}.n{font-variant-numeric:tabular-nums}.hd{font:600 11px system-ui,sans-serif;opacity:.6}.ax{font:10px system-ui,sans-serif;opacity:.55}</style>
+    <text class="hd" x="300.0" y="30" text-anchor="middle">earlier</text>
+    <text class="hd" x="470.0" y="30" text-anchor="middle">latest &#183; 2026-08-11</text>
+    <line x1="300.0" y1="206.0" x2="470.0" y2="56.2" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="206.0" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="56.2" r="3.4" fill="currentColor" opacity=".85"/>
+    <text class="sl n" x="278.0" y="209.5" text-anchor="end" opacity=".85">37.0</text>
+    <text class="slb n" x="492.0" y="59.7" opacity=".85">96.0</text>
+    <text class="sl" x="532.0" y="59.7" opacity=".85">ELT-Bench, extract & load</text>
+    <line x1="300.0" y1="71.5" x2="470.0" y2="71.5" stroke="currentColor" stroke-width="1.8" opacity=".3" stroke-dasharray="4 3"/>
+    <circle cx="300.0" cy="71.5" r="3.4" fill="currentColor" opacity=".3"/>
+    <circle cx="470.0" cy="71.5" r="3.4" fill="currentColor" opacity=".3"/>
+    <text class="sl n" x="278.0" y="75.0" text-anchor="end" opacity=".3">89.95</text>
+    <text class="slb n" x="492.0" y="75.0" opacity=".3">89.95</text>
+    <text class="sl" x="532.0" y="75.0" opacity=".3">DABstep, hard (validated)</text>
+    <line x1="300.0" y1="91.8" x2="470.0" y2="91.8" stroke="currentColor" stroke-width="1.8" opacity=".3" stroke-dasharray="4 3"/>
+    <circle cx="300.0" cy="91.8" r="3.4" fill="currentColor" opacity=".3"/>
+    <circle cx="470.0" cy="91.8" r="3.4" fill="currentColor" opacity=".3"/>
+    <text class="sl n" x="278.0" y="95.3" text-anchor="end" opacity=".3">81.95</text>
+    <text class="slb n" x="492.0" y="95.3" opacity=".3">81.95</text>
+    <text class="sl" x="532.0" y="95.3" opacity=".3">BIRD, oracle knowledge</text>
+    <line x1="300.0" y1="147.2" x2="470.0" y2="106.4" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="147.2" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="106.4" r="3.4" fill="currentColor" opacity=".85"/>
+    <line x1="478.0" y1="106.4" x2="488.0" y2="121.8" stroke="currentColor" opacity=".22"/>
+    <text class="sl n" x="278.0" y="150.7" text-anchor="end" opacity=".85">60.15</text>
+    <text class="slb n" x="492.0" y="125.3" opacity=".85">76.23</text>
+    <text class="sl" x="532.0" y="125.3" opacity=".85">Spider 2.0-Lite</text>
+    <line x1="300.0" y1="104.1" x2="470.0" y2="96.7" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="104.1" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="96.7" r="3.4" fill="currentColor" opacity=".85"/>
+    <line x1="292.0" y1="104.1" x2="282.0" y2="106.8" stroke="currentColor" opacity=".22"/>
+    <line x1="478.0" y1="96.7" x2="488.0" y2="106.8" stroke="currentColor" opacity=".22"/>
+    <text class="sl n" x="278.0" y="110.3" text-anchor="end" opacity=".85">77.14</text>
+    <text class="slb n" x="492.0" y="110.3" opacity=".85">80.04</text>
+    <text class="sl" x="532.0" y="110.3" opacity=".85">BIRD, single trained model</text>
+    <line x1="300.0" y1="290.1" x2="470.0" y2="242.4" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="290.1" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="242.4" r="3.4" fill="currentColor" opacity=".85"/>
+    <text class="sl n" x="278.0" y="293.6" text-anchor="end" opacity=".85">3.9</text>
+    <text class="slb n" x="492.0" y="245.9" opacity=".85">22.66</text>
+    <text class="sl" x="532.0" y="245.9" opacity=".85">ELT-Bench, transformation</text>
+    <line x1="230.0" y1="316" x2="670.0" y2="316" stroke="currentColor" opacity=".15"/>
+    <text class="ax" x="230" y="328">each line is one benchmark on its own metric — read the slope, not the height</text>
+    </svg>
+    <figcaption><strong>Dashed lines have not moved.</strong> DABstep's validated
+    board is frozen because it closed submissions pending a second version;
+    BIRD's oracle-knowledge headline has stood since 2025-12-16 against fifteen
+    newer entries. Earlier points range from 2024-10 to 2026-03. <strong>Vertical
+    position is not comparable across lines</strong> — different tasks, data and
+    scoring — so read the slopes, not the heights. Systems behind the later
+    points: SWE-Agent + Claude Sonnet 4.5 (both ELT-Bench rows), Tianqiong Data
+    Agent + GLM 5.2, Gemini-SQL2.</figcaption>
+  </figure>
+
+  <p>Read the model column and one row stands out. BIRD&#x27;s headline — the best
+  score anyone has posted with the domain notes supplied — belongs to
+  <strong>GPT-4o</strong>, a model two generations obsolete, set in December
+  2025 and unbeaten by fifteen entries since. On that benchmark, newer models
+  have not translated into better answers at all.</p>
+
+  <p>The broader pattern: work that amounts to writing correct code against a
+  described system has improved sharply, sometimes on a model upgrade alone. ELT-Bench&#x27;s
+  extract-and-load stage went from a third to nearly all of the way with no
+  change but a newer Claude, and its authors now describe that stage as largely
+  solved. Work that requires understanding an unfamiliar system has barely
+  moved: the transformation stage of the same benchmark, where you decide what
+  the numbers mean, sits at <strong>22.66%</strong>.</p>
+
+  <h2>Which part of the job models are worst at</h2>
+
+  <p><a href="https://beaverbench.github.io/">BEAVER</a> is the most informative
+  benchmark here because it scores five sub-skills separately on the same tasks.
+  Its warehouses are private company systems, so nothing in any model&#x27;s training
+  data describes them — which makes the profile below a clean read on what a
+  model can work out from a schema alone, with no prior familiarity to fall back
+  on.</p>
+
+  <figure class="article-figure">
+    <svg viewBox="0 0 700 250" role="img" aria-label="BEAVER sub-skill scores from 70.1 down to 20.4" style="width:100%;height:auto">
+    <style>.bl{font:600 12px system-ui,sans-serif}.bs{font:11px system-ui,sans-serif;opacity:.6}.bn{font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}.bx{font:10px system-ui,sans-serif;opacity:.55}</style>
+    <text class="bl" x="242" y="36" text-anchor="end">Table retrieval</text>
+    <text class="bs" x="242" y="48" text-anchor="end">find the right table</text>
+    <rect x="250.0" y="25" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="25" width="252.4" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="511.4" y="36">70.1</text>
+    <text class="bl" x="242" y="74" text-anchor="end">Column mapping</text>
+    <text class="bs" x="242" y="86" text-anchor="end">match question terms to columns</text>
+    <rect x="250.0" y="63" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="63" width="221.8" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="480.8" y="74">61.6</text>
+    <text class="bl" x="242" y="112" text-anchor="end">Query decomposition</text>
+    <text class="bs" x="242" y="124" text-anchor="end">break the question into steps</text>
+    <rect x="250.0" y="101" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="101" width="182.9" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="441.9" y="112">50.8</text>
+    <text class="bl" x="242" y="150" text-anchor="end">Join keys</text>
+    <text class="bs" x="242" y="162" text-anchor="end">pick the column that links two tables</text>
+    <rect x="250.0" y="139" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="139" width="127.8" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="386.8" y="150">35.5</text>
+    <text class="bl" x="242" y="188" text-anchor="end">Domain knowledge</text>
+    <text class="bs" x="242" y="200" text-anchor="end">know what the values mean</text>
+    <rect x="250.0" y="177" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="177" width="73.4" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="332.4" y="188">20.4</text>
+    <line x1="250.0" y1="208" x2="610.0" y2="208" stroke="currentColor" opacity=".25"/>
+    <text class="bx" x="250.0" y="223" text-anchor="middle">0</text>
+    <text class="bx" x="340.0" y="223" text-anchor="middle">25</text>
+    <text class="bx" x="430.0" y="223" text-anchor="middle">50</text>
+    <text class="bx" x="520.0" y="223" text-anchor="middle">75</text>
+    <text class="bx" x="610.0" y="223" text-anchor="middle">100</text>
+    <text class="bx" x="430.0" y="237" text-anchor="middle">F1 — 100 is perfect</text>
+    </svg>
+    <figcaption>BEAVER v3 sub-skill scores, <strong>averaged across seven
+    models</strong> (2026-05-13) — a profile of the field, not of any one
+    system. Measured as F1, which balances how much of the right answer was
+    found against how much of what was returned was right. All five are scored
+    on the same tasks, so these rows <em>are</em> comparable to each other,
+    unlike the other charts here.</figcaption>
+  </figure>
+
+  <p>The order is the finding, and it runs in one direction: from what a schema
+  tells you to what only a person can. Picking the right table is largely
+  solvable from column names. Picking the right join key is much harder, because
+  a schema rarely says which of several plausible columns actually relates two
+  tables. And knowing what a value <em>means</em> in the business that produced
+  it is where models do worst, at <strong>20.4</strong> — a third of their score
+  on table retrieval.</p>
+
+  <p>That bottom row is the whole argument of the next section. Domain knowledge
+  is not a skill a model can be better at; it is information it either has or
+  does not.</p>
+
+  <p>Other benchmarks show the same shape from different angles. On government
+  open data, the largest single error category is failing to apply a condition
+  the question never stated — a date range, a status code, or which rows are
+  totals rather than members — at <strong>32.4%</strong> of one system&#x27;s errors
+  (Gemini 2.5 Flash with its Answer Agent scaffold, 2026-07). On
+  <a href="https://tablebench.github.io/">TableBench</a>, models score above 90
+  on fact-checking and numerical reasoning while sitting at <strong>61.4</strong>
+  on open-ended data analysis.</p>
+
+  <h2>What handing over documentation is worth</h2>
+
+  <p>The practical question is not how models score, but how much better they
+  do when you give them what you know. Seven benchmarks run that comparison
+  directly, and the answer ranges from decisive to almost nothing — which is
+  the first thing worth noticing. <em>What</em> you hand over matters far more
+  than <em>that</em> you hand something over.</p>
+
+  <p>The row to read first is the human one. Given BIRD's evidence note, human
+  data engineers and database students scored <strong>92.96</strong>; without
+  it, <strong>72.37</strong>. They lose more than twenty points to the same
+  missing information. Whatever else these numbers show, the knowledge is not a
+  crutch for weak models — it is a requirement of the task.</p>
+
+  <figure class="article-figure">
+    <svg viewBox="0 0 700 290" role="img" aria-label="Score without and with supplied knowledge, seven benchmarks" style="width:100%;height:auto">
+    <style>.lbl{font:600 12px system-ui,sans-serif}.sub{font:11px system-ui,sans-serif;opacity:.65}.num{font:11px system-ui,sans-serif;font-variant-numeric:tabular-nums}.dlt{font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}.ax{font:10px system-ui,sans-serif;opacity:.6}</style>
+    <text class="lbl" x="192" y="38" text-anchor="end">DCA-Bench</text>
+    <text class="sub" x="192" y="50" text-anchor="end">hint ladder, none → specific</text>
+    <line x1="319.4" y1="34" x2="513.1" y2="34" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="319.4" cy="34" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="513.1" cy="34" r="4.5" fill="currentColor"/>
+    <text class="num" x="310.4" y="38" text-anchor="end">29.86</text>
+    <text class="num" x="522.1" y="38">78.28</text>
+    <text class="dlt" x="694" y="38" text-anchor="end">+48.4</text>
+    <text class="lbl" x="192" y="72" text-anchor="end">PrepBench</text>
+    <text class="sub" x="192" y="84" text-anchor="end">ambiguity removed</text>
+    <line x1="419.6" y1="68" x2="541.2" y2="68" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="419.6" cy="68" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="541.2" cy="68" r="4.5" fill="currentColor"/>
+    <text class="num" x="410.6" y="72" text-anchor="end">54.9</text>
+    <text class="num" x="550.2" y="72">85.3</text>
+    <text class="dlt" x="694" y="72" text-anchor="end">+30.4</text>
+    <text class="lbl" x="192" y="106" text-anchor="end">BIRD — humans</text>
+    <text class="sub" x="192" y="118" text-anchor="end">evidence note</text>
+    <line x1="489.5" y1="102" x2="571.8" y2="102" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="489.5" cy="102" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="571.8" cy="102" r="4.5" fill="currentColor"/>
+    <text class="num" x="480.5" y="106" text-anchor="end">72.37</text>
+    <text class="num" x="580.8" y="106">92.96</text>
+    <text class="dlt" x="694" y="106" text-anchor="end">+20.6</text>
+    <text class="lbl" x="192" y="140" text-anchor="end">BEAVER</text>
+    <text class="sub" x="192" y="152" text-anchor="end">all subtask hints</text>
+    <line x1="245.6" y1="136" x2="320.4" y2="136" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="245.6" cy="136" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="320.4" cy="136" r="4.5" fill="currentColor"/>
+    <text class="num" x="236.6" y="140" text-anchor="end">11.4</text>
+    <text class="num" x="329.4" y="140">30.1</text>
+    <text class="dlt" x="694" y="140" text-anchor="end">+18.7</text>
+    <text class="lbl" x="192" y="174" text-anchor="end">BIRD — best system</text>
+    <text class="sub" x="192" y="186" text-anchor="end">oracle knowledge</text>
+    <line x1="469.6" y1="170" x2="527.8" y2="170" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="469.6" cy="170" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="527.8" cy="170" r="4.5" fill="currentColor"/>
+    <text class="num" x="460.6" y="174" text-anchor="end">67.41</text>
+    <text class="num" x="536.8" y="174">81.95</text>
+    <text class="dlt" x="694" y="174" text-anchor="end">+14.5</text>
+    <text class="lbl" x="192" y="208" text-anchor="end">LongDA</text>
+    <text class="sub" x="192" y="220" text-anchor="end">doc-search tool</text>
+    <line x1="433.2" y1="204" x2="476.6" y2="204" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="433.2" cy="204" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="476.6" cy="204" r="4.5" fill="currentColor"/>
+    <text class="num" x="424.2" y="208" text-anchor="end">58.3</text>
+    <text class="num" x="485.6" y="208">69.16</text>
+    <text class="dlt" x="694" y="208" text-anchor="end">+10.9</text>
+    <text class="lbl" x="192" y="242" text-anchor="end">ScienceAgentBench</text>
+    <text class="sub" x="192" y="254" text-anchor="end">expert note</text>
+    <line x1="329.6" y1="238" x2="337.2" y2="238" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="329.6" cy="238" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="337.2" cy="238" r="4.5" fill="currentColor"/>
+    <text class="num" x="320.6" y="242" text-anchor="end">32.4</text>
+    <text class="num" x="346.2" y="242">34.3</text>
+    <text class="dlt" x="694" y="242" text-anchor="end">+1.9</text>
+    <line x1="200.0" y1="260" x2="600.0" y2="260" stroke="currentColor" opacity=".3"/>
+    <line x1="200.0" y1="260" x2="200.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="200.0" y="276" text-anchor="middle">0</text>
+    <line x1="300.0" y1="260" x2="300.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="300.0" y="276" text-anchor="middle">25</text>
+    <line x1="400.0" y1="260" x2="400.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="400.0" y="276" text-anchor="middle">50</text>
+    <line x1="500.0" y1="260" x2="500.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="500.0" y="276" text-anchor="middle">75</text>
+    <line x1="600.0" y1="260" x2="600.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="600.0" y="276" text-anchor="middle">100</text>
+    <text class="ax" x="400.0" y="290" text-anchor="middle">score on that benchmark’s own metric</text>
+    <text class="dlt" x="694" y="276" text-anchor="end">gain</text>
+    </svg>
+    <figcaption><strong>Hollow dot: without. Solid dot: with.</strong> Each row
+    is one benchmark measuring its own with-and-without condition, using its own
+    metric on its own data. <strong>Rows are not comparable to each other</strong>
+    — only the gap within a row means anything, which is why the gain is printed
+    separately. Systems, in row order: DeepSeek-R1 curator; GPT-5.1-Codex; human
+    data engineers and database students; ReFoRCE best config; AskData + GPT-4o;
+    <span class="gen">PRIOR</span> GPT-5 under LongTA;
+    <span class="gen">OBSOLETE</span> Claude-3.5-Sonnet with self-debug. Note
+    that the two largest gains were measured on obsolete models — DeepSeek-R1
+    and GPT-5.1-Codex — so these are not artefacts of weak systems being easy
+    to help. Dates 2024-11 to 2026-08; verified 2026-08-11.</figcaption>
+  </figure>
+
+  <p><strong>LongDA is the most relevant result published.</strong> Its
+  questions come from real US federal survey publications and are answered
+  against the real microdata with the real codebooks — the situation anyone
+  working with government statistics is actually in. The best system, GPT-5
+  under the authors&#x27; ReAct-based scaffold with a documentation-search tool,
+  reaches <strong>69.16%</strong>. <em>Delete only that documentation-search
+  tool</em>, changing nothing else, and it falls to <strong>58.30%</strong> —
+  eleven points, from the ability to look something up. The benchmark requires
+  choices like selecting the correct survey weight from among several, which no
+  amount of general knowledge supplies.</p>
+
+  <p><strong>DCA-Bench</strong> shows the same effect as a gradient. Asked to
+  find known defects with no hints, its best configuration (DeepSeek-R1 as
+  curator) found <strong>29.86%</strong>; given the most specific hint, the same
+  model with retrieval found <strong>78.28%</strong>.</p>
+
+  <p><strong>ELT-Bench</strong> ran the blunt version: withhold the dataset
+  documentation entirely. Denied it, one agent completed a single task and
+  another completed none.</p>
+
+  <p><strong>BIRD</strong> supplies the counterweight. Its external-knowledge
+  annotation was worth <strong>+20.01 points</strong> in 2023. An independent
+  re-measurement in 2026 — by a group with no stake in the benchmark, running
+  six systems under the same conditions — found gains of 8.35, 10.82, 10.96,
+  11.28, 12.84 and 20.86 points. Only the oldest pipeline reached the original
+  figure; every modern one landed between 8 and 13.</p>
+
+  <p>At the other end sits <a href="https://arxiv.org/abs/2410.05080">ScienceAgentBench</a>, where an expert note added
+  <strong>1.9 points</strong> — a reminder that supplying <em>something</em>
+  guarantees nothing. The spread from +1.9 to +48.4 is not noise; it tracks how
+  closely what was handed over matched what the task actually required.</p>
+
+  <p>So the premium for supplying published knowledge about a public dataset is
+  real and appears to be shrinking. The premium for supplying documentation the
+  model cannot otherwise reach — LongDA&#x27;s eleven points, measured this year on
+  federal codebooks — is not shrinking, because nothing has absorbed it.</p>
+
+  <h2>What the winning systems actually do</h2>
+
+  <p>Every score in this piece belongs to a scaffold, and the papers that ablate
+  their own scaffolds show which parts carry the weight. The pattern that comes
+  out is narrower than &quot;use agents&quot;, and most of it is available to one
+  person with a terminal.</p>
+
+  <p><strong>Look at the files before planning anything.</strong> The single
+  best-measured component in this literature is
+  <a href="https://arxiv.org/abs/2509.21825">DS-STAR</a>&#x27;s file profiler — a
+  step that reads each available file and describes what is in it before any
+  planning begins. Removing it costs <strong>18.3 points</strong>. Its verifier
+  is worth 10.6 and its router 5.3; the whole scaffold adds
+  <strong>32.5 points</strong> over the bare model, at $0.23 a task against
+  $0.09.</p>
+
+  <p><strong>Profile the columns rather than trusting the documentation.</strong>
+  This is the surprise. <a href="https://arxiv.org/abs/2505.19988">AskData</a>,
+  the system still holding BIRD&#x27;s top score on a two-generations-obsolete model,
+  generates its own column descriptions by sampling values — and that beats
+  BIRD&#x27;s <em>human-written</em> metadata, <strong>61.2 against 59.6</strong>.
+  Looking at the data told it more than the documentation did. Note what that
+  does and does not say: it is an argument for profiling, not against
+  documentation, since the same benchmark&#x27;s domain notes are worth 14 points on
+  top.</p>
+
+  <p><strong>Simple beats elaborate more often than not.</strong>
+  <a href="https://github.com/SWE-agent/mini-swe-agent">Mini-SWE-agent</a> is
+  190 lines, has bash and nothing else — no retrieval, no plugin system — and
+  tops <a href="https://arxiv.org/abs/2606.15300">CoDA-Bench</a> at 60% of the
+  cost of the elaborate alternative.</p>
+
+  <p><strong>Cost is not proportional to score.</strong> On DABstep&#x27;s own
+  baselines, o1 scored <strong>11.11%</strong> for <strong>$435</strong> while
+  DeepSeek R1 scored <strong>11.04%</strong> for <strong>$3</strong>. On
+  ScienceAgentBench, a self-debugging loop beat a much heavier agent framework
+  by 10.8 points at one-seventeenth the cost.</p>
+
+  <h3>And the things that did not work</h3>
+
+  <p>The negative results are more useful than the positive ones, because they
+  are the techniques a reasonable person would try first.</p>
+
+  <ul>
+    <li><strong>Retrieval over background material.</strong> On
+    <a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a>, adding
+    retrieval over curation reference material moved the best no-hint score from
+    <strong>29.86 to 29.41</strong> — slightly down.</li>
+    <li><strong>Self-reflection without a test to fail.</strong>
+    <a href="https://arxiv.org/abs/2303.11366">Reflexion</a>-style loops without
+    an external signal scored <em>below</em> having no scaffold at all
+    (0.60 → 0.52). A reflection pass with nothing to check against mostly
+    produces confident revision.</li>
+    <li><strong>Answering five times and voting.</strong> Self-consistency
+    bought <strong>+0.13 points for five times the tokens</strong>, at
+    <em>p</em> = 0.86 — indistinguishable from noise.</li>
+    <li><strong>Adding more agents.</strong> Multi-agent configurations degraded
+    monotonically as agents were added.</li>
+    <li><strong>Compressing the context.</strong> Zero measured benefit for 24
+    to 94 percent more cost.</li>
+  </ul>
+
+  <p>Set the failures beside the successes and one line separates them. The
+  retrieval that worked — LongDA&#x27;s document search, worth eleven points — went
+  after <em>a specific fact about the artifact in front of it</em>: which
+  variable, which weight, what this code means in this survey. The retrieval
+  that failed went after <em>general knowledge about the genre of work</em>.
+  Reference material about data curation does not tell you what is wrong with
+  this file. The codebook does.</p>
+
+  <p>The same line explains why file profiling and column sampling win: both
+  fetch specific facts about the artifact, cheaply, before any plan is made.
+  What consistently fails is asking the model to think harder about what it
+  already has.</p>
+
+  <p>One caution about all of the above. The system holding DABstep&#x27;s top score
+  publishes a repository in which the two files containing its actual helper
+  functions are <strong>empty</strong>. Several leaderboard entries name no model
+  and no method. The techniques that can be described here are the ones whose
+  authors chose to describe them.</p>
+
+  <h2>What nobody is measuring</h2>
+
+  <p>Stage 8 is worth restating because it is the stage where a wrong answer
+  does the most damage. No benchmark scores whether a model respects a
+  suppression rule, tells a numeric sentinel code from a real value, applies a
+  survey weight correctly as a scored axis, or produces design-based standard
+  errors. These are the errors most likely to yield a confident, publishable,
+  wrong number — and there is no evidence in either direction about how often
+  models make them.</p>
+
+  <p>The gap is not that nobody thought of it. LongDA requires choosing the
+  correct survey weight among several and its authors put variance estimation
+  explicitly out of scope; DataGovBench&#x27;s largest error category is a filter
+  the question never stated. The pieces are visible at the edges of benchmarks
+  built for something else. Nothing yet scores them directly.</p>
+
+  <h2>The large caveat: some of this is the benchmarks failing</h2>
+
+  <p>Two independent audits this year found that a substantial share of what
+  gets recorded as model failure is benchmark error.</p>
+
+  <p>A CIDR 2026 paper re-examined the ground truth of the leading text-to-SQL
+  benchmarks and reported annotation error rates of <strong>52.8%</strong> in
+  BIRD&#x27;s Mini-Dev split and <strong>66.1%</strong> in Spider 2.0-Snow. On
+  corrected data one system rose from 62% to 81% and moved from fourth place to
+  first. Separately, ELT-Bench-Verified re-checked its own benchmark and found
+  that <strong>82.7%</strong> of failed tasks contained an error attributable to
+  the benchmark rather than the agent; fixing them moved the transformation
+  score from 22.66% to <strong>32.51%</strong> without touching the system.</p>
+
+  <p>This does not invalidate the direction of any finding above, but it should
+  make you distrust small differences and any leaderboard ranking decided by a
+  few points.</p>
+
+  <h2>Two more things to hold lightly</h2>
+
+  <p>Nearly every figure here is a benchmark&#x27;s authors reporting results on
+  the benchmark they built. That is normal, and it means independent
+  corroboration is rare — the BIRD re-measurement above is the exception, not
+  the rule. BEAVER cannot be independently re-measured at all: its warehouses
+  are private, which is exactly what makes it a good test and what makes it
+  unauditable.</p>
+
+  <p>And benchmarks that stay in circulation are disproportionately the ones
+  models have not solved. The ones that got solved stopped being cited. Any
+  survey of live benchmarks over-represents unsolved problems, so the picture
+  here is probably gloomier than the truth.</p>
+
+  <h2>What to watch</h2>
+
+  <p><strong>Whether the published-knowledge premium keeps shrinking.</strong>
+  BIRD&#x27;s with-and-without gap went from +20.01 to a modern-scaffold band of
+  8–13 in three years. If it reaches parity, models will have absorbed what
+  published documentation used to supply.</p>
+
+  <p><strong>Whether anyone measures the unreachable kind.</strong> LongDA is
+  the first benchmark to price documentation access on real official data. One
+  result is not a trend, and until there are more, claims about that category —
+  including this piece&#x27;s — rest on a single measurement.</p>
+
+  <p><strong>Whether the jagged profile flattens.</strong> If domain knowledge
+  climbs from 20.4 toward the 70 that table retrieval already reaches, the
+  argument that unfamiliar systems require handed-over context weakens sharply.</p>
+
+  <h2>What follows for the work</h2>
+
+  <p>On the current evidence, the parts of a pipeline that amount to writing
+  correct code against a described system are reasonable to delegate and
+  getting more so. The parts that depend on knowing what a column means, which
+  rows are totals, which year broke comparability, which weight to apply, or why
+  a value is suppressed rather than missing are where systems fail most, where
+  supplying what you know buys the most, and where nobody has measured how often
+  things go wrong.</p>
+
+  <p>The check worth keeping is therefore not &quot;did it write good
+  code&quot; — increasingly it does — but &quot;did it know what it was looking
+  at.&quot; And the measured techniques point the same way: profile the files
+  before planning, sample the columns rather than trusting their names, and
+  fetch the specific fact the task turns on. What does not help is asking the
+  model to reflect harder on what it already has.</p>
+
+  <p>Since that specific fact usually exists — written down by the publisher,
+  somewhere the download does not point to — going to find it before the first
+  query costs less than discovering its absence in a published number.</p>
+
+  <footer class="colophon">
+    All figures read at their primary source — benchmark papers, official
+    leaderboards and publishers&#x27; own pages — and verified 2026-08-11. Scores
+    are given with the model, scaffold and date that produced them; leaderboard
+    figures move.
+    Built with <a href="https://github.com/lavallee/artoo">artoo</a>.
+  </footer>
+</main>
+</body>
+</html>
