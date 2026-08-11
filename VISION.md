@@ -19,21 +19,28 @@ download never points: a fetcher following download links alone reaches it
 and baked into code and nowhere else.
 
 Frontier models are good at finding datasets and good at working out what is
-wrong with them. What they do not do is look around first. An agent that reads
-the documentation *before* writing pipeline config succeeds **78.8%** of the
-time against **9.6%** for one that reads it after — and agents choose the wrong
-order in **73%** of tasks. So everyone pays separately for the same lesson and
-nobody banks it.
+wrong with them. What they do not reliably do is look around first. Denied the
+dataset's documentation entirely, agents building an ELT pipeline completed
+**at most one task out of many** — a controlled ablation, and the cleanest
+statement available that this knowledge is not already in the model. Handed the
+specific thing to look at, an agent's rate of finding known dataset issues rises
+from **10.86–29.86%** to **67.42–78.28%** across DCA-Bench's hint ladder.
 
-*Evidence: `docs/publisher-guidance-survey.md`; ELT-Bench, DCA-Bench, BIRD,
-BEAVER and nine other sources, surveyed in the project's research notebook.*
+So the knowledge is worth a great deal and everyone currently pays for it
+separately.
+
+*Evidence: `docs/publisher-guidance-survey.md`; DCA-Bench, ELT-Bench, BIRD,
+SEED, BEAVER and eight other sources, captured and graded in the project's
+research notebook.*
 
 ## Strategy bets
 
 - **ergo is two forms of caching.** The publisher's own guidance, found and
   pointed at; and other people's earned wisdom, pre-baked so nobody repeats
-  the traversal. **A cache hit beats recomputation however good the compute
-  gets** — which is why this does not decay as models improve.
+  the traversal. A cache hit is cheaper and more accurate than recomputing —
+  and *how much* cheaper is measurable, moving, and currently narrowing. This
+  bet is held with a number attached rather than as an article of faith; see
+  below.
 - **The cache is a lead, never an answer.** You still check. What you are
   handed is where to look and what to look for. The expensive part was never
   the reading; it was not knowing to look.
@@ -56,21 +63,28 @@ BEAVER and nine other sources, surveyed in the project's research notebook.*
 ## Models getting better is the good outcome
 
 ergo is not a bet against model improvement, and its value should not be
-argued from a capability deficit. The published record already shows both
-directions: DABstep's hard split went from **14.55%** to **89.95%** in
-eighteen months, while BIRD's gain from supplying domain semantics held at
-**+17 to +23 points** across three years of scale.
+argued from a capability deficit. The published record shows improvement moving
+fast: DABstep's hard split went from **14.55%** (paper baseline, Q1 2025) to
+**89.95%** (validated leaderboard, February 2026).
 
-So the honest position is that improvement closes some gaps and not others,
-and which is which is an empirical question the project tracks rather than
-assumes. The forecasts that test it are dated and in the notebook. If the
-external-knowledge delta collapses, models have absorbed what a page would
-have told them, the second cache matters much less, and ergo should say so.
+**The knowledge gain is narrowing too, and we should say so.** The one
+independent re-measurement of BIRD's external-knowledge effect — SEED, by
+authors with no stake in BIRD — puts the gap at **8.35 to 20.86 points** across
+six systems, with only the oldest scaffold reaching the high end and every
+modern one sitting at 8–13. The original 2023 figure was +20.01. So supplying
+domain semantics is still worth a lot, and it is worth less than it was.
+
+Which gaps close is therefore an empirical question this project tracks rather
+than assumes, with dated forecasts in the notebook. If the delta keeps
+narrowing toward zero, models have absorbed what a page would have told them,
+the second cache matters much less, and ergo should say so plainly rather than
+defend the claim.
 
 There is also a ceiling worth stating in public: handed *every* subtask
-annotation, agents still fail seven times in ten against warehouses they were
-not trained on (BEAVER, 11.4% → 30.1%). No documentation format buys more
-than documentation can buy.
+annotation, agents still fail roughly seven times in ten against warehouses
+they were not trained on (BEAVER — 10.8% unaided to 30.1% for the best model
+with full annotation, and 25.9% for the best method averaged across models).
+No documentation format buys more than documentation can buy.
 
 ## Non-goals
 
@@ -109,6 +123,9 @@ Held open deliberately, because a vision nobody can argue with is not one.
   ROADMAP Outcome 2 remains unrun.
 - **Every adopter is inside this household** and wanted the format to work.
 - **The format is thinnest where the literature is thickest.** Schema linking
-  is the most-measured failure anywhere and ergo has no column-level
-  structure; mixed-grain tables cause a third of errors on exactly the
-  government data ergo targets and have no manifest flag.
+  is the most-measured failure anywhere and ergo has no column-level structure.
+- **Our own synthesis did not survive its first audit.** Capturing the primary
+  sources behind this project's evidence found thirteen discrepancies in it,
+  three of them in claims that had already reached this file. A format about
+  not trusting undocumented knowledge has to hold its own citations to the
+  same standard, and did not.

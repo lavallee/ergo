@@ -1,0 +1,12 @@
+[artifact]
+slug = "models-and-data"
+title = "Models and data: what changed, what didn't, and what to watch"
+description = "How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes."
+kind = "research-review"
+status = "draft"
+created = "2026-08-11"
+
+[[libraries]]
+name = "artoo-kit"
+version = "0.3.0"
+sha256 = "66993edcfc8a821cddd430a163b787d644c17bd809c92aeab0d4ff55074073f7"

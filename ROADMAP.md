@@ -109,10 +109,16 @@ the evidence in others.*
   81.2% of all execution failures — and ergo has none. §14 leaves DDI `<var>`
   as future work. Decide whether a page carries per-column facts or
   deliberately refuses to, and say which in the spec.
-- **Mixed-grain tables.** The largest single error category on real government
-  open data, 32.4% — files mixing "male / female / total" rows. This is a
-  structural file property with the same claim to a manifest flag that
-  `zero_is_missing` already has.
+- **Implicit conditions, of which mixed grain is one.** DataGovBench's largest
+  single error category is "Condition Filter Error" at 32.4% — failing to apply
+  a condition the question did not state. Mixed-grain tables ("male / female /
+  total" rows in one file) are the paper's illustrative example of it and carry
+  **no separate count**; date ranges, status codes and universe restrictions
+  land in the same bucket, and the taxonomy is computed over one model-scaffold
+  pair's errors, not a model set. So the open question is narrower than first
+  written: does a structural property a reader must know before querying —
+  mixed grain being the clearest case — deserve a manifest flag like
+  `zero_is_missing`, or is the issue registry already its home?
 - **Units, magnitudes, scaling.** No field anywhere records units, "figures in
   thousands", currency year, or percent-versus-proportion.
 - **General lore.** Some knowledge is true of every dataset of a shape, not of
