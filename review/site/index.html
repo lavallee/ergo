@@ -10,6 +10,17 @@
 <link rel="stylesheet" href="lib/artoo-kit/base.css">
 <link rel="stylesheet" href="lib/artoo-kit/article.css">
 <link rel="stylesheet" href="lib/artoo-kit/components.css">
+<style>
+  .barrow { display: grid; grid-template-columns: 13rem 1fr 3.5rem; gap: .75rem;
+            align-items: center; margin: .3rem 0; font-size: .95rem; }
+  .barrow .track { background: color-mix(in srgb, currentColor 10%, transparent);
+                   height: .85rem; border-radius: 2px; }
+  .barrow .fill { background: currentColor; height: 100%; border-radius: 2px; opacity: .72; }
+  .barrow .val { text-align: right; font-variant-numeric: tabular-nums; }
+  .cov { font-variant-numeric: tabular-nums; }
+  .cov td.y { font-weight: 600; }
+  .muted { opacity: .72; }
+</style>
 </head>
 <body>
 <header class="article-masthead">
@@ -21,238 +32,336 @@
     <div class="article-kicker">research-review</div>
     <h1 class="article-title">Models and data: what changed, what didn&#x27;t, and what to watch</h1>
     <p class="article-dek">How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes.</p>
-    <p class="article-byline">Published <time datetime="2026-08-11">2026-08-11</time></p>
+    <p class="article-byline">Published <time datetime="2026-08-11">2026-08-11</time> · figures verified 2026-08-11</p>
   </header>
 
   <p class="article-lede">If you are about to point a model at a dataset you
   have not used before, you want to know which parts of that job you can hand
-  over and which parts you still have to check yourself. The benchmark record
-  answers this better than intuition does — but only if you read it with the
-  dates attached, because the answer has changed twice in eighteen months and
-  is still moving.</p>
+  over and which parts you still have to check yourself. Public benchmarks
+  answer this better than intuition does — but only with the dates, the models
+  and the exact task attached, because all three change the answer.</p>
 
-  <h2>The number that is out of date the moment you quote it</h2>
+  <h2>Why a number you read last year is probably wrong</h2>
 
-  <p>In early 2025, DABstep — a benchmark of realistic data-analysis tasks
-  built from a payments company&#x27;s own documentation and files — reported that
-  the best agent scored <strong>14.55%</strong> on its hard split. That number
-  travelled widely. It is a fair description of where things stood when the
-  paper was written.</p>
+  <p>Start with one benchmark, because its history shows the problem cleanly.
+  <strong>DABstep</strong> is a set of 450 data-analysis questions built by
+  Adyen, a payments company, from its own internal documentation and files —
+  the kind of task where answering correctly requires reading a manual, not
+  just writing a query. Its questions are split into an <em>easy</em> tier and
+  a <em>hard</em> tier, and the hard tier is where systems separate.</p>
 
-  <p>By February 2026, the top validated entry on the same hard split was
-  <strong>89.95%</strong>.</p>
+  <p>In April 2025, the best configuration the authors tested — OpenAI&#x27;s
+  o4-mini, prompted to reason, wrapped in a ten-step loop that let it alternate
+  between thinking and running code — scored
+  <strong>14.55%</strong> on the hard tier. That number travelled widely.</p>
 
-  <p>Both numbers are real and they measure the same tasks. Quoting either
-  without its date describes a world that no longer exists. This is the first
-  thing to understand about the current state of models doing data work: the
-  headline capability numbers move fast enough that a citation ages in months,
-  and most of what circulates is a paper baseline being read as a current
-  ceiling.</p>
+  <p>By February 2026, the top entry on DABstep&#x27;s <em>validated</em>
+  leaderboard scored <strong>89.95%</strong> on the same tier. Validated
+  matters: the board has a checked tier and an open one, and the open tier
+  currently contains multiple undisclosed entries claiming 100%, which makes it
+  useless as evidence.</p>
 
-  <h2>What has actually moved</h2>
+  <p>Two things follow. First, quoting 14.55% today describes a world that
+  ended eighteen months ago. Second, that 89.95% is itself now frozen —
+  DABstep has <strong>closed validation to new submissions</strong> pending a
+  second version, so the number cannot move even if systems improve. A live
+  benchmark and a live leaderboard are not the same thing.</p>
+
+  <p>It is also not one model. The entry is NVIDIA&#x27;s KGMON Data Explorer, a
+  pipeline in which Claude Opus 4.5/4.6 writes helper functions offline, Haiku
+  4.5 executes them, and Opus or Sonnet 4.6 reviews the result. Attributing it
+  to a single model would be wrong, and this is typical. Almost every score in
+  this piece belongs to a <strong>scaffold</strong> — the harness of prompts,
+  tools and retry logic wrapped around one or more models — and swapping the
+  scaffold can matter as much as swapping the model. Where a score is quoted
+  below, the scaffold is named alongside the model.</p>
+
+  <h2>The benchmarks, and what each one actually asks</h2>
+
+  <p>&quot;Can models do data analysis&quot; is too coarse a question to have
+  an answer. The benchmarks below test genuinely different jobs, and a system
+  strong at one can be weak at the next. Here is the cast used in this piece.</p>
+
+  <ul>
+    <li><strong>DABstep</strong> — analysis questions over a firm&#x27;s own files
+    and documentation. Tests whether a model reads the manual.</li>
+    <li><strong>BIRD</strong> — text-to-SQL over 95 databases. Ships an
+    &quot;external knowledge&quot; note with each question, so it can be run
+    with and without domain hints. Scored by <em>execution accuracy</em>: does
+    the generated query return the right rows.</li>
+    <li><strong>Spider 2.0</strong> — text-to-SQL at enterprise scale, on real
+    warehouses averaging hundreds of columns per database. Three tracks: one on
+    Snowflake, one general, and one that asks for a working dbt project — dbt
+    being the tool teams use to define warehouse transformations as version-
+    controlled SQL.</li>
+    <li><strong>BEAVER</strong> — analysis against <em>private</em> company
+    warehouses no model has been trained on. It also scores five sub-skills
+    separately, which is why it is the best evidence about where capability
+    breaks.</li>
+    <li><strong>ELT-Bench</strong> — building a pipeline, not answering a
+    question. ELT is three stages: <em>extract</em> data from sources,
+    <em>load</em> it into a warehouse, then <em>transform</em> it into modelled
+    tables. The stages are scored separately.</li>
+    <li><strong>DCA-Bench</strong> — finding known defects hidden in curated
+    datasets, at four levels of hint, from none to a specific pointer.</li>
+    <li><strong>LongDA</strong> — 505 questions drawn from 30 official
+    publications across 17 US federal surveys, answered against the real
+    microdata <em>and its real codebooks</em>, which average 263,500 tokens.
+    The closest published analogue to working with government statistics.</li>
+    <li><strong>DataGovBench</strong> — question-answering over 178 government
+    open-data files, published July 2026.</li>
+  </ul>
+
+  <p>What each covers, and does not:</p>
+
+  <figure class="article-figure">
+    <table class="cov">
+      <thead>
+        <tr>
+          <th>Benchmark</th><th>Find the data</th><th>Read the docs</th>
+          <th>Understand schema</th><th>Join / match</th><th>Build a pipeline</th>
+          <th>Interpret result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>DABstep</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td><td class="y">yes</td></tr>
+        <tr><td>BIRD</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td></tr>
+        <tr><td>Spider 2.0</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes (dbt track)</td><td>—</td></tr>
+        <tr><td>BEAVER</td><td>—</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td></tr>
+        <tr><td>ELT-Bench</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td class="y">yes</td><td>—</td></tr>
+        <tr><td>DCA-Bench</td><td>—</td><td class="y">yes</td><td>—</td><td>—</td><td>—</td><td class="y">yes</td></tr>
+        <tr><td>LongDA</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td><td class="y">yes</td></tr>
+        <tr><td>DataGovBench</td><td>—</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td class="y">yes</td></tr>
+      </tbody>
+    </table>
+    <figcaption>Coverage, not scores — scores are not comparable across these
+    rows. Note the empty column: almost nothing here tests <em>finding</em> the
+    right dataset in the first place, and only ELT-Bench does so as part of its
+    task.</figcaption>
+  </figure>
+
+  <h2>What has moved since early 2026</h2>
 
   <figure class="article-figure">
     <table>
       <thead>
-        <tr><th>Benchmark</th><th>What it measures</th><th>Score</th><th>Split &amp; date</th></tr>
+        <tr><th>Benchmark &amp; track</th><th>Then</th><th>Now</th><th>System behind &quot;now&quot;</th></tr>
       </thead>
       <tbody>
-        <tr><td>DABstep</td><td>Realistic analysis over a firm&#x27;s own docs and files</td><td>14.55%</td><td>Hard, paper baseline, Q1 2025</td></tr>
-        <tr><td>DABstep</td><td>Same tasks, same split</td><td>89.95%</td><td>Hard, validated leaderboard, 2026-02-22</td></tr>
-        <tr><td>ELT-Bench</td><td>Building an extract-and-load pipeline end to end</td><td>37%</td><td>Extract/load stage, 2025</td></tr>
-        <tr><td>ELT-Bench-Verified</td><td>Same framework, newer model only</td><td>96%</td><td>Extract/load stage, 2026</td></tr>
-        <tr><td>ELT-Bench</td><td>Generating the transformation models</td><td>3.9%</td><td>Best agent, 2025</td></tr>
-        <tr><td>BEAVER</td><td>Analysis against private warehouses, unaided</td><td>10.8%</td><td>Best model end-to-end</td></tr>
-        <tr><td>BEAVER</td><td>Same, handed every subtask annotation</td><td>30.1%</td><td>Best model; 25.9% for the best method averaged across models</td></tr>
+        <tr>
+          <td>Spider 2.0-Lite</td>
+          <td>60.15 (2026-02)</td><td><strong>76.23</strong> (2026-07-28)</td>
+          <td>Tianqiong Data Agent + GLM 5.2</td>
+        </tr>
+        <tr>
+          <td>ELT-Bench, extract &amp; load</td>
+          <td>37% (Sonnet 3.5)</td><td><strong>96%</strong> (2026-03-31)</td>
+          <td>SWE-Agent + Claude Sonnet 4.5 — model change only</td>
+        </tr>
+        <tr>
+          <td>ELT-Bench, transformation</td>
+          <td>3.9% (2025)</td><td><strong>22.66%</strong> (2026-03-31)</td>
+          <td>SWE-Agent + Claude Sonnet 4.5</td>
+        </tr>
+        <tr>
+          <td>BIRD, single trained model</td>
+          <td>77.14 (2026-03-12)</td><td><strong>80.04</strong> (2026-06-03)</td>
+          <td>Gemini-SQL2</td>
+        </tr>
+        <tr class="muted">
+          <td>BIRD, test with oracle knowledge</td>
+          <td>81.95 (2025-12-16)</td><td>81.95 — unbeaten</td>
+          <td>AskData + GPT-4o; 15 newer entries, none ahead</td>
+        </tr>
+        <tr class="muted">
+          <td>DABstep, hard (validated)</td>
+          <td>89.95 (2026-02-22)</td><td>89.95 — board closed</td>
+          <td>NVIDIA KGMON, multi-model pipeline</td>
+        </tr>
+        <tr class="muted">
+          <td>BEAVER, end-to-end</td>
+          <td>—</td><td><strong>11.4%</strong> (2026-05-13, v3)</td>
+          <td>ReFoRCE + Claude-4.5-Sonnet</td>
+        </tr>
       </tbody>
     </table>
-    <figcaption>Scores are not comparable across rows — different tasks,
-    different scoring, different data. Read each row against the other row for
-    the same benchmark and split. Every figure is the benchmark authors&#x27; own
-    reporting unless noted.</figcaption>
+    <figcaption>Greyed rows have not improved. Compare only within a row —
+    across rows the tasks, data and scoring all differ.</figcaption>
   </figure>
 
-  <p>The pattern is that the tasks closest to <em>writing correct code against
-  a described system</em> have improved dramatically, and the tasks that
-  require holding a whole unfamiliar warehouse in mind have not. Extract and
-  load went from a third to nearly all of the way in one model generation; its
-  own authors now describe that stage as largely solved. Transformation — the
-  part where you decide what the numbers mean — sat at <strong>3.9%</strong>
-  in the same benchmark.</p>
+  <p>The pattern: work that amounts to writing correct code against a described
+  system has improved sharply, sometimes on a model upgrade alone. ELT-Bench&#x27;s
+  extract-and-load stage went from a third to nearly all of the way with no
+  change but a newer Claude, and its authors now describe that stage as largely
+  solved. Work that requires understanding an unfamiliar system has barely
+  moved: the transformation stage of the same benchmark, where you decide what
+  the numbers mean, sits at <strong>22.66%</strong>.</p>
 
-  <p>BEAVER is the clearest limit case, because its warehouses are private and
-  nothing in any model&#x27;s training data describes them. Unaided, the best model
-  finishes about one task in nine. Handed every subtask annotation the
-  benchmark can supply, it finishes about three in ten. That gap between
-  &quot;told nothing&quot; and &quot;told everything&quot; is real and large;
-  what survives it is larger still.</p>
+  <h2>Where capability is jagged</h2>
 
-  <h2>What supplying knowledge is worth, and whether that is changing</h2>
+  <p>BEAVER is the most informative benchmark here because it scores five
+  sub-skills separately on the same tasks. Its warehouses are private company
+  systems, so nothing in any model&#x27;s training data describes them — which is
+  what makes the profile below a clean read on what models can work out from a
+  schema alone.</p>
 
-  <p>The more useful question for someone deciding what to delegate is not how
-  well a model scores, but how much better it does when you hand it what you
-  know.</p>
+  <figure class="article-figure">
+    <div style="color: var(--ink, currentColor)">
+      <div class="barrow"><span>Table retrieval</span><span class="track"><span class="fill" style="width:70.1%"></span></span><span class="val">70.1</span></div>
+      <div class="barrow"><span>Column mapping</span><span class="track"><span class="fill" style="width:61.6%"></span></span><span class="val">61.6</span></div>
+      <div class="barrow"><span>Query decomposition</span><span class="track"><span class="fill" style="width:50.8%"></span></span><span class="val">50.8</span></div>
+      <div class="barrow"><span>Join keys</span><span class="track"><span class="fill" style="width:35.5%"></span></span><span class="val">35.5</span></div>
+      <div class="barrow"><span>Domain knowledge</span><span class="track"><span class="fill" style="width:20.4%"></span></span><span class="val">20.4</span></div>
+    </div>
+    <figcaption>BEAVER v3 sub-skill scores, <strong>averaged across seven
+    models</strong> (2026-05-13) — a profile of the field, not of one system.
+    Measured as F1, which balances how much of the right answer was found
+    against how much of what was returned was right; 100 is perfect.
+    The gradient runs from what a schema tells you to what only a person can.</figcaption>
+  </figure>
 
-  <p>Three benchmarks answer this directly. DCA-Bench asks agents to find known
-  defects in curated datasets, at four levels of hint. Unaided, across five
-  configurations, agents found between <strong>10.86% and 29.86%</strong> of
-  them. At the top of the hint ladder — told which file and roughly what to
-  look for — the same agents found between <strong>67.42% and 78.28%</strong>.
-  A two-and-a-half to six-fold improvement, from information the person
-  handing it over already had.</p>
+  <p>The order is the finding. Picking the right table is largely solvable from
+  the schema. Picking the right join key is much harder, because a schema rarely
+  says which of several plausible columns actually relates two tables. And
+  domain knowledge — what a column <em>means</em> in the business that produced
+  it — is where models do worst, at <strong>20.4</strong>.</p>
 
-  <p>ELT-Bench ran the cleaner experiment: withhold the dataset documentation
-  entirely. Denied it, one agent completed <strong>one</strong> task and
-  another completed <strong>none</strong>. This is the strongest available
-  statement that the knowledge is not already inside the model.</p>
+  <p>Other benchmarks show the same shape from different angles. On the
+  government open-data benchmark, the largest single error category is failing
+  to apply a condition the question never stated — a date range, a status code,
+  or which rows in a table are totals rather than members — accounting for
+  <strong>32.4%</strong> of one system&#x27;s errors (Gemini 2.5 Flash with its
+  Answer Agent scaffold). On a table-reasoning benchmark, the same models score
+  above 90 on fact-checking and numerical reasoning while sitting at
+  <strong>61.4</strong> on open data analysis.</p>
 
-  <p>BIRD, a text-to-SQL benchmark, measured the same thing on a different
-  axis: it ships an &quot;external knowledge&quot; annotation with each
-  question, and in 2023 supplying it was worth <strong>+20.01 points</strong>
-  of execution accuracy.</p>
+  <h2>What handing over documentation is worth</h2>
 
-  <p>That last number is the one worth watching, because it has moved — and
-  the direction is the opposite of the DABstep story. An independent
-  re-measurement in 2026, by a group with no stake in BIRD, ran six systems on
-  the same data under the same with-and-without conditions. The gains were
-  <strong>8.35, 10.82, 10.96, 11.28, 12.84 and 20.86 points</strong>. Only the
-  oldest pipeline in the set reached the original figure; every modern scaffold
-  landed between 8 and 13.</p>
+  <p>The practical question is not how models score, but how much better they
+  do when you give them what you know. Four benchmarks measure this directly,
+  and they agree that it is worth a great deal.</p>
 
-  <p>So supplying documented knowledge about a public dataset is still worth
-  roughly a tenth of the score. It was worth twice that three years ago. The
-  same audit found that about 7% of the benchmark&#x27;s own knowledge annotations
-  are themselves wrong, which is a reminder that the 2023 baseline is not a
-  fixed point either.</p>
+  <p><strong>LongDA is the most relevant result published.</strong> Its
+  questions come from real US federal survey publications and are answered
+  against the real microdata with the real codebooks — the situation anyone
+  working with government statistics is actually in. The best system, GPT-5
+  under the authors&#x27; ReAct-based scaffold with a documentation-search tool,
+  reaches <strong>69.16%</strong>. <em>Delete only that documentation-search
+  tool</em>, changing nothing else, and it falls to <strong>58.30%</strong> —
+  eleven points, from the ability to look something up. The benchmark requires
+  choices like selecting the correct survey weight from among several, which no
+  amount of general knowledge supplies.</p>
 
-  <h2>The distinction that survives</h2>
+  <p><strong>DCA-Bench</strong> shows the same effect as a gradient. Asked to
+  find known defects with no hints, its best configuration (DeepSeek-R1 as
+  curator) found <strong>29.86%</strong>; given the most specific hint, the same
+  model with retrieval found <strong>78.28%</strong>.</p>
 
-  <p>It would be easy to read the BIRD result as models absorbing what
-  documentation used to supply, and to conclude that the value of writing
-  things down is on a countdown. That reading goes further than the evidence
-  does, for a reason worth being precise about.</p>
+  <p><strong>ELT-Bench</strong> ran the blunt version: withhold the dataset
+  documentation entirely. Denied it, one agent completed a single task and
+  another completed none.</p>
 
-  <p>Every benchmark that measures the value of supplied knowledge supplies
-  <strong>published</strong> knowledge, about a <strong>public</strong>
-  dataset, of the kind a model has plausibly already read. BIRD&#x27;s external
-  knowledge is an annotation about a public database. DABstep&#x27;s context is a
-  documentation set the benchmark ships. That those gains narrow as models
-  absorb more of the web is expected, and is roughly what the numbers show.</p>
+  <p><strong>BIRD</strong> supplies the counterweight. Its external-knowledge
+  annotation was worth <strong>+20.01 points</strong> in 2023. An independent
+  re-measurement in 2026 — by a group with no stake in the benchmark, running
+  six systems under the same conditions — found gains of 8.35, 10.82, 10.96,
+  11.28, 12.84 and 20.86 points. Only the oldest pipeline reached the original
+  figure; every modern one landed between 8 and 13.</p>
 
-  <p>What no benchmark has measured is the other kind. In a survey of twenty
-  widely used open datasets, <strong>nineteen</strong> publishers shipped some
-  form of non-data guidance and <strong>eighteen</strong> shipped guidance that
-  changes what a reader may honestly claim — a comparability break, a
-  suppression rule, a universe change. Only <strong>seven</strong> put it
-  anywhere a program holding the download URL would encounter it. The rest sits
-  in a tab inside a workbook, a footnote attached to a portal record reachable
-  only through an undocumented endpoint, or a technical manual on a host that
-  refuses automated clients.</p>
+  <p>So the premium for supplying published knowledge about a public dataset is
+  real and appears to be shrinking. The premium for supplying documentation the
+  model cannot otherwise reach — LongDA&#x27;s eleven points, measured this year on
+  federal codebooks — is not shrinking, because nothing has absorbed it.</p>
 
-  <p>One state education agency published a spreadsheet whose first tab, of
-  sixty-three, is titled <em>Important 2020-2021 Notes - Please Read Before
-  Using Data in this Database</em>, and says that pandemic-year discipline
-  figures may not be comparable to adjacent years. Nothing in the values
-  announces that the tab exists. A model that has never seen that file cannot
-  know it, and a model that fetches the file by URL will not open it.</p>
+  <h2>What nobody is measuring</h2>
 
-  <p>This is a different problem from capability, and it is not obviously on
-  the same curve. Whether it is on <em>any</em> curve is unknown, because
-  nobody has built the benchmark that would tell us.</p>
+  <p>Two absences are worth naming, because they bound what any of this can
+  tell you.</p>
 
-  <h2>Where the failures actually are</h2>
+  <p><strong>Nothing tests finding the data.</strong> Every benchmark above
+  hands the model its files. In practice the first and often hardest step is
+  working out which dataset answers the question, and which of its several
+  published faces to fetch.</p>
 
-  <p>When agents fail at data work, the failures are not evenly distributed.
-  In a hand-classified set of 4,602 text-to-SQL failures, <strong>81.2%</strong>
-  of execution failures came down to schema linking — picking the wrong column,
-  or inventing one. BIRD attributes <strong>41.6%</strong> of its errors to the
-  same cause; Spider 2.0, <strong>27.6%</strong>; BEAVER, <strong>35.2%</strong>.
-  It is the most-measured failure in the literature, and it is a failure of
-  knowing what the columns mean.</p>
+  <p><strong>Nothing scores the things that make official statistics
+  hazardous.</strong> There is no benchmark measuring whether a model respects
+  suppression rules, distinguishes numeric sentinel codes from real values,
+  applies survey weights correctly as a scored axis, or produces design-based
+  standard errors. LongDA comes closest and explicitly puts variance estimation
+  out of scope. These are the errors most likely to produce a confident,
+  publishable, wrong number — and there is no evidence either way about how
+  often models make them.</p>
 
-  <p>On government open data specifically, the largest single error category is
-  failing to apply a condition the question did not state — a date range, a
-  status filter, or a universe restriction such as which rows in a table are
-  totals rather than members. That category accounts for
-  <strong>32.4%</strong> of one model-and-scaffold pair&#x27;s errors in a 2026
-  benchmark of 178 government datasets. The same benchmark discarded
-  <strong>29.9%</strong> of its candidate questions during construction, and
-  reports that over half required knowledge external to the files.</p>
+  <h2>The large caveat: some of this is the benchmarks failing</h2>
 
-  <p>Both categories describe the same underlying situation. The model can
-  write the query. What it cannot do is know, from the file alone, which column
-  means what and which rows it is allowed to add up.</p>
+  <p>Two independent audits this year found that a substantial share of what
+  gets recorded as model failure is benchmark error.</p>
+
+  <p>A CIDR 2026 paper re-examined the ground truth of the leading text-to-SQL
+  benchmarks and reported annotation error rates of <strong>52.8%</strong> in
+  BIRD&#x27;s Mini-Dev split and <strong>66.1%</strong> in Spider 2.0-Snow. On
+  corrected data one system rose from 62% to 81% and moved from fourth place to
+  first. Separately, ELT-Bench-Verified re-checked its own benchmark and found
+  that <strong>82.7%</strong> of failed tasks contained an error attributable to
+  the benchmark rather than the agent; fixing them moved the transformation
+  score from 22.66% to <strong>32.51%</strong> without touching the system.</p>
+
+  <p>This does not invalidate the direction of any finding above, but it should
+  make you distrust small differences and any leaderboard ranking decided by a
+  few points.</p>
+
+  <h2>Two more things to hold lightly</h2>
+
+  <p>Nearly every figure here is a benchmark&#x27;s authors reporting results on
+  the benchmark they built. That is normal, and it means independent
+  corroboration is rare — the BIRD re-measurement above is the exception, not
+  the rule. BEAVER cannot be independently re-measured at all: its warehouses
+  are private, which is exactly what makes it a good test and what makes it
+  unauditable.</p>
+
+  <p>And benchmarks that stay in circulation are disproportionately the ones
+  models have not solved. The ones that got solved stopped being cited. Any
+  survey of live benchmarks over-represents unsolved problems, so the picture
+  here is probably gloomier than the truth.</p>
 
   <h2>What to watch</h2>
 
-  <p>Three things would change this picture, and each is observable.</p>
+  <p><strong>Whether the published-knowledge premium keeps shrinking.</strong>
+  BIRD&#x27;s with-and-without gap went from +20.01 to a modern-scaffold band of
+  8–13 in three years. If it reaches parity, models will have absorbed what
+  published documentation used to supply.</p>
 
-  <p><strong>Whether the knowledge premium keeps narrowing.</strong> BIRD&#x27;s
-  with-and-without gap is the cleanest published measure of what documentation
-  buys. It went from +20.01 to a modern-scaffold band of 8&ndash;13 in three
-  years. If it reaches parity, models will have absorbed what published
-  documentation used to supply, and the case for writing down anything already
-  on the web weakens considerably.</p>
+  <p><strong>Whether anyone measures the unreachable kind.</strong> LongDA is
+  the first benchmark to price documentation access on real official data. One
+  result is not a trend, and until there are more, claims about that category —
+  including this piece&#x27;s — rest on a single measurement.</p>
 
-  <p><strong>Whether anyone measures local knowledge.</strong> No benchmark
-  currently tests a model against a dataset whose caveats exist only in a
-  publisher&#x27;s workbook tab or a maintainer&#x27;s parser comment. Until one does,
-  claims in either direction about that category — including the one this piece
-  makes — rest on inference rather than measurement.</p>
-
-  <p><strong>Whether the ceiling moves.</strong> BEAVER&#x27;s private warehouses
-  are the hardest published case, and the gap between fully annotated and
-  unaided has stayed wide. If a model closes it without annotations, the
-  argument that unfamiliar systems require handed-over context weakens
-  regardless of what happens to the benchmarks above.</p>
-
-  <h2>What this evidence cannot tell you</h2>
-
-  <p>Nearly every figure here is a benchmark&#x27;s authors reporting results on
-  the benchmark they built. That is normal for the field and it is not a reason
-  to dismiss the numbers, but it means independent corroboration is rare: in the
-  set behind this piece, exactly one measurement was made by a party with no
-  stake in the benchmark it re-measured. BEAVER cannot be independently
-  re-measured at all, because its warehouses are private — the property that
-  makes it a good test also makes it unauditable.</p>
-
-  <p>Benchmarks also measure benchmark tasks. Scores on curated questions with
-  known answers say less about an open-ended analysis than their precision
-  suggests, and several of these benchmarks have had their ground truth
-  disputed by their own communities.</p>
-
-  <p>There is a survivorship problem too. Benchmarks that stay in circulation
-  are disproportionately the ones models have not solved; the ones that got
-  solved stopped being cited. A survey of live benchmarks over-represents
-  unsolved problems by construction, which means the picture here is probably
-  more pessimistic about current capability than the truth.</p>
-
-  <p>And the central distinction of this piece — published knowledge closing,
-  local knowledge untouched — may be a timing argument in disguise. If a future
-  model has crawled enough of the web to know that education workbook&#x27;s first
-  tab, local knowledge simply becomes published knowledge on a lag. The
-  counter-argument is narrow and technical: the tab in question sits inside an
-  <code>.xlsx</code> behind a JavaScript-rendered index, which is a claim about
-  crawlability rather than about intelligence.</p>
+  <p><strong>Whether the jagged profile flattens.</strong> If domain knowledge
+  climbs from 20.4 toward the 70 that table retrieval already reaches, the
+  argument that unfamiliar systems require handed-over context weakens sharply.</p>
 
   <h2>What follows for the work</h2>
 
-  <p>If you are deciding what to delegate: the parts of a pipeline that amount
-  to writing correct code against a described system are, on the current
-  evidence, reasonable to hand over and getting more so. The parts that depend
-  on knowing what a column means, which rows are totals, which year broke
-  comparability, or why a value is suppressed rather than missing are where
-  agents fail most and where supplying what you know still buys the most.</p>
+  <p>On the current evidence, the parts of a pipeline that amount to writing
+  correct code against a described system are reasonable to delegate and
+  getting more so. The parts that depend on knowing what a column means, which
+  rows are totals, which year broke comparability, which weight to apply, or why
+  a value is suppressed rather than missing are where systems fail most, where
+  supplying what you know buys the most, and where nobody has measured how often
+  things go wrong.</p>
 
-  <p>The practical consequence is that the check worth keeping is not
-  &quot;did it write good code&quot; but &quot;did it know what it was looking
-  at.&quot; And since the publisher usually wrote that down somewhere the
-  download does not point, the cheapest useful habit available is going to find
-  it before the first fetch rather than after the first wrong number.</p>
+  <p>The check worth keeping is therefore not &quot;did it write good
+  code&quot; — increasingly it does — but &quot;did it know what it was looking
+  at.&quot; And since that knowledge usually exists, written down by the
+  publisher somewhere the download does not point to, going to find it before
+  the first query costs less than discovering its absence in a published
+  number.</p>
 
   <footer class="colophon">
-    Figures cited from primary sources — benchmark papers, validated
-    leaderboards, and publishers&#x27; own pages — read at source and dated.
+    All figures read at their primary source — benchmark papers, official
+    leaderboards and publishers&#x27; own pages — and verified 2026-08-11. Scores
+    are given with the model, scaffold and date that produced them; leaderboard
+    figures move.
     Built with <a href="https://github.com/lavallee/artoo">artoo</a>.
   </footer>
 </main>
