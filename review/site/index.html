@@ -143,19 +143,93 @@
 
   <h2>Where they sit in the actual work</h2>
 
-  <p>A newsroom data project runs through roughly eight stages, and the
-  benchmarks cluster heavily in the middle of it. The stages, in order:</p>
+  <p>A newsroom data project runs through roughly eight stages. Walking them in
+  order shows where the measurements are — and the answer is that they bunch
+  heavily in the middle, where a question already exists and the data is
+  already in hand.</p>
 
-  <ul>
-    <li><strong>Find</strong> — which dataset answers this question, and where is it published?</li>
-    <li><strong>Acquire</strong> — get the bytes; formats, versions, access.</li>
-    <li><strong>Understand</strong> — read the codebook. What does each column mean, who is counted, what changed between editions?</li>
-    <li><strong>Clean</strong> — types, encodings, missing-value codes, format drift between years.</li>
-    <li><strong>Join</strong> — link to other sources; keys, crosswalks, entity matching.</li>
-    <li><strong>Analyse</strong> — aggregate, compare, compute the number.</li>
-    <li><strong>Validate</strong> — is the conclusion actually supported? Does it reconcile with what the agency published?</li>
-    <li><strong>Publish</strong> — what may honestly be said about it.</li>
-  </ul>
+  <h3>1. Find — which dataset answers this, and where is it published?</h3>
+
+  <p>The newest category and the weakest results. <a href="https://arxiv.org/abs/2606.15300">CoDA-Bench</a>
+  drops an agent into a sandbox of about 980 files and asks it to locate what it
+  needs; the best system reaches <strong>83.0</strong> on discovery and
+  <strong>61.1</strong> end-to-end, at roughly $0.39 a task. <a href="https://github.com/mitdbg/KramaBench">KramaBench</a>
+  runs a similar test across eight real-world pipelines and tops out at
+  <strong>62.81</strong> against a human baseline of <strong>76.75</strong>.
+  <a href="https://lakeqa-bench.github.io/">LakeQA</a> is the closest to a
+  journalist&#x27;s situation — a 9.5 TB lake that includes data.gov — and the best
+  score is <strong>32.87%</strong> exact match. Every one of these appeared in
+  2026. This stage was essentially unmeasured a year ago.</p>
+
+  <h3>2. Acquire — get the bytes</h3>
+
+  <p>Largely solved, and quickly. <a href="https://github.com/uiuc-kang-lab/ELT-Bench">ELT-Bench</a>&#x27;s
+  extract-and-load stage went from <strong>37%</strong> to <strong>96%</strong>
+  on a model upgrade alone, and its authors now describe it that way. This is
+  the stage most amenable to delegation.</p>
+
+  <h3>3. Understand — read the codebook</h3>
+
+  <p>The most heavily measured stage, and the one this piece is mostly about.
+  <a href="https://bird-bench.github.io/">BIRD</a> supplies a domain note that
+  can be withheld; <a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a>
+  mounts a manual the agent must consult;
+  <a href="https://arxiv.org/abs/2601.02598">LongDA</a> gives real federal
+  codebooks averaging 263,500 tokens; <a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a>
+  asks whether a defect can be found with no one pointing at it. Their results
+  are the subject of the next two sections.</p>
+
+  <h3>4. Clean — types, encodings, missing-value codes</h3>
+
+  <p>Two findings that pull in opposite directions.
+  <a href="https://github.com/TsinghuaDatabaseGroup/prepbench">PrepBench</a>
+  scores <strong>54.9%</strong> on writing preparation code — rising to
+  <strong>85.3%</strong> when the task&#x27;s ambiguity is removed, which says most
+  of the failure is unclear requirements rather than unclear code. And a 2022
+  result that still stands: error detection on a hospital dataset went from
+  <strong>0.0 to 99.1 F1</strong> given ten worked examples
+  (<a href="https://github.com/HazyResearch/fm_data_tasks">Can Foundation Models
+  Wrangle Your Data?</a>). Cleaning responds enormously to a small number of
+  demonstrations.</p>
+
+  <h3>5. Join — link it to something else</h3>
+
+  <p>Split sharply. Matching <em>entities</em> is close to saturated: one set of
+  755,540 record pairs is answered at <strong>98.95 F1</strong> by GPT-4o with
+  no scaffold. Matching <em>schemas</em> is nearly as good —
+  <a href="https://github.com/wbsg-uni-mannheim/MaDI-Bench">MaDI-Bench</a>
+  reports perfect schema-match F1 in three of five domains. But integrating them
+  into one coherent table falls to <strong>84.87</strong>, and picking the right
+  join key from a schema alone scores <strong>35.5</strong> on
+  <a href="https://beaverbench.github.io/">BEAVER</a>. Knowing two columns refer
+  to the same thing is solved; knowing which columns <em>should</em> be joined
+  is not.</p>
+
+  <h3>6. Analyse — compute the number</h3>
+
+  <p>Well covered and improving. <a href="https://spider2-sql.github.io/">Spider 2.0</a>
+  measures SQL against real warehouses; <a href="https://tablebench.github.io/">TableBench</a>
+  and <a href="https://arxiv.org/abs/2506.05587">MMTU</a> cover table reasoning
+  at scale. The clearest evidence that the harness matters more than the model
+  is here: on <a href="https://github.com/ucbepic/DataAgentBench">DataAgentBench</a> a bare model scores <strong>0.455</strong> and a
+  submitted agent scores <strong>0.845</strong> on identical queries.</p>
+
+  <h3>7. Validate — is the conclusion actually supported?</h3>
+
+  <p>Almost empty, and what exists scores badly.
+  <a href="https://arxiv.org/abs/2608.07437">P-Bench</a> asks not whether code
+  ran but whether the resulting <em>p</em>-value is valid — whether the test
+  suits the data, the assumptions hold, the correction was applied. The best
+  score on its hard split is <strong>33.0%</strong>.
+  <a href="https://statqa.github.io/">StatQA</a> reaches 64.83% on a more
+  forgiving version. Both are recent; nothing older exists to compare against.</p>
+
+  <h3>8. Publish — what may honestly be said</h3>
+
+  <p>Nothing measures this. No benchmark scores whether a model respects a
+  suppression rule, distinguishes a sentinel code from a real value, applies a
+  survey weight correctly, or reports uncertainty a reader could act on. LongDA
+  comes nearest and explicitly places variance estimation out of scope.</p>
 
   <figure class="article-figure">
     <table class="cov">
@@ -171,25 +245,18 @@
         <tr><td>DCA-Bench</td><td></td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
         <tr><td>LongDA</td><td></td><td></td><td class="c">●</td><td class="p">◐</td><td></td><td class="c">●</td><td class="p">◐</td><td></td></tr>
         <tr><td>DataGovBench</td><td></td><td></td><td class="p">◐</td><td class="p">◐</td><td class="p">◐</td><td class="c">●</td><td></td><td></td></tr>
-        <tr class="muted"><td><a href="https://github.com/ruc-datalab/CoDA-Bench">CoDA-Bench</a>, <a href="https://github.com/mitdbg/KramaBench">KramaBench</a></td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td class="p">◐</td><td></td><td></td></tr>
-        <tr class="muted"><td><a href="https://github.com/TsinghuaDatabaseGroup/prepbench">PrepBench</a></td><td></td><td></td><td></td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
-        <tr class="muted"><td><a href="https://github.com/wbsg-uni-mannheim/MaDI-Bench">MaDI-Bench</a></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td><td></td></tr>
-        <tr class="muted"><td><a href="https://arxiv.org/abs/2608.07437">P-Bench</a>, <a href="https://statqa.github.io/">StatQA</a></td><td></td><td></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td></tr>
+        <tr><td>CoDA-Bench, KramaBench, LakeQA</td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td class="p">◐</td><td></td><td></td></tr>
+        <tr><td>PrepBench, Wrangle Your Data</td><td></td><td></td><td></td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>MaDI-Bench, OpenSanctions pairs</td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td><td></td></tr>
+        <tr><td>TableBench, MMTU, DataAgentBench</td><td></td><td></td><td class="p">◐</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>P-Bench, StatQA</td><td></td><td></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td></tr>
       </tbody>
     </table>
     <figcaption><strong>●</strong> central to the benchmark ·
-    <strong>◐</strong> tested incidentally · blank, not tested. Greyed rows are
-    benchmarks outside the main eight, added to show which stages anyone covers
-    at all. Two columns are empty or nearly so: <strong>Find</strong> is tested
-    by two benchmarks, both from 2026, and <strong>Publish</strong> — what may
-    honestly be said about a number — by none.</figcaption>
+    <strong>◐</strong> tested incidentally · blank, not tested. The two columns
+    at the ends are the story: <strong>Find</strong> was unmeasured until 2026,
+    and <strong>Publish</strong> is unmeasured still.</figcaption>
   </figure>
-
-  <p>The clustering is the point. Almost everything measured sits in
-  <em>Understand</em>, <em>Join</em> and <em>Analyse</em> — the stages where a
-  question already exists and the data is already in hand. The stages a
-  journalist spends real time on at either end, working out which dataset to
-  use and what may fairly be claimed from it, are close to unmeasured.</p>
 
   <h2>What has moved since early 2026</h2>
 
@@ -509,7 +576,7 @@
   11.28, 12.84 and 20.86 points. Only the oldest pipeline reached the original
   figure; every modern one landed between 8 and 13.</p>
 
-  <p>At the other end sits ScienceAgentBench, where an expert note added
+  <p>At the other end sits <a href="https://arxiv.org/abs/2410.05080">ScienceAgentBench</a>, where an expert note added
   <strong>1.9 points</strong> — a reminder that supplying <em>something</em>
   guarantees nothing. The spread from +1.9 to +48.4 is not noise; it tracks how
   closely what was handed over matched what the task actually required.</p>
@@ -519,67 +586,21 @@
   model cannot otherwise reach — LongDA&#x27;s eleven points, measured this year on
   federal codebooks — is not shrinking, because nothing has absorbed it.</p>
 
-  <h2>The wider field</h2>
-
-  <p>The benchmarks above are the ones with results bearing directly on the
-  argument. They are a fraction of what exists. A broader scan turned up more
-  than thirty active evaluations touching data work, and the shape of that set
-  is itself informative — several categories are crowded, and the ones closest
-  to public-statistics practice are nearly empty.</p>
-
-  <figure class="article-figure">
-    <table>
-      <thead>
-        <tr><th>What it measures</th><th>Benchmark</th><th>Best result</th><th>System</th><th>Date</th></tr>
-      </thead>
-      <tbody>
-        <tr><td rowspan="2">Finding data in a lake or sandbox</td><td>CoDA-Bench</td><td>83.0 / 61.1</td><td>Mini-SWE-agent + GPT-5.5 <span class="gen">CURRENT</span></td><td>2026-06-13</td></tr>
-        <tr><td>LakeQA (9.5 TB, incl. data.gov)</td><td>32.87% exact match</td><td>Claude Sonnet 4.5 <span class="gen">PRIOR</span>, 5-tool scaffold</td><td>2026-06</td></tr>
-        <tr><td rowspan="2">Preparing and cleaning</td><td>PrepBench</td><td>54.9% → 85.3%</td><td>GPT-5.1-Codex <span class="gen">PRIOR</span></td><td>2026-05-09</td></tr>
-        <tr><td>&quot;Can FMs Wrangle Your Data?&quot;</td><td>0.0 → 99.1 F1 (10 examples)</td><td>GPT-3-175B <span class="gen">OBSOLETE</span></td><td>2022-12-24</td></tr>
-        <tr><td>Integrating several sources</td><td>MaDI-Bench</td><td>schema match 100 F1 → fusion 84.87</td><td>GPT-5.5 / GPT-5.2 <span class="gen">CURRENT</span> pipeline</td><td>2026-06-29</td></tr>
-        <tr><td rowspan="2">Reasoning over tables</td><td>TableBench (agents)</td><td>75.05 overall, 61.37 on analysis</td><td>WPS AI, base model undisclosed</td><td>2026-07-29</td></tr>
-        <tr><td>MMTU (28,136 questions)</td><td>0.696</td><td>GPT-5 <span class="gen">PRIOR</span>, no scaffold</td><td>2026-03-09</td></tr>
-        <tr><td rowspan="2">Whether the conclusion is valid</td><td>P-Bench (is the p-value sound?)</td><td>33.0% strict, hard split</td><td>Fisher-R1-14B <span class="gen">CURRENT</span>, ReAct over R</td><td>2026-08-07</td></tr>
-        <tr><td>StatABench</td><td>68.6% closed-form</td><td>GPT-5.1 <span class="gen">PRIOR</span> via LangChain MCP</td><td>2026-06-22</td></tr>
-        <tr><td>Running a whole analysis</td><td>DataAgentBench</td><td>0.845 pass@1 vs 0.455 bare model</td><td>Sentinel: Fable-5 + Claude-Opus-4.7 <span class="gen">CURRENT</span></td><td>2026-07-20</td></tr>
-        <tr><td>Holding state across turns</td><td>EnterpriseMem-Bench</td><td>0% execution accuracy by turn 3</td><td>all five models tested</td><td>2026-05-25</td></tr>
-      </tbody>
-    </table>
-    <figcaption>A selection, not a ranking — scores are not comparable across
-    rows. Chosen to show which kinds of data work have measurements and which
-    do not. Every figure names the system that produced it; several other
-    benchmarks were excluded because their published numbers could not be
-    attributed to a specific model and scaffold.</figcaption>
-  </figure>
-
-  <p>Two things stand out. Entity matching and schema matching are close to
-  saturated — one entity-matching set of 755,540 pairs is answered at
-  <strong>98.95 F1</strong> by GPT-4o with no scaffold at all — while anything
-  requiring sustained state falls apart: one enterprise benchmark records
-  <strong>0% execution accuracy by the third turn</strong> across every model it
-  tested. And the validity layer is barely explored. Whether a model&#x27;s
-  <em>conclusion</em> is statistically supported, rather than whether its code
-  ran, is measured by two benchmarks, both from this year, both scoring badly.</p>
-
   <h2>What nobody is measuring</h2>
 
-  <p>Two absences are worth naming, because they bound what any of this can
-  tell you.</p>
+  <p>Stage 8 is worth restating because it is the stage where a wrong answer
+  does the most damage. No benchmark scores whether a model respects a
+  suppression rule, tells a numeric sentinel code from a real value, applies a
+  survey weight correctly as a scored axis, or produces design-based standard
+  errors. These are the errors most likely to yield a confident, publishable,
+  wrong number — and there is no evidence in either direction about how often
+  models make them.</p>
 
-  <p><strong>Nothing tests finding the data.</strong> Every benchmark above
-  hands the model its files. In practice the first and often hardest step is
-  working out which dataset answers the question, and which of its several
-  published faces to fetch.</p>
-
-  <p><strong>Nothing scores the things that make official statistics
-  hazardous.</strong> There is no benchmark measuring whether a model respects
-  suppression rules, distinguishes numeric sentinel codes from real values,
-  applies survey weights correctly as a scored axis, or produces design-based
-  standard errors. LongDA comes closest and explicitly puts variance estimation
-  out of scope. These are the errors most likely to produce a confident,
-  publishable, wrong number — and there is no evidence either way about how
-  often models make them.</p>
+  <p>The gap is not that nobody thought of it. LongDA requires choosing the
+  correct survey weight among several and its authors put variance estimation
+  explicitly out of scope; DataGovBench&#x27;s largest error category is a filter
+  the question never stated. The pieces are visible at the edges of benchmarks
+  built for something else. Nothing yet scores them directly.</p>
 
   <h2>The large caveat: some of this is the benchmarks failing</h2>
 
