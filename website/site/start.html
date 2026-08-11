@@ -33,14 +33,27 @@
   <header>
     <p class="section-kicker">Start</p>
     <h1>Your first data page in ten minutes</h1>
-    <p class="lede">Nine steps, from an empty repository to a documented dataset with the
-      check running in CI. Requires Python 3.11 or newer, and nothing else.</p>
+    <p class="lede">From an empty repository to a documented dataset with the check
+      running in CI. Requires Python 3.11 or newer, and nothing else.</p>
     <p class="demo-note">Start with a dataset you already know something about. The point
       of the first page is not to be complete — it is to get the one issue that has
       already cost you a day out of your head and into a file.</p>
   </header>
 
   <ol class="steps">
+
+    <li>
+      <h3>Install the plugin</h3>
+      <p>The skill is the part your agent uses. It teaches it to look for what is already
+        known about a dataset before touching it, to write down what it learns, and to
+        offer the public-safe part back. Everything below can be done by hand, but this is
+        what makes it happen without being asked.</p>
+      <div class="cmd"><code>/plugin marketplace add lyra-forge/marketplace</code></div>
+      <div class="cmd"><code>/plugin install ergo@lyra-forge</code></div>
+      <p>Start a new session afterwards. Not using Claude Code? Copy
+        <a href="https://github.com/lavallee/ergo/tree/main/skills/ergo">skills/ergo/</a>
+        into whatever your agent reads.</p>
+    </li>
 
     <li>
       <h3>Vendor the tool</h3>

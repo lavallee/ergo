@@ -1,0 +1,11 @@
+{
+  "name": "ergo",
+  "displayName": "ergo — dataset pitfalls, written down",
+  "version": "0.5.0",
+  "description": "Teaches your agent to look for what is already known about a dataset before touching it, to record what it learns in a checkable format, and to offer the public-safe part back. Two skills: working with data pages, and recovering one from code that already parses the data.",
+  "author": { "name": "Marc Lavallee" },
+  "homepage": "https://lavallee.github.io/ergo/",
+  "repository": "https://github.com/lavallee/ergo",
+  "license": "MIT",
+  "keywords": ["data", "datasets", "documentation", "data-journalism", "open-data", "provenance", "etl"]
+}

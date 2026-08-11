@@ -72,17 +72,36 @@ The pages are plain files in your repo. That matters more than readability:
 they sit next to the code they describe, they diff legibly in a pull request,
 and nothing sits between an agent and the text.
 
-## Quick start
+## Install
+
+The skill is the product, so the shortest path is the plugin:
+
+```
+/plugin marketplace add lyra-forge/marketplace
+/plugin install ergo@lyra-forge
+```
+
+Start a new session. Your agent now knows to look for what is already known
+about a dataset before touching it, and how to write down what it learns.
+
+The validator installs separately, and deliberately not as a package — it is a
+single dependency-free file you copy into the repository that holds the pages,
+so a project can still be checked in five years:
+
+```bash
+curl -sSLo tools/ergo.py https://raw.githubusercontent.com/lavallee/ergo/main/tools/ergo.py
+```
+
+Then:
 
 ```bash
 python3 tools/ergo.py new my-dataset --dir docs/data   # scaffold a page
-# …fill it in (see templates/datapage.md and examples/)…
-python3 tools/ergo.py check docs/data --repo . --require-manifest  # gate the corpus
+python3 tools/ergo.py check docs/data --repo .          # gate the corpus
 python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 ```
 
-Then plant a two-line pointer in your `CLAUDE.md`/`AGENTS.md` so agents find
-the pages, and adopt the [skill](skills/ergo/SKILL.md) so they maintain them.
+Not using Claude Code? Copy [`skills/ergo/`](skills/ergo/) into whatever your
+agent reads, and plant a two-line pointer in `AGENTS.md` so it finds the pages.
 
 ## Reading further
 
