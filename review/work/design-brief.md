@@ -140,18 +140,32 @@ several benchmarks, stated as direction and not as magnitude.
 
 - The AI-benchmark blog post that puts six benchmarks on one axis and draws a
   rising line. Fails on comparability, on dates, and on survivorship.
-- Our own README before 2026-08, which cited a single benchmark number undated
-  and used it to argue a capability deficit.
+- Any piece that cites one benchmark number, undated, to argue a general claim
+  about what models can and cannot do.
+
+## Not in the piece
+
+**No process story.** This piece is about the field, not about how we came to
+understand it. No account of what we got wrong, no audit narrative, no
+first-person research journey. A reader deciding what to delegate does not
+care how the writer arrived; they care whether the number is right.
+
+**No case for ergo.** The piece earns its keep as background on the problem
+space. It may state what is unmeasured; it may not pitch a format as the
+answer. If the reader finishes it and wants somewhere to put local knowledge,
+that is the piece working — not something it should ask for.
+
+**No hedging as personality.** Uncertainty belongs in the numbers and their
+dates, not in the prose voice.
 
 ## Proof required
 
 - **Factual proof:** every figure traced to a primary source captured with
-  custody in the flip notebook, graded, and cited by claim id. Where a claim
-  rests only on our own synthesis, say so on the page. This is not
-  hypothetical: auditing our own synthesis against the primaries found thirteen
-  discrepancies, including a figure caption read as an ablation and an error
-  category read as a structural property. No figure enters this piece that has
-  not been read at its source.
+  custody in the flip notebook, graded, and cited by claim id. **No figure
+  enters this piece that has not been read at its source** — not from a
+  secondary summary, and not from our own. Where a figure is a caption, a
+  sub-condition, or one model-scaffold pair, the piece says so in the row
+  rather than in a footnote.
 - **Counter-reading proof:** the two counter-readings above appear in the piece,
   not only in this brief.
 - **Date proof:** no figure ships without its date and split.

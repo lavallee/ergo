@@ -124,8 +124,9 @@ Held open deliberately, because a vision nobody can argue with is not one.
 - **Every adopter is inside this household** and wanted the format to work.
 - **The format is thinnest where the literature is thickest.** Schema linking
   is the most-measured failure anywhere and ergo has no column-level structure.
-- **Our own synthesis did not survive its first audit.** Capturing the primary
-  sources behind this project's evidence found thirteen discrepancies in it,
-  three of them in claims that had already reached this file. A format about
-  not trusting undocumented knowledge has to hold its own citations to the
-  same standard, and did not.
+- **The evidence base is almost entirely self-reported.** Nearly every figure
+  about how models handle data comes from a benchmark's authors reporting on
+  the benchmark they built, and one of them — BEAVER — is structurally
+  uncorroborable because its warehouses are private. Exactly one independent
+  re-measurement exists in the set. Claims built on this base carry their
+  grade, and should be read as the best available rather than as settled.

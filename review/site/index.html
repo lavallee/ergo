@@ -23,28 +23,236 @@
     <p class="article-dek">How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes.</p>
     <p class="article-byline">Published <time datetime="2026-08-11">2026-08-11</time></p>
   </header>
-  <p class="article-lede">Begin with the decision this artifact helps a named
-  reader make. State the headline claim, then show the evidence and its limits
-  in a narrative sequence.</p>
-  <h2>What the evidence shows</h2>
-  <p>Develop the argument in centered prose. Keep definitions and source
-  provenance close to the claims they support.</p>
+
+  <p class="article-lede">If you are about to point a model at a dataset you
+  have not used before, you want to know which parts of that job you can hand
+  over and which parts you still have to check yourself. The benchmark record
+  answers this better than intuition does — but only if you read it with the
+  dates attached, because the answer has changed twice in eighteen months and
+  is still moving.</p>
+
+  <h2>The number that is out of date the moment you quote it</h2>
+
+  <p>In early 2025, DABstep — a benchmark of realistic data-analysis tasks
+  built from a payments company&#x27;s own documentation and files — reported that
+  the best agent scored <strong>14.55%</strong> on its hard split. That number
+  travelled widely. It is a fair description of where things stood when the
+  paper was written.</p>
+
+  <p>By February 2026, the top validated entry on the same hard split was
+  <strong>89.95%</strong>.</p>
+
+  <p>Both numbers are real and they measure the same tasks. Quoting either
+  without its date describes a world that no longer exists. This is the first
+  thing to understand about the current state of models doing data work: the
+  headline capability numbers move fast enough that a citation ages in months,
+  and most of what circulates is a paper baseline being read as a current
+  ceiling.</p>
+
+  <h2>What has actually moved</h2>
+
   <figure class="article-figure">
     <table>
       <thead>
-        <tr><th>Comparison</th><th>Evidence</th><th>Limit</th></tr>
+        <tr><th>Benchmark</th><th>What it measures</th><th>Score</th><th>Split &amp; date</th></tr>
       </thead>
       <tbody>
-        <tr><td>Name the valid axis</td><td>Report the supported finding</td><td>Record the counter-reading</td></tr>
+        <tr><td>DABstep</td><td>Realistic analysis over a firm&#x27;s own docs and files</td><td>14.55%</td><td>Hard, paper baseline, Q1 2025</td></tr>
+        <tr><td>DABstep</td><td>Same tasks, same split</td><td>89.95%</td><td>Hard, validated leaderboard, 2026-02-22</td></tr>
+        <tr><td>ELT-Bench</td><td>Building an extract-and-load pipeline end to end</td><td>37%</td><td>Extract/load stage, 2025</td></tr>
+        <tr><td>ELT-Bench-Verified</td><td>Same framework, newer model only</td><td>96%</td><td>Extract/load stage, 2026</td></tr>
+        <tr><td>ELT-Bench</td><td>Generating the transformation models</td><td>3.9%</td><td>Best agent, 2025</td></tr>
+        <tr><td>BEAVER</td><td>Analysis against private warehouses, unaided</td><td>10.8%</td><td>Best model end-to-end</td></tr>
+        <tr><td>BEAVER</td><td>Same, handed every subtask annotation</td><td>30.1%</td><td>Best model; 25.9% for the best method averaged across models</td></tr>
       </tbody>
     </table>
-    <figcaption>Use a wider table or figure only when it helps the reader make
-    a valid comparison. Include vintages, denominators, and a source note.</figcaption>
+    <figcaption>Scores are not comparable across rows — different tasks,
+    different scoring, different data. Read each row against the other row for
+    the same benchmark and split. Every figure is the benchmark authors&#x27; own
+    reporting unless noted.</figcaption>
   </figure>
-  <h2>What this means for the reader</h2>
-  <p>Return to the reader's decision and distinguish what the evidence supports
-  from what it cannot establish.</p>
+
+  <p>The pattern is that the tasks closest to <em>writing correct code against
+  a described system</em> have improved dramatically, and the tasks that
+  require holding a whole unfamiliar warehouse in mind have not. Extract and
+  load went from a third to nearly all of the way in one model generation; its
+  own authors now describe that stage as largely solved. Transformation — the
+  part where you decide what the numbers mean — sat at <strong>3.9%</strong>
+  in the same benchmark.</p>
+
+  <p>BEAVER is the clearest limit case, because its warehouses are private and
+  nothing in any model&#x27;s training data describes them. Unaided, the best model
+  finishes about one task in nine. Handed every subtask annotation the
+  benchmark can supply, it finishes about three in ten. That gap between
+  &quot;told nothing&quot; and &quot;told everything&quot; is real and large;
+  what survives it is larger still.</p>
+
+  <h2>What supplying knowledge is worth, and whether that is changing</h2>
+
+  <p>The more useful question for someone deciding what to delegate is not how
+  well a model scores, but how much better it does when you hand it what you
+  know.</p>
+
+  <p>Three benchmarks answer this directly. DCA-Bench asks agents to find known
+  defects in curated datasets, at four levels of hint. Unaided, across five
+  configurations, agents found between <strong>10.86% and 29.86%</strong> of
+  them. At the top of the hint ladder — told which file and roughly what to
+  look for — the same agents found between <strong>67.42% and 78.28%</strong>.
+  A two-and-a-half to six-fold improvement, from information the person
+  handing it over already had.</p>
+
+  <p>ELT-Bench ran the cleaner experiment: withhold the dataset documentation
+  entirely. Denied it, one agent completed <strong>one</strong> task and
+  another completed <strong>none</strong>. This is the strongest available
+  statement that the knowledge is not already inside the model.</p>
+
+  <p>BIRD, a text-to-SQL benchmark, measured the same thing on a different
+  axis: it ships an &quot;external knowledge&quot; annotation with each
+  question, and in 2023 supplying it was worth <strong>+20.01 points</strong>
+  of execution accuracy.</p>
+
+  <p>That last number is the one worth watching, because it has moved — and
+  the direction is the opposite of the DABstep story. An independent
+  re-measurement in 2026, by a group with no stake in BIRD, ran six systems on
+  the same data under the same with-and-without conditions. The gains were
+  <strong>8.35, 10.82, 10.96, 11.28, 12.84 and 20.86 points</strong>. Only the
+  oldest pipeline in the set reached the original figure; every modern scaffold
+  landed between 8 and 13.</p>
+
+  <p>So supplying documented knowledge about a public dataset is still worth
+  roughly a tenth of the score. It was worth twice that three years ago. The
+  same audit found that about 7% of the benchmark&#x27;s own knowledge annotations
+  are themselves wrong, which is a reminder that the 2023 baseline is not a
+  fixed point either.</p>
+
+  <h2>The distinction that survives</h2>
+
+  <p>It would be easy to read the BIRD result as models absorbing what
+  documentation used to supply, and to conclude that the value of writing
+  things down is on a countdown. That reading goes further than the evidence
+  does, for a reason worth being precise about.</p>
+
+  <p>Every benchmark that measures the value of supplied knowledge supplies
+  <strong>published</strong> knowledge, about a <strong>public</strong>
+  dataset, of the kind a model has plausibly already read. BIRD&#x27;s external
+  knowledge is an annotation about a public database. DABstep&#x27;s context is a
+  documentation set the benchmark ships. That those gains narrow as models
+  absorb more of the web is expected, and is roughly what the numbers show.</p>
+
+  <p>What no benchmark has measured is the other kind. In a survey of twenty
+  widely used open datasets, <strong>nineteen</strong> publishers shipped some
+  form of non-data guidance and <strong>eighteen</strong> shipped guidance that
+  changes what a reader may honestly claim — a comparability break, a
+  suppression rule, a universe change. Only <strong>seven</strong> put it
+  anywhere a program holding the download URL would encounter it. The rest sits
+  in a tab inside a workbook, a footnote attached to a portal record reachable
+  only through an undocumented endpoint, or a technical manual on a host that
+  refuses automated clients.</p>
+
+  <p>One state education agency published a spreadsheet whose first tab, of
+  sixty-three, is titled <em>Important 2020-2021 Notes - Please Read Before
+  Using Data in this Database</em>, and says that pandemic-year discipline
+  figures may not be comparable to adjacent years. Nothing in the values
+  announces that the tab exists. A model that has never seen that file cannot
+  know it, and a model that fetches the file by URL will not open it.</p>
+
+  <p>This is a different problem from capability, and it is not obviously on
+  the same curve. Whether it is on <em>any</em> curve is unknown, because
+  nobody has built the benchmark that would tell us.</p>
+
+  <h2>Where the failures actually are</h2>
+
+  <p>When agents fail at data work, the failures are not evenly distributed.
+  In a hand-classified set of 4,602 text-to-SQL failures, <strong>81.2%</strong>
+  of execution failures came down to schema linking — picking the wrong column,
+  or inventing one. BIRD attributes <strong>41.6%</strong> of its errors to the
+  same cause; Spider 2.0, <strong>27.6%</strong>; BEAVER, <strong>35.2%</strong>.
+  It is the most-measured failure in the literature, and it is a failure of
+  knowing what the columns mean.</p>
+
+  <p>On government open data specifically, the largest single error category is
+  failing to apply a condition the question did not state — a date range, a
+  status filter, or a universe restriction such as which rows in a table are
+  totals rather than members. That category accounts for
+  <strong>32.4%</strong> of one model-and-scaffold pair&#x27;s errors in a 2026
+  benchmark of 178 government datasets. The same benchmark discarded
+  <strong>29.9%</strong> of its candidate questions during construction, and
+  reports that over half required knowledge external to the files.</p>
+
+  <p>Both categories describe the same underlying situation. The model can
+  write the query. What it cannot do is know, from the file alone, which column
+  means what and which rows it is allowed to add up.</p>
+
+  <h2>What to watch</h2>
+
+  <p>Three things would change this picture, and each is observable.</p>
+
+  <p><strong>Whether the knowledge premium keeps narrowing.</strong> BIRD&#x27;s
+  with-and-without gap is the cleanest published measure of what documentation
+  buys. It went from +20.01 to a modern-scaffold band of 8&ndash;13 in three
+  years. If it reaches parity, models will have absorbed what published
+  documentation used to supply, and the case for writing down anything already
+  on the web weakens considerably.</p>
+
+  <p><strong>Whether anyone measures local knowledge.</strong> No benchmark
+  currently tests a model against a dataset whose caveats exist only in a
+  publisher&#x27;s workbook tab or a maintainer&#x27;s parser comment. Until one does,
+  claims in either direction about that category — including the one this piece
+  makes — rest on inference rather than measurement.</p>
+
+  <p><strong>Whether the ceiling moves.</strong> BEAVER&#x27;s private warehouses
+  are the hardest published case, and the gap between fully annotated and
+  unaided has stayed wide. If a model closes it without annotations, the
+  argument that unfamiliar systems require handed-over context weakens
+  regardless of what happens to the benchmarks above.</p>
+
+  <h2>What this evidence cannot tell you</h2>
+
+  <p>Nearly every figure here is a benchmark&#x27;s authors reporting results on
+  the benchmark they built. That is normal for the field and it is not a reason
+  to dismiss the numbers, but it means independent corroboration is rare: in the
+  set behind this piece, exactly one measurement was made by a party with no
+  stake in the benchmark it re-measured. BEAVER cannot be independently
+  re-measured at all, because its warehouses are private — the property that
+  makes it a good test also makes it unauditable.</p>
+
+  <p>Benchmarks also measure benchmark tasks. Scores on curated questions with
+  known answers say less about an open-ended analysis than their precision
+  suggests, and several of these benchmarks have had their ground truth
+  disputed by their own communities.</p>
+
+  <p>There is a survivorship problem too. Benchmarks that stay in circulation
+  are disproportionately the ones models have not solved; the ones that got
+  solved stopped being cited. A survey of live benchmarks over-represents
+  unsolved problems by construction, which means the picture here is probably
+  more pessimistic about current capability than the truth.</p>
+
+  <p>And the central distinction of this piece — published knowledge closing,
+  local knowledge untouched — may be a timing argument in disguise. If a future
+  model has crawled enough of the web to know that education workbook&#x27;s first
+  tab, local knowledge simply becomes published knowledge on a lag. The
+  counter-argument is narrow and technical: the tab in question sits inside an
+  <code>.xlsx</code> behind a JavaScript-rendered index, which is a claim about
+  crawlability rather than about intelligence.</p>
+
+  <h2>What follows for the work</h2>
+
+  <p>If you are deciding what to delegate: the parts of a pipeline that amount
+  to writing correct code against a described system are, on the current
+  evidence, reasonable to hand over and getting more so. The parts that depend
+  on knowing what a column means, which rows are totals, which year broke
+  comparability, or why a value is suppressed rather than missing are where
+  agents fail most and where supplying what you know still buys the most.</p>
+
+  <p>The practical consequence is that the check worth keeping is not
+  &quot;did it write good code&quot; but &quot;did it know what it was looking
+  at.&quot; And since the publisher usually wrote that down somewhere the
+  download does not point, the cheapest useful habit available is going to find
+  it before the first fetch rather than after the first wrong number.</p>
+
   <footer class="colophon">
+    Figures cited from primary sources — benchmark papers, validated
+    leaderboards, and publishers&#x27; own pages — read at source and dated.
     Built with <a href="https://github.com/lavallee/artoo">artoo</a>.
   </footer>
 </main>

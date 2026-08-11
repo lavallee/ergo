@@ -5,6 +5,7 @@ description = "How well models actually do the work of getting data in, cleaning
 kind = "research-review"
 status = "draft"
 created = "2026-08-11"
+updated = "2026-08-11"
 
 [[libraries]]
 name = "artoo-kit"
