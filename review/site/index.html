@@ -210,9 +210,10 @@
   <p>Well covered and improving. <a href="https://spider2-sql.github.io/">Spider 2.0</a>
   measures SQL against real warehouses; <a href="https://tablebench.github.io/">TableBench</a>
   and <a href="https://arxiv.org/abs/2506.05587">MMTU</a> cover table reasoning
-  at scale. The clearest evidence that the harness matters more than the model
-  is here: on <a href="https://github.com/ucbepic/DataAgentBench">DataAgentBench</a> a bare model scores <strong>0.455</strong> and a
-  submitted agent scores <strong>0.845</strong> on identical queries.</p>
+  at scale. It is also where the effect of the harness around the model is
+  measured most directly — on <a href="https://ucbepic.github.io/DataAgentBench/">DataAgentBench</a>,
+  a controlled comparison holding the model fixed found a scaffold worth
+  <strong>seven points</strong>.</p>
 
   <h3>7. Validate — is the conclusion actually supported?</h3>
 
@@ -586,6 +587,87 @@
   model cannot otherwise reach — LongDA&#x27;s eleven points, measured this year on
   federal codebooks — is not shrinking, because nothing has absorbed it.</p>
 
+  <h2>What the winning systems actually do</h2>
+
+  <p>Every score in this piece belongs to a scaffold, and the papers that ablate
+  their own scaffolds show which parts carry the weight. The pattern that comes
+  out is narrower than &quot;use agents&quot;, and most of it is available to one
+  person with a terminal.</p>
+
+  <p><strong>Look at the files before planning anything.</strong> The single
+  best-measured component in this literature is
+  <a href="https://arxiv.org/abs/2509.21825">DS-STAR</a>&#x27;s file profiler — a
+  step that reads each available file and describes what is in it before any
+  planning begins. Removing it costs <strong>18.3 points</strong>. Its verifier
+  is worth 10.6 and its router 5.3; the whole scaffold adds
+  <strong>32.5 points</strong> over the bare model, at $0.23 a task against
+  $0.09.</p>
+
+  <p><strong>Profile the columns rather than trusting the documentation.</strong>
+  This is the surprise. <a href="https://arxiv.org/abs/2505.19988">AskData</a>,
+  the system still holding BIRD&#x27;s top score on a two-generations-obsolete model,
+  generates its own column descriptions by sampling values — and that beats
+  BIRD&#x27;s <em>human-written</em> metadata, <strong>61.2 against 59.6</strong>.
+  Looking at the data told it more than the documentation did. Note what that
+  does and does not say: it is an argument for profiling, not against
+  documentation, since the same benchmark&#x27;s domain notes are worth 14 points on
+  top.</p>
+
+  <p><strong>Simple beats elaborate more often than not.</strong>
+  <a href="https://github.com/SWE-agent/mini-swe-agent">Mini-SWE-agent</a> is
+  190 lines, has bash and nothing else — no retrieval, no plugin system — and
+  tops <a href="https://arxiv.org/abs/2606.15300">CoDA-Bench</a> at 60% of the
+  cost of the elaborate alternative.</p>
+
+  <p><strong>Cost is not proportional to score.</strong> On DABstep&#x27;s own
+  baselines, o1 scored <strong>11.11%</strong> for <strong>$435</strong> while
+  DeepSeek R1 scored <strong>11.04%</strong> for <strong>$3</strong>. On
+  ScienceAgentBench, a self-debugging loop beat a much heavier agent framework
+  by 10.8 points at one-seventeenth the cost.</p>
+
+  <h3>And the things that did not work</h3>
+
+  <p>The negative results are more useful than the positive ones, because they
+  are the techniques a reasonable person would try first.</p>
+
+  <ul>
+    <li><strong>Retrieval over background material.</strong> On
+    <a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a>, adding
+    retrieval over curation reference material moved the best no-hint score from
+    <strong>29.86 to 29.41</strong> — slightly down.</li>
+    <li><strong>Self-reflection without a test to fail.</strong>
+    <a href="https://arxiv.org/abs/2303.11366">Reflexion</a>-style loops without
+    an external signal scored <em>below</em> having no scaffold at all
+    (0.60 → 0.52). A reflection pass with nothing to check against mostly
+    produces confident revision.</li>
+    <li><strong>Answering five times and voting.</strong> Self-consistency
+    bought <strong>+0.13 points for five times the tokens</strong>, at
+    <em>p</em> = 0.86 — indistinguishable from noise.</li>
+    <li><strong>Adding more agents.</strong> Multi-agent configurations degraded
+    monotonically as agents were added.</li>
+    <li><strong>Compressing the context.</strong> Zero measured benefit for 24
+    to 94 percent more cost.</li>
+  </ul>
+
+  <p>Set the failures beside the successes and one line separates them. The
+  retrieval that worked — LongDA&#x27;s document search, worth eleven points — went
+  after <em>a specific fact about the artifact in front of it</em>: which
+  variable, which weight, what this code means in this survey. The retrieval
+  that failed went after <em>general knowledge about the genre of work</em>.
+  Reference material about data curation does not tell you what is wrong with
+  this file. The codebook does.</p>
+
+  <p>The same line explains why file profiling and column sampling win: both
+  fetch specific facts about the artifact, cheaply, before any plan is made.
+  What consistently fails is asking the model to think harder about what it
+  already has.</p>
+
+  <p>One caution about all of the above. The system holding DABstep&#x27;s top score
+  publishes a repository in which the two files containing its actual helper
+  functions are <strong>empty</strong>. Several leaderboard entries name no model
+  and no method. The techniques that can be described here are the ones whose
+  authors chose to describe them.</p>
+
   <h2>What nobody is measuring</h2>
 
   <p>Stage 8 is worth restating because it is the stage where a wrong answer
@@ -662,10 +744,14 @@
 
   <p>The check worth keeping is therefore not &quot;did it write good
   code&quot; — increasingly it does — but &quot;did it know what it was looking
-  at.&quot; And since that knowledge usually exists, written down by the
-  publisher somewhere the download does not point to, going to find it before
-  the first query costs less than discovering its absence in a published
-  number.</p>
+  at.&quot; And the measured techniques point the same way: profile the files
+  before planning, sample the columns rather than trusting their names, and
+  fetch the specific fact the task turns on. What does not help is asking the
+  model to reflect harder on what it already has.</p>
+
+  <p>Since that specific fact usually exists — written down by the publisher,
+  somewhere the download does not point to — going to find it before the first
+  query costs less than discovering its absence in a published number.</p>
 
   <footer class="colophon">
     All figures read at their primary source — benchmark papers, official
