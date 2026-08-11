@@ -11,15 +11,12 @@
 <link rel="stylesheet" href="lib/artoo-kit/article.css">
 <link rel="stylesheet" href="lib/artoo-kit/components.css">
 <style>
-  .barrow { display: grid; grid-template-columns: 13rem 1fr 3.5rem; gap: .75rem;
-            align-items: center; margin: .3rem 0; font-size: .95rem; }
-  .barrow .track { background: color-mix(in srgb, currentColor 10%, transparent);
-                   height: .85rem; border-radius: 2px; }
-  .barrow .fill { background: currentColor; height: 100%; border-radius: 2px; opacity: .72; }
-  .barrow .val { text-align: right; font-variant-numeric: tabular-nums; }
-  .cov { font-variant-numeric: tabular-nums; }
-  .cov td.y { font-weight: 600; }
-  .muted { opacity: .72; }
+  .cov td { text-align: center; }
+  .cov td:first-child { text-align: left; }
+  .cov td.c { font-size: 1.05em; }
+  .cov td.p { opacity: .55; }
+  .muted { opacity: .68; }
+  .gen { font-size: .82em; opacity: .75; letter-spacing: .08em; }
 </style>
 </head>
 <body>
@@ -41,104 +38,158 @@
   answer this better than intuition does — but only with the dates, the models
   and the exact task attached, because all three change the answer.</p>
 
-  <h2>Why a number you read last year is probably wrong</h2>
+  <h2>The same benchmark, the same questions: 14.55% then 89.95%</h2>
 
-  <p>Start with one benchmark, because its history shows the problem cleanly.
-  <strong>DABstep</strong> is a set of 450 data-analysis questions built by
-  Adyen, a payments company, from its own internal documentation and files —
-  the kind of task where answering correctly requires reading a manual, not
-  just writing a query. Its questions are split into an <em>easy</em> tier and
-  a <em>hard</em> tier, and the hard tier is where systems separate.</p>
+  <p><a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a> is 450
+  data-analysis questions built by the payments company Adyen from its own
+  internal documentation and files — tasks where answering correctly means
+  reading a manual, not just writing a query. Its questions come in an
+  <em>easy</em> tier and a <em>hard</em> tier.</p>
 
-  <p>In April 2025, the best configuration the authors tested — OpenAI&#x27;s
-  o4-mini, prompted to reason, wrapped in a ten-step loop that let it alternate
-  between thinking and running code — scored
-  <strong>14.55%</strong> on the hard tier. That number travelled widely.</p>
+  <p>In April 2025 the best configuration its authors tested — OpenAI&#x27;s o4-mini,
+  prompted to reason, in a ten-step loop that let it alternate between thinking
+  and running code — scored <strong>14.55%</strong> on the hard tier. Ten months
+  later the top entry on the <em>validated</em> leaderboard scored
+  <strong>89.95%</strong> on the same questions.</p>
 
-  <p>By February 2026, the top entry on DABstep&#x27;s <em>validated</em>
-  leaderboard scored <strong>89.95%</strong> on the same tier. Validated
-  matters: the board has a checked tier and an open one, and the open tier
-  currently contains multiple undisclosed entries claiming 100%, which makes it
-  useless as evidence.</p>
+  <p>Validated matters. The board has a checked tier and an open one, and the
+  open tier holds several undisclosed entries claiming 100%, which makes it
+  useless as evidence. And that 89.95% is now frozen: DABstep
+  <strong>closed validation to new submissions</strong> pending a second
+  version, so it cannot move however much systems improve. A live benchmark and
+  a live leaderboard are different things.</p>
 
-  <p>Two things follow. First, quoting 14.55% today describes a world that
-  ended eighteen months ago. Second, that 89.95% is itself now frozen —
-  DABstep has <strong>closed validation to new submissions</strong> pending a
-  second version, so the number cannot move even if systems improve. A live
-  benchmark and a live leaderboard are not the same thing.</p>
+  <p>It is also not one model. The entry is NVIDIA&#x27;s KGMON Data Explorer, in
+  which Claude Opus 4.5/4.6 writes helper functions offline, Haiku 4.5 runs
+  them, and Opus or Sonnet 4.6 reviews the output. Almost every score in this
+  piece belongs to a <strong>scaffold</strong> — the harness of prompts, tools
+  and retry logic wrapped around one or more models — and changing the scaffold
+  can matter as much as changing the model. Every figure below therefore names
+  both, with the date it was set.</p>
 
-  <p>It is also not one model. The entry is NVIDIA&#x27;s KGMON Data Explorer, a
-  pipeline in which Claude Opus 4.5/4.6 writes helper functions offline, Haiku
-  4.5 executes them, and Opus or Sonnet 4.6 reviews the result. Attributing it
-  to a single model would be wrong, and this is typical. Almost every score in
-  this piece belongs to a <strong>scaffold</strong> — the harness of prompts,
-  tools and retry logic wrapped around one or more models — and swapping the
-  scaffold can matter as much as swapping the model. Where a score is quoted
-  below, the scaffold is named alongside the model.</p>
+  <p>One more marker, used throughout. Model generations turn over roughly
+  twice a year, so a score is partly a statement about when it was set.
+  <span class="gen">CURRENT</span> means the model is still at or near the
+  frontier as of August 2026; <span class="gen">PRIOR</span> means a newer
+  generation of the same family exists;
+  <span class="gen">OBSOLETE</span> means two or more generations behind. Where
+  a headline is held by an obsolete model, that is worth noticing on its own.</p>
 
-  <h2>The benchmarks, and what each one actually asks</h2>
+  <h2>Eight benchmarks, and the job each one tests</h2>
 
-  <p>&quot;Can models do data analysis&quot; is too coarse a question to have
-  an answer. The benchmarks below test genuinely different jobs, and a system
-  strong at one can be weak at the next. Here is the cast used in this piece.</p>
+  <p>&quot;Can models do data analysis&quot; is too coarse to have an answer.
+  These eight test genuinely different work, and a system strong at one can be
+  weak at the next.</p>
+
+  <figure class="article-figure">
+    <table>
+      <thead>
+        <tr><th>Benchmark</th><th>The job</th><th>Data</th><th>Scored by</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://huggingface.co/spaces/adyen/DABstep">DABstep</a></td>
+          <td>Answer analysis questions that require reading the manual</td>
+          <td>One payments firm&#x27;s files and internal docs</td>
+          <td>Exact answer match, easy and hard tiers</td>
+        </tr>
+        <tr>
+          <td><a href="https://bird-bench.github.io/">BIRD</a></td>
+          <td>Write SQL from a question; ships a domain note that can be withheld</td>
+          <td>95 databases, 37 domains</td>
+          <td>Execution accuracy — does the query return the right rows</td>
+        </tr>
+        <tr>
+          <td><a href="https://spider2-sql.github.io/">Spider 2.0</a></td>
+          <td>The same, at enterprise scale, plus authoring a dbt project</td>
+          <td>Real warehouses, hundreds of columns per database</td>
+          <td>Execution accuracy, three tracks</td>
+        </tr>
+        <tr>
+          <td><a href="https://beaverbench.github.io/">BEAVER</a></td>
+          <td>Query warehouses no model was trained on; five sub-skills scored apart</td>
+          <td><em>Private</em> company warehouses</td>
+          <td>Execution accuracy, plus per-sub-skill F1</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/uiuc-kang-lab/ELT-Bench">ELT-Bench</a></td>
+          <td>Build a pipeline: <em>extract</em> from sources, <em>load</em> to a warehouse, <em>transform</em> into modelled tables</td>
+          <td>Source systems plus a live warehouse</td>
+          <td>Success rate per stage</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/TRAIS-Lab/dca-bench">DCA-Bench</a></td>
+          <td>Find a defect nobody pointed at, with four levels of hint</td>
+          <td>Curated public datasets with known flaws</td>
+          <td>Detection rate at each hint level</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/2601.02598">LongDA</a></td>
+          <td>Reproduce published statistics from microdata and its codebook</td>
+          <td>17 US federal surveys; codebooks average 263,500 tokens</td>
+          <td>Match against the official published figure</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/2607.06482">DataGovBench</a></td>
+          <td>Answer questions over government open-data files</td>
+          <td>178 open-data datasets</td>
+          <td>Answer quality, 0–1</td>
+        </tr>
+      </tbody>
+    </table>
+    <figcaption>Published between 2024 and July 2026. Scores from these
+    benchmarks are never comparable to each other.</figcaption>
+  </figure>
+
+  <h2>Where they sit in the actual work</h2>
+
+  <p>A newsroom data project runs through roughly eight stages, and the
+  benchmarks cluster heavily in the middle of it. The stages, in order:</p>
 
   <ul>
-    <li><strong>DABstep</strong> — analysis questions over a firm&#x27;s own files
-    and documentation. Tests whether a model reads the manual.</li>
-    <li><strong>BIRD</strong> — text-to-SQL over 95 databases. Ships an
-    &quot;external knowledge&quot; note with each question, so it can be run
-    with and without domain hints. Scored by <em>execution accuracy</em>: does
-    the generated query return the right rows.</li>
-    <li><strong>Spider 2.0</strong> — text-to-SQL at enterprise scale, on real
-    warehouses averaging hundreds of columns per database. Three tracks: one on
-    Snowflake, one general, and one that asks for a working dbt project — dbt
-    being the tool teams use to define warehouse transformations as version-
-    controlled SQL.</li>
-    <li><strong>BEAVER</strong> — analysis against <em>private</em> company
-    warehouses no model has been trained on. It also scores five sub-skills
-    separately, which is why it is the best evidence about where capability
-    breaks.</li>
-    <li><strong>ELT-Bench</strong> — building a pipeline, not answering a
-    question. ELT is three stages: <em>extract</em> data from sources,
-    <em>load</em> it into a warehouse, then <em>transform</em> it into modelled
-    tables. The stages are scored separately.</li>
-    <li><strong>DCA-Bench</strong> — finding known defects hidden in curated
-    datasets, at four levels of hint, from none to a specific pointer.</li>
-    <li><strong>LongDA</strong> — 505 questions drawn from 30 official
-    publications across 17 US federal surveys, answered against the real
-    microdata <em>and its real codebooks</em>, which average 263,500 tokens.
-    The closest published analogue to working with government statistics.</li>
-    <li><strong>DataGovBench</strong> — question-answering over 178 government
-    open-data files, published July 2026.</li>
+    <li><strong>Find</strong> — which dataset answers this question, and where is it published?</li>
+    <li><strong>Acquire</strong> — get the bytes; formats, versions, access.</li>
+    <li><strong>Understand</strong> — read the codebook. What does each column mean, who is counted, what changed between editions?</li>
+    <li><strong>Clean</strong> — types, encodings, missing-value codes, format drift between years.</li>
+    <li><strong>Join</strong> — link to other sources; keys, crosswalks, entity matching.</li>
+    <li><strong>Analyse</strong> — aggregate, compare, compute the number.</li>
+    <li><strong>Validate</strong> — is the conclusion actually supported? Does it reconcile with what the agency published?</li>
+    <li><strong>Publish</strong> — what may honestly be said about it.</li>
   </ul>
-
-  <p>What each covers, and does not:</p>
 
   <figure class="article-figure">
     <table class="cov">
       <thead>
-        <tr>
-          <th>Benchmark</th><th>Find the data</th><th>Read the docs</th>
-          <th>Understand schema</th><th>Join / match</th><th>Build a pipeline</th>
-          <th>Interpret result</th>
-        </tr>
+        <tr><th>Benchmark</th><th>Find</th><th>Acquire</th><th>Understand</th><th>Clean</th><th>Join</th><th>Analyse</th><th>Validate</th><th>Publish</th></tr>
       </thead>
       <tbody>
-        <tr><td>DABstep</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td><td class="y">yes</td></tr>
-        <tr><td>BIRD</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td></tr>
-        <tr><td>Spider 2.0</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes (dbt track)</td><td>—</td></tr>
-        <tr><td>BEAVER</td><td>—</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td></tr>
-        <tr><td>ELT-Bench</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td class="y">yes</td><td>—</td></tr>
-        <tr><td>DCA-Bench</td><td>—</td><td class="y">yes</td><td>—</td><td>—</td><td>—</td><td class="y">yes</td></tr>
-        <tr><td>LongDA</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td>—</td><td class="y">yes</td></tr>
-        <tr><td>DataGovBench</td><td>—</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td class="y">yes</td></tr>
+        <tr><td>DABstep</td><td></td><td></td><td class="c">●</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>BIRD</td><td></td><td></td><td class="c">●</td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>Spider 2.0</td><td></td><td></td><td class="p">◐</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>BEAVER</td><td></td><td></td><td class="p">◐</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>ELT-Bench</td><td class="p">◐</td><td class="c">●</td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>DCA-Bench</td><td></td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>LongDA</td><td></td><td></td><td class="c">●</td><td class="p">◐</td><td></td><td class="c">●</td><td class="p">◐</td><td></td></tr>
+        <tr><td>DataGovBench</td><td></td><td></td><td class="p">◐</td><td class="p">◐</td><td class="p">◐</td><td class="c">●</td><td></td><td></td></tr>
+        <tr class="muted"><td><a href="https://github.com/ruc-datalab/CoDA-Bench">CoDA-Bench</a>, <a href="https://github.com/mitdbg/KramaBench">KramaBench</a></td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td class="p">◐</td><td></td><td></td></tr>
+        <tr class="muted"><td><a href="https://github.com/TsinghuaDatabaseGroup/prepbench">PrepBench</a></td><td></td><td></td><td></td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
+        <tr class="muted"><td><a href="https://github.com/wbsg-uni-mannheim/MaDI-Bench">MaDI-Bench</a></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td><td></td></tr>
+        <tr class="muted"><td><a href="https://arxiv.org/abs/2608.07437">P-Bench</a>, <a href="https://statqa.github.io/">StatQA</a></td><td></td><td></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td></tr>
       </tbody>
     </table>
-    <figcaption>Coverage, not scores — scores are not comparable across these
-    rows. Note the empty column: almost nothing here tests <em>finding</em> the
-    right dataset in the first place, and only ELT-Bench does so as part of its
-    task.</figcaption>
+    <figcaption><strong>●</strong> central to the benchmark ·
+    <strong>◐</strong> tested incidentally · blank, not tested. Greyed rows are
+    benchmarks outside the main eight, added to show which stages anyone covers
+    at all. Two columns are empty or nearly so: <strong>Find</strong> is tested
+    by two benchmarks, both from 2026, and <strong>Publish</strong> — what may
+    honestly be said about a number — by none.</figcaption>
   </figure>
+
+  <p>The clustering is the point. Almost everything measured sits in
+  <em>Understand</em>, <em>Join</em> and <em>Analyse</em> — the stages where a
+  question already exists and the data is already in hand. The stages a
+  journalist spends real time on at either end, working out which dataset to
+  use and what may fairly be claimed from it, are close to unmeasured.</p>
 
   <h2>What has moved since early 2026</h2>
 
@@ -151,27 +202,27 @@
         <tr>
           <td>Spider 2.0-Lite</td>
           <td>60.15 (2026-02)</td><td><strong>76.23</strong> (2026-07-28)</td>
-          <td>Tianqiong Data Agent + GLM 5.2</td>
+          <td>Tianqiong Data Agent + GLM 5.2 <span class="gen">CURRENT</span></td>
         </tr>
         <tr>
           <td>ELT-Bench, extract &amp; load</td>
           <td>37% (Sonnet 3.5)</td><td><strong>96%</strong> (2026-03-31)</td>
-          <td>SWE-Agent + Claude Sonnet 4.5 — model change only</td>
+          <td>SWE-Agent + Claude Sonnet 4.5 <span class="gen">PRIOR</span> — model change only</td>
         </tr>
         <tr>
           <td>ELT-Bench, transformation</td>
           <td>3.9% (2025)</td><td><strong>22.66%</strong> (2026-03-31)</td>
-          <td>SWE-Agent + Claude Sonnet 4.5</td>
+          <td>SWE-Agent + Claude Sonnet 4.5 <span class="gen">PRIOR</span></td>
         </tr>
         <tr>
           <td>BIRD, single trained model</td>
           <td>77.14 (2026-03-12)</td><td><strong>80.04</strong> (2026-06-03)</td>
-          <td>Gemini-SQL2</td>
+          <td>Gemini-SQL2 <span class="gen">CURRENT</span></td>
         </tr>
         <tr class="muted">
           <td>BIRD, test with oracle knowledge</td>
           <td>81.95 (2025-12-16)</td><td>81.95 — unbeaten</td>
-          <td>AskData + GPT-4o; 15 newer entries, none ahead</td>
+          <td>AskData + GPT-4o <span class="gen">OBSOLETE</span>; 15 newer entries, none ahead</td>
         </tr>
         <tr class="muted">
           <td>DABstep, hard (validated)</td>
@@ -181,7 +232,7 @@
         <tr class="muted">
           <td>BEAVER, end-to-end</td>
           <td>—</td><td><strong>11.4%</strong> (2026-05-13, v3)</td>
-          <td>ReFoRCE + Claude-4.5-Sonnet</td>
+          <td>ReFoRCE + Claude-4.5-Sonnet <span class="gen">PRIOR</span></td>
         </tr>
       </tbody>
     </table>
@@ -243,51 +294,93 @@
     Agent + GLM 5.2, Gemini-SQL2.</figcaption>
   </figure>
 
-  <p>The pattern: work that amounts to writing correct code against a described
-  system has improved sharply, sometimes on a model upgrade alone. ELT-Bench&#x27;s
+  <p>Read the model column and one row stands out. BIRD&#x27;s headline — the best
+  score anyone has posted with the domain notes supplied — belongs to
+  <strong>GPT-4o</strong>, a model two generations obsolete, set in December
+  2025 and unbeaten by fifteen entries since. On that benchmark, newer models
+  have not translated into better answers at all.</p>
+
+  <p>The broader pattern: work that amounts to writing correct code against a
+  described system has improved sharply, sometimes on a model upgrade alone. ELT-Bench&#x27;s
   extract-and-load stage went from a third to nearly all of the way with no
   change but a newer Claude, and its authors now describe that stage as largely
   solved. Work that requires understanding an unfamiliar system has barely
   moved: the transformation stage of the same benchmark, where you decide what
   the numbers mean, sits at <strong>22.66%</strong>.</p>
 
-  <h2>Where capability is jagged</h2>
+  <h2>Which part of the job models are worst at</h2>
 
-  <p>BEAVER is the most informative benchmark here because it scores five
-  sub-skills separately on the same tasks. Its warehouses are private company
-  systems, so nothing in any model&#x27;s training data describes them — which is
-  what makes the profile below a clean read on what models can work out from a
-  schema alone.</p>
+  <p><a href="https://beaverbench.github.io/">BEAVER</a> is the most informative
+  benchmark here because it scores five sub-skills separately on the same tasks.
+  Its warehouses are private company systems, so nothing in any model&#x27;s training
+  data describes them — which makes the profile below a clean read on what a
+  model can work out from a schema alone, with no prior familiarity to fall back
+  on.</p>
 
   <figure class="article-figure">
-    <div style="color: var(--ink, currentColor)">
-      <div class="barrow"><span>Table retrieval</span><span class="track"><span class="fill" style="width:70.1%"></span></span><span class="val">70.1</span></div>
-      <div class="barrow"><span>Column mapping</span><span class="track"><span class="fill" style="width:61.6%"></span></span><span class="val">61.6</span></div>
-      <div class="barrow"><span>Query decomposition</span><span class="track"><span class="fill" style="width:50.8%"></span></span><span class="val">50.8</span></div>
-      <div class="barrow"><span>Join keys</span><span class="track"><span class="fill" style="width:35.5%"></span></span><span class="val">35.5</span></div>
-      <div class="barrow"><span>Domain knowledge</span><span class="track"><span class="fill" style="width:20.4%"></span></span><span class="val">20.4</span></div>
-    </div>
+    <svg viewBox="0 0 700 232" role="img" aria-label="BEAVER sub-skill scores from 70.1 down to 20.4" style="width:100%;height:auto">
+    <style>.bl{font:600 12px system-ui,sans-serif}.bs{font:11px system-ui,sans-serif;opacity:.6}.bn{font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}.bx{font:10px system-ui,sans-serif;opacity:.55}</style>
+    <text class="bl" x="242" y="36" text-anchor="end">Table retrieval</text>
+    <text class="bs" x="242" y="48" text-anchor="end">find the right table</text>
+    <rect x="250.0" y="25" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="25" width="252.4" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="511.4" y="36">70.1</text>
+    <text class="bl" x="242" y="74" text-anchor="end">Column mapping</text>
+    <text class="bs" x="242" y="86" text-anchor="end">match question terms to columns</text>
+    <rect x="250.0" y="63" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="63" width="221.8" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="480.8" y="74">61.6</text>
+    <text class="bl" x="242" y="112" text-anchor="end">Query decomposition</text>
+    <text class="bs" x="242" y="124" text-anchor="end">break the question into steps</text>
+    <rect x="250.0" y="101" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="101" width="182.9" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="441.9" y="112">50.8</text>
+    <text class="bl" x="242" y="150" text-anchor="end">Join keys</text>
+    <text class="bs" x="242" y="162" text-anchor="end">pick the column that links two tables</text>
+    <rect x="250.0" y="139" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="139" width="127.8" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="386.8" y="150">35.5</text>
+    <text class="bl" x="242" y="188" text-anchor="end">Domain knowledge</text>
+    <text class="bs" x="242" y="200" text-anchor="end">know what the values mean</text>
+    <rect x="250.0" y="177" width="360.0" height="14" fill="currentColor" opacity=".08" rx="2"/>
+    <rect x="250.0" y="177" width="73.4" height="14" fill="currentColor" opacity=".65" rx="2"/>
+    <text class="bn" x="332.4" y="188">20.4</text>
+    <line x1="250.0" y1="208" x2="610.0" y2="208" stroke="currentColor" opacity=".25"/>
+    <text class="bx" x="250.0" y="223" text-anchor="middle">0</text>
+    <text class="bx" x="340.0" y="223" text-anchor="middle">25</text>
+    <text class="bx" x="430.0" y="223" text-anchor="middle">50</text>
+    <text class="bx" x="520.0" y="223" text-anchor="middle">75</text>
+    <text class="bx" x="610.0" y="223" text-anchor="middle">100</text>
+    <text class="bx" x="430.0" y="237" text-anchor="middle">F1 — 100 is perfect</text>
+    </svg>
     <figcaption>BEAVER v3 sub-skill scores, <strong>averaged across seven
-    models</strong> (2026-05-13) — a profile of the field, not of one system.
-    Measured as F1, which balances how much of the right answer was found
-    against how much of what was returned was right; 100 is perfect.
-    The gradient runs from what a schema tells you to what only a person can.</figcaption>
+    models</strong> (2026-05-13) — a profile of the field, not of any one
+    system. Measured as F1, which balances how much of the right answer was
+    found against how much of what was returned was right. All five are scored
+    on the same tasks, so these rows <em>are</em> comparable to each other,
+    unlike the other charts here.</figcaption>
   </figure>
 
-  <p>The order is the finding. Picking the right table is largely solvable from
-  the schema. Picking the right join key is much harder, because a schema rarely
-  says which of several plausible columns actually relates two tables. And
-  domain knowledge — what a column <em>means</em> in the business that produced
-  it — is where models do worst, at <strong>20.4</strong>.</p>
+  <p>The order is the finding, and it runs in one direction: from what a schema
+  tells you to what only a person can. Picking the right table is largely
+  solvable from column names. Picking the right join key is much harder, because
+  a schema rarely says which of several plausible columns actually relates two
+  tables. And knowing what a value <em>means</em> in the business that produced
+  it is where models do worst, at <strong>20.4</strong> — a third of their score
+  on table retrieval.</p>
 
-  <p>Other benchmarks show the same shape from different angles. On the
-  government open-data benchmark, the largest single error category is failing
-  to apply a condition the question never stated — a date range, a status code,
-  or which rows in a table are totals rather than members — accounting for
-  <strong>32.4%</strong> of one system&#x27;s errors (Gemini 2.5 Flash with its
-  Answer Agent scaffold). On a table-reasoning benchmark, the same models score
-  above 90 on fact-checking and numerical reasoning while sitting at
-  <strong>61.4</strong> on open data analysis.</p>
+  <p>That bottom row is the whole argument of the next section. Domain knowledge
+  is not a skill a model can be better at; it is information it either has or
+  does not.</p>
+
+  <p>Other benchmarks show the same shape from different angles. On government
+  open data, the largest single error category is failing to apply a condition
+  the question never stated — a date range, a status code, or which rows are
+  totals rather than members — at <strong>32.4%</strong> of one system&#x27;s errors
+  (Gemini 2.5 Flash with its Answer Agent scaffold, 2026-07). On
+  <a href="https://tablebench.github.io/">TableBench</a>, models score above 90
+  on fact-checking and numerical reasoning while sitting at <strong>61.4</strong>
+  on open-ended data analysis.</p>
 
   <h2>What handing over documentation is worth</h2>
 
@@ -382,8 +475,11 @@
     — only the gap within a row means anything, which is why the gain is printed
     separately. Systems, in row order: DeepSeek-R1 curator; GPT-5.1-Codex; human
     data engineers and database students; ReFoRCE best config; AskData + GPT-4o;
-    GPT-5 under LongTA; Claude-3.5-Sonnet with self-debug. Dates 2024-11 to
-    2026-08; verified 2026-08-11.</figcaption>
+    <span class="gen">PRIOR</span> GPT-5 under LongTA;
+    <span class="gen">OBSOLETE</span> Claude-3.5-Sonnet with self-debug. Note
+    that the two largest gains were measured on obsolete models — DeepSeek-R1
+    and GPT-5.1-Codex — so these are not artefacts of weak systems being easy
+    to help. Dates 2024-11 to 2026-08; verified 2026-08-11.</figcaption>
   </figure>
 
   <p><strong>LongDA is the most relevant result published.</strong> Its
@@ -437,16 +533,16 @@
         <tr><th>What it measures</th><th>Benchmark</th><th>Best result</th><th>System</th><th>Date</th></tr>
       </thead>
       <tbody>
-        <tr><td rowspan="2">Finding data in a lake or sandbox</td><td>CoDA-Bench</td><td>83.0 / 61.1</td><td>Mini-SWE-agent + GPT-5.5</td><td>2026-06-13</td></tr>
-        <tr><td>LakeQA (9.5 TB, incl. data.gov)</td><td>32.87% exact match</td><td>Claude Sonnet 4.5, 5-tool scaffold</td><td>2026-06</td></tr>
-        <tr><td rowspan="2">Preparing and cleaning</td><td>PrepBench</td><td>54.9% → 85.3%</td><td>GPT-5.1-Codex</td><td>2026-05-09</td></tr>
-        <tr><td>&quot;Can FMs Wrangle Your Data?&quot;</td><td>0.0 → 99.1 F1 (10 examples)</td><td>GPT-3-175B</td><td>2022-12-24</td></tr>
-        <tr><td>Integrating several sources</td><td>MaDI-Bench</td><td>schema match 100 F1 → fusion 84.87</td><td>GPT-5.5 / GPT-5.2 pipeline</td><td>2026-06-29</td></tr>
+        <tr><td rowspan="2">Finding data in a lake or sandbox</td><td>CoDA-Bench</td><td>83.0 / 61.1</td><td>Mini-SWE-agent + GPT-5.5 <span class="gen">CURRENT</span></td><td>2026-06-13</td></tr>
+        <tr><td>LakeQA (9.5 TB, incl. data.gov)</td><td>32.87% exact match</td><td>Claude Sonnet 4.5 <span class="gen">PRIOR</span>, 5-tool scaffold</td><td>2026-06</td></tr>
+        <tr><td rowspan="2">Preparing and cleaning</td><td>PrepBench</td><td>54.9% → 85.3%</td><td>GPT-5.1-Codex <span class="gen">PRIOR</span></td><td>2026-05-09</td></tr>
+        <tr><td>&quot;Can FMs Wrangle Your Data?&quot;</td><td>0.0 → 99.1 F1 (10 examples)</td><td>GPT-3-175B <span class="gen">OBSOLETE</span></td><td>2022-12-24</td></tr>
+        <tr><td>Integrating several sources</td><td>MaDI-Bench</td><td>schema match 100 F1 → fusion 84.87</td><td>GPT-5.5 / GPT-5.2 <span class="gen">CURRENT</span> pipeline</td><td>2026-06-29</td></tr>
         <tr><td rowspan="2">Reasoning over tables</td><td>TableBench (agents)</td><td>75.05 overall, 61.37 on analysis</td><td>WPS AI, base model undisclosed</td><td>2026-07-29</td></tr>
-        <tr><td>MMTU (28,136 questions)</td><td>0.696</td><td>GPT-5, no scaffold</td><td>2026-03-09</td></tr>
-        <tr><td rowspan="2">Whether the conclusion is valid</td><td>P-Bench (is the p-value sound?)</td><td>33.0% strict, hard split</td><td>Fisher-R1-14B, ReAct over R</td><td>2026-08-07</td></tr>
-        <tr><td>StatABench</td><td>68.6% closed-form</td><td>GPT-5.1 via LangChain MCP</td><td>2026-06-22</td></tr>
-        <tr><td>Running a whole analysis</td><td>DataAgentBench</td><td>0.845 pass@1 vs 0.455 bare model</td><td>Sentinel: Fable-5 + Claude-Opus-4.7</td><td>2026-07-20</td></tr>
+        <tr><td>MMTU (28,136 questions)</td><td>0.696</td><td>GPT-5 <span class="gen">PRIOR</span>, no scaffold</td><td>2026-03-09</td></tr>
+        <tr><td rowspan="2">Whether the conclusion is valid</td><td>P-Bench (is the p-value sound?)</td><td>33.0% strict, hard split</td><td>Fisher-R1-14B <span class="gen">CURRENT</span>, ReAct over R</td><td>2026-08-07</td></tr>
+        <tr><td>StatABench</td><td>68.6% closed-form</td><td>GPT-5.1 <span class="gen">PRIOR</span> via LangChain MCP</td><td>2026-06-22</td></tr>
+        <tr><td>Running a whole analysis</td><td>DataAgentBench</td><td>0.845 pass@1 vs 0.455 bare model</td><td>Sentinel: Fable-5 + Claude-Opus-4.7 <span class="gen">CURRENT</span></td><td>2026-07-20</td></tr>
         <tr><td>Holding state across turns</td><td>EnterpriseMem-Bench</td><td>0% execution accuracy by turn 3</td><td>all five models tested</td><td>2026-05-25</td></tr>
       </tbody>
     </table>
