@@ -32,15 +32,16 @@
   <div>
     <p class="hero__kicker">
       <span>The data page format</span>
-      <span class="badge badge--accent" data-fact="version">v0.4</span>
+      <span class="badge badge--accent" data-fact="version">v0.5</span>
       <span data-fact="spec-status">draft spec</span>
     </p>
-    <h1>The publisher already wrote down what will bite you. <em>Nothing points at it.</em></h1>
-    <p class="hero__dek">Of twenty widely used open datasets, eighteen ship guidance that
-      changes what you may honestly claim — and seven put it anywhere a program following
-      the download link would find it. ergo teaches your agent to go looking before it
-      touches the data, to write down what it learns, and to hand that on so nobody pays
-      for the same lesson twice.</p>
+    <h1>Somebody already found out. You are about to find out again.</h1>
+    <p class="hero__dek">New Jersey's education department labels one row
+      <em>&ldquo;Eight Grade&rdquo;</em>. Not eighth. For years that typo dropped about
+      100,000 students into a row with no grade at all, and nothing in the numbers said
+      so. A maintainer eventually caught it and fixed it in their parser. If you open
+      that file tomorrow, you will find it the hard way — unless someone hands you
+      the note.</p>
     <p class="hero__actions">
       <a class="btn btn--solid" href="start.html">Install it</a>
       <a class="btn btn--quiet" href="walkthrough.html">Watch a page come together</a>
@@ -48,7 +49,8 @@
     </p>
   </div>
   <div>
-    <p class="pane-label">One issue, from the page built on this site's walkthrough</p>
+    <p class="pane-label">Not that one &mdash; a different issue, from the demo page this
+      site builds step by step in the walkthrough</p>
     <div id="hero-record">
       <div class="record">
         <div class="record__chip"><strong>docs/data/&lt;slug&gt;.md</strong></div>
@@ -62,140 +64,83 @@
 
   <section class="prose">
     <p class="section-kicker">The problem</p>
-    <h2>The documentation burden was never the schema</h2>
-    <p>Anyone who has worked with government data knows where the time goes. Not the
-      column list — the <em>issues</em>. The misspelled header. The suppression sentence
-      sitting in a rate field. The format that silently changed in 2019. The category
-      whose meaning narrowed in 2006. The boundary that moved. The two published
-      calculations with one name, only one of which has a trend.</p>
-    <p>Working through those is the craft. The surprise is that the publisher has usually
-      written the answer down already — in a notes tab inside the workbook, a footnote
-      attached to a portal record, a technical guide on a host that refuses automated
-      clients. <a href="review/">Across twenty widely used open datasets</a>, nineteen
-      ship guidance of some kind and eighteen ship guidance that changes what a reader may
-      honestly claim. Only seven put it anywhere a program holding the download URL would
-      encounter it.</p>
-    <p>So the knowledge exists and the route to it does not. Models are good at working
-      out what is wrong with a dataset and do not think to check whether someone already
-      did. Everyone pays separately for the same lesson, and nobody banks it.</p>
-    <p>ergo is where it gets banked. It is not a catalog, a warehouse, or a validation
-      service; it sits beside the data as one markdown file per dataset, and it is designed
-      so that handing the list over — to a colleague, to a stranger, or to a model — is a
-      file read rather than a conversation. What you are handed is a lead, not an answer:
-      where to look and what to look for.</p>
+    <h2>The note usually exists. It is just somewhere nobody looks.</h2>
+    <p>The &ldquo;Eight Grade&rdquo; typo is not exotic. Working with government data means
+      a steady supply of them: the suppression rule hiding in a rate column, the category
+      whose meaning narrowed in 2006, the boundary that moved, the two published
+      calculations with one name and only one of them a real trend.</p>
+    <p>What surprised us is how often the publisher has already written the answer down.
+      We went and checked twenty widely used open datasets. Nineteen ship some kind of
+      guidance. Eighteen ship guidance that changes what you may honestly say about the
+      numbers.</p>
+    <p>Seven put it anywhere a program following the download link would ever see it.</p>
+    <p>The rest is in a tab inside the workbook, a footnote hanging off a portal record,
+      a technical guide on a server that blocks automated clients. NJDOE&rsquo;s pandemic
+      caveat sits on sheet one of sixty-three, titled <em>&ldquo;Important 2020-2021
+      Notes&rdquo;</em>, and no cell in the data mentions it exists.
+      <a href="review/">The full survey is here</a>.</p>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">What changes</p>
+    <h2>Your agent goes and looks first</h2>
+    <p>Install the plugin and your agent picks up a habit it does not have by default:
+      before it touches a dataset it goes looking for what is already known — the
+      publisher&rsquo;s notes, the four parsers on GitHub that already hit this, an
+      existing page if one exists. Then it writes down what it worked out, in a format
+      the next person can check.</p>
+    <div class="cmd"><code>/plugin marketplace add lyra-forge/marketplace</code></div>
+    <div class="cmd"><code>/plugin install ergo@lyra-forge</code></div>
+    <p>What you get back is a lead, not a verdict. The page tells you where to look and
+      what to look for; you still confirm it. That sounds like a weak promise until you
+      notice the expensive part was never the reading — it was not knowing there was
+      anything to read.</p>
+    <p><a href="start.html">The ten-minute version →</a></p>
+  </section>
+
+  <section class="prose">
+    <p class="section-kicker">Why it keeps mattering</p>
+    <h2>Models are getting better at this, which is fine</h2>
+    <p>They are getting better fast. One benchmark of realistic analysis work went from
+      14.55% to 89.95% on identical questions in ten months. We are not betting against
+      that, and a pitch that needed models to stay bad would be a bad pitch.</p>
+    <p>The part that is not improving is reach. A model cannot know what is in a
+      spreadsheet tab it never opened, on a host that refuses it. When researchers
+      deleted just the documentation-search tool from a system answering questions about
+      US federal surveys, it lost eleven points. Nothing about a bigger model fixes
+      that.</p>
+    <p>So the useful thing to write down is not what a model could work out on its own.
+      It is the specific fact about this file that nobody outside your project has ever
+      had access to.</p>
   </section>
 
   <section>
-    <p class="section-kicker">What is actually enforced</p>
-    <h2>Four rules, and a validator that will not let you skip them</h2>
-    <p class="lede">Every fragment below is real output, produced by running the validator
-      when this page was built.</p>
+    <p class="section-kicker">What it looks like</p>
+    <h2>One markdown file per dataset</h2>
+    <p class="lede">A human reads it top to bottom. A program reads the blocks. Every
+      fragment below is real output from running the validator when this page was built.</p>
     <div class="rules" id="rules"></div>
+    <p><a href="format.html">See the format laid out visually →</a> &nbsp;·&nbsp;
+      <a href="page.html">Read a finished page →</a></p>
   </section>
 
   <section class="prose">
-    <p class="section-kicker">At rest</p>
-    <h2>It's a markdown file. That's the whole trick.</h2>
-    <p>A data page is one file per dataset: a document a human reads top to bottom as a
-      reporter's notebook, carrying fenced <code>toml ergo</code> blocks that a program
-      parses without guesswork. The blocks hold the structured facts — id, effect, type,
-      status, scope, the code that handles it. The prose between them holds the story, the
-      examples, and the numbers. Never both; a fact stated in a block is not restated in
-      the prose, because duplication drifts.</p>
-    <p>Parsing needs Python 3.11 and its standard library, because <code>tomllib</code> is
-      in it. There is no service to run, no database to migrate, and no dependency to
-      audit: <a href="https://github.com/lavallee/ergo/blob/main/tools/ergo.py">a single
-      file</a> you copy into your repository is the validator, the digest generator, the
-      exporter and the publisher. If the tool is abandoned tomorrow, what you are left with
-      is markdown that still reads correctly.</p>
-    <p><a href="format.html">See the format laid out visually →</a></p>
+    <p class="section-kicker">Where it goes</p>
+    <h2>Two newsrooms will write different pages, and both be right</h2>
+    <p>A page belongs wherever someone can correct it. If your repository is public and
+      takes pull requests, keep the page there. If it is private — which is usual, since
+      a data team&rsquo;s repo holds more than its documentation — a public bundle served
+      out of it is readable by anyone and fixable by nobody. Those pages live in a
+      shared directory instead.</p>
+    <p>Several projects documenting the same census product will disagree about what
+      matters, because their questions differ. The directory clusters pages by subject
+      and refuses to merge or rank them. If you want one authoritative description of a
+      dataset, this is not that, and does not think it exists.</p>
   </section>
 
-  <section class="prose">
-    <p class="section-kicker">The distinction that does the work</p>
-    <h2>An issue is a defect. A practice is a decision.</h2>
-    <p>An <strong>issue</strong> is something true about the data whether or not you exist:
-      the zeros that mean "no value", the ward numbers that were reassigned, the rate
-      column that carries prose. A <strong>practice</strong> is a call somebody made about
-      what may be computed from it: report the median rather than the mean, exclude the
-      migration date, don't turn report counts into occurrence rates.</p>
-    <p>Two tests, and they disagree usefully. <em>Deletion:</em> would this still be true
-      if we deleted all our code? Yes → issue. <em>Disagreement:</em> could a competent
-      team look at the same data and rightly decide otherwise? Yes → practice, and it says
-      so with <code>contested</code>. They are separate blocks because the cardinality
-      differs: one defect routinely has several handlings, chosen by the question being
-      asked, and no single issue entry can carry two opposite ones.</p>
-  </section>
-
-  <section>
-    <p class="section-kicker">Choosing where caveats live</p>
-    <h2>What you're actually choosing between</h2>
-    <p class="lede">These differ in kind, not in quality. Most projects need several of
-      them, and none of the others is trying to be a registry of defects.</p>
-    <div class="compare-wrap">
-      <table class="compare">
-        <colgroup><col><col class="is-ergo"><col><col><col></colgroup>
-        <thead>
-          <tr>
-            <th scope="col"><span class="visually-hidden">Dimension</span></th>
-            <th scope="col">ergo data page</th>
-            <th scope="col">Catalog metadata (DCAT, schema.org)</th>
-            <th scope="col">Dataset cards (Datasheets, Croissant)</th>
-            <th scope="col">Validation tooling (Frictionless, Great Expectations)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">What it is for</th>
-            <td>Documenting the traps in a dataset for whoever touches it next</td>
-            <td>Making a dataset discoverable and describable</td>
-            <td>Describing provenance, collection, and intended use</td>
-            <td>Asserting that today's file matches expectations</td>
-          </tr>
-          <tr>
-            <th scope="row">Where a caveat goes</th>
-            <td>A typed entry with an id, an effect, and a scope</td>
-            <td>A description string</td>
-            <td>A limitations section, in prose</td>
-            <td>A failing check, if somebody wrote one</td>
-          </tr>
-          <tr>
-            <th scope="row">Machine-readable scope</th>
-            <td>Which years, tables, columns, entities — as fields</td>
-            <td>Temporal and spatial coverage of the whole dataset</td>
-            <td>No</td>
-            <td>Per check, and only for what is executable</td>
-          </tr>
-          <tr>
-            <th scope="row">Linked to the workaround</th>
-            <td>Both ways, and the link is checked</td>
-            <td>No</td>
-            <td>No</td>
-            <td>The check <em>is</em> the code; the reason usually isn't recorded</td>
-          </tr>
-          <tr>
-            <th scope="row">Holds what isn't executable</th>
-            <td>Yes — definitional and institutional context is a first-class effect</td>
-            <td>Prose only</td>
-            <td>Prose only</td>
-            <td>No</td>
-          </tr>
-          <tr>
-            <th scope="row">Relationship to ergo</th>
-            <td>—</td>
-            <td colspan="3">Generated from the page, never canonical. The manifest maps onto all three; the issue registry maps onto almost nothing, which is why the format exists.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="record__caption">No composite score, no feature counts, no ranking. A dataset
-      that is thoroughly described and completely undocumented is exactly the situation
-      ergo was written for, and a scoring table would hide it.</p>
-  </section>
-
-  <section class="prose limits">
+<section class="prose limits">
     <p class="section-kicker">Before you adopt it</p>
-    <h2>The honest case against</h2>
+    <h2>Reasons not to</h2>
     <p><strong>The strongest objection is that a registry rots.</strong> Somebody writes
       twelve issues in a burst of enthusiasm, the dataset changes, nobody updates the page,
       and two years later a reader trusts a scope that is no longer true — which is worse
@@ -217,9 +162,8 @@
 
     <h3>No effectiveness measurement</h3>
     <p>Nothing here shows that a project with data pages makes fewer mistakes than one
-      without. The benchmark figure above measures how much agents miss <em>unaided</em>;
-      it is the reason handing issues over matters, not evidence that this is how you
-      should hand them over.</p>
+      without. We have not run that test. The benchmarks say handing knowledge over
+      helps a great deal; none of them says this is the right shape to hand it over in.</p>
 
     <h3>The spec is draft, and it has moved</h3>
     <p>Version <span data-fact="format-version">0.4</span>, and the changelog records
@@ -227,17 +171,16 @@
       Pages declare the format version they conform to and the validator still accepts the
       older ones, but the format is not frozen and should not be treated as if it were.</p>
 
-    <h3>It documents your relationship with a dataset, not the dataset</h3>
-    <p>Two newsrooms will write different pages about the same census product, disagree
-      about what is <code>core</code>, and both be right, because their questions differ.
-      Directories cluster pages by subject and deliberately refuse to merge or rank them.
-      If what you want is one authoritative description of a dataset, this is not that, and
-      does not believe that exists.</p>
+    <h3>It is documentation, and documentation is work</h3>
+    <p>Nothing here writes itself. The skill lowers the cost of capture a great deal by
+      being present at the moment you learn something, but a page still reflects the
+      attention somebody gave it. A team that will not maintain a README will not
+      maintain this either.</p>
   </section>
 
   <section>
-    <p class="section-kicker">Where this stands</p>
-    <h2>Coordinates</h2>
+    <p class="section-kicker">Status</p>
+    <h2>Where this stands</h2>
     <dl class="facts" id="facts"></dl>
     <p class="hero__actions">
       <a class="btn" href="start.html">Adopt it</a>

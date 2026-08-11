@@ -1,5 +1,5 @@
 window.__ERGO_WALK__ = {
-  "generated": "2026-08-11T20:33:07+00:00",
+  "generated": "2026-08-11T21:02:34+00:00",
   "dataset": {
     "slug": "ridgeway-311",
     "title": "Ridgeway County 311 service requests"
