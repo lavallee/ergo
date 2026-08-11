@@ -189,6 +189,60 @@
     across rows the tasks, data and scoring all differ.</figcaption>
   </figure>
 
+  <figure class="article-figure">
+    <svg viewBox="0 0 700 292" role="img" aria-label="Benchmark scores at an earlier and later date" style="width:100%;height:auto">
+    <style>.sl{font:11px system-ui,sans-serif}.slb{font:600 11px system-ui,sans-serif}.n{font-variant-numeric:tabular-nums}.hd{font:600 11px system-ui,sans-serif;opacity:.65}.ax{font:10px system-ui,sans-serif;opacity:.55}</style>
+    <text class="hd" x="250.0" y="26" text-anchor="middle">earlier</text>
+    <text class="hd" x="470.0" y="26" text-anchor="middle">latest, 2026-08-11</text>
+    <line x1="250.0" y1="177.9" x2="470.0" y2="62.8" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
+    <circle cx="250.0" cy="177.9" r="3.6" fill="currentColor" opacity=".8"/>
+    <circle cx="470.0" cy="62.8" r="3.6" fill="currentColor" opacity=".8"/>
+    <text class="sl n" x="240.0" y="181.9" text-anchor="end" opacity=".8">37.0</text>
+    <text class="slb n" x="480.0" y="66.8" opacity=".8">96.0</text>
+    <text class="sl" x="522.0" y="66.8" opacity=".8">ELT-Bench, extract & load</text>
+    <line x1="250.0" y1="74.6" x2="470.0" y2="74.6" stroke="currentColor" stroke-width="1.8" opacity=".28" stroke-dasharray="3 3"/>
+    <circle cx="250.0" cy="74.6" r="3.6" fill="currentColor" opacity=".28"/>
+    <circle cx="470.0" cy="74.6" r="3.6" fill="currentColor" opacity=".28"/>
+    <text class="sl n" x="240.0" y="78.6" text-anchor="end" opacity=".28">89.95</text>
+    <text class="slb n" x="480.0" y="78.6" opacity=".28">89.95</text>
+    <text class="sl" x="522.0" y="78.6" opacity=".28">DABstep, hard (validated)</text>
+    <line x1="250.0" y1="90.2" x2="470.0" y2="90.2" stroke="currentColor" stroke-width="1.8" opacity=".28" stroke-dasharray="3 3"/>
+    <circle cx="250.0" cy="90.2" r="3.6" fill="currentColor" opacity=".28"/>
+    <circle cx="470.0" cy="90.2" r="3.6" fill="currentColor" opacity=".28"/>
+    <text class="sl n" x="240.0" y="94.2" text-anchor="end" opacity=".28">81.95</text>
+    <text class="slb n" x="480.0" y="94.2" opacity=".28">81.95</text>
+    <text class="sl" x="522.0" y="94.2" opacity=".28">BIRD, oracle knowledge</text>
+    <line x1="250.0" y1="132.7" x2="470.0" y2="101.4" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
+    <circle cx="250.0" cy="132.7" r="3.6" fill="currentColor" opacity=".8"/>
+    <circle cx="470.0" cy="101.4" r="3.6" fill="currentColor" opacity=".8"/>
+    <text class="sl n" x="240.0" y="136.7" text-anchor="end" opacity=".8">60.15</text>
+    <text class="slb n" x="480.0" y="105.4" opacity=".8">76.23</text>
+    <text class="sl" x="522.0" y="105.4" opacity=".8">Spider 2.0-Lite</text>
+    <line x1="250.0" y1="99.6" x2="470.0" y2="93.9" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
+    <circle cx="250.0" cy="99.6" r="3.6" fill="currentColor" opacity=".8"/>
+    <circle cx="470.0" cy="93.9" r="3.6" fill="currentColor" opacity=".8"/>
+    <text class="sl n" x="240.0" y="103.6" text-anchor="end" opacity=".8">77.14</text>
+    <text class="slb n" x="480.0" y="97.9" opacity=".8">80.04</text>
+    <text class="sl" x="522.0" y="97.9" opacity=".8">BIRD, single trained model</text>
+    <line x1="250.0" y1="242.4" x2="470.0" y2="205.8" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
+    <circle cx="250.0" cy="242.4" r="3.6" fill="currentColor" opacity=".8"/>
+    <circle cx="470.0" cy="205.8" r="3.6" fill="currentColor" opacity=".8"/>
+    <text class="sl n" x="240.0" y="246.4" text-anchor="end" opacity=".8">3.9</text>
+    <text class="slb n" x="480.0" y="209.8" opacity=".8">22.66</text>
+    <text class="sl" x="522.0" y="209.8" opacity=".8">ELT-Bench, transformation</text>
+    <line x1="180.0" y1="264" x2="510.0" y2="264" stroke="currentColor" opacity=".2"/>
+    <text class="ax" x="180.0" y="280">each line is one benchmark on its own metric — the slope is the story, the height is not</text>
+    </svg>
+    <figcaption><strong>Dashed lines have not moved.</strong> DABstep's validated
+    board is frozen because it closed submissions pending a second version;
+    BIRD's oracle-knowledge headline has stood since 2025-12-16 against fifteen
+    newer entries. Earlier points range from 2024-10 to 2026-03. <strong>Vertical
+    position is not comparable across lines</strong> — different tasks, data and
+    scoring — so read the slopes, not the heights. Systems behind the later
+    points: SWE-Agent + Claude Sonnet 4.5 (both ELT-Bench rows), Tianqiong Data
+    Agent + GLM 5.2, Gemini-SQL2.</figcaption>
+  </figure>
+
   <p>The pattern: work that amounts to writing correct code against a described
   system has improved sharply, sometimes on a model upgrade alone. ELT-Bench&#x27;s
   extract-and-load stage went from a third to nearly all of the way with no
@@ -238,8 +292,99 @@
   <h2>What handing over documentation is worth</h2>
 
   <p>The practical question is not how models score, but how much better they
-  do when you give them what you know. Four benchmarks measure this directly,
-  and they agree that it is worth a great deal.</p>
+  do when you give them what you know. Seven benchmarks run that comparison
+  directly, and the answer ranges from decisive to almost nothing — which is
+  the first thing worth noticing. <em>What</em> you hand over matters far more
+  than <em>that</em> you hand something over.</p>
+
+  <p>The row to read first is the human one. Given BIRD's evidence note, human
+  data engineers and database students scored <strong>92.96</strong>; without
+  it, <strong>72.37</strong>. They lose more than twenty points to the same
+  missing information. Whatever else these numbers show, the knowledge is not a
+  crutch for weak models — it is a requirement of the task.</p>
+
+  <figure class="article-figure">
+    <svg viewBox="0 0 700 290" role="img" aria-label="Score without and with supplied knowledge, seven benchmarks" style="width:100%;height:auto">
+    <style>.lbl{font:600 12px system-ui,sans-serif}.sub{font:11px system-ui,sans-serif;opacity:.65}.num{font:11px system-ui,sans-serif;font-variant-numeric:tabular-nums}.dlt{font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}.ax{font:10px system-ui,sans-serif;opacity:.6}</style>
+    <text class="lbl" x="192" y="38" text-anchor="end">DCA-Bench</text>
+    <text class="sub" x="192" y="50" text-anchor="end">hint ladder, none → specific</text>
+    <line x1="319.4" y1="34" x2="513.1" y2="34" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="319.4" cy="34" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="513.1" cy="34" r="4.5" fill="currentColor"/>
+    <text class="num" x="310.4" y="38" text-anchor="end">29.86</text>
+    <text class="num" x="522.1" y="38">78.28</text>
+    <text class="dlt" x="694" y="38" text-anchor="end">+48.4</text>
+    <text class="lbl" x="192" y="72" text-anchor="end">PrepBench</text>
+    <text class="sub" x="192" y="84" text-anchor="end">ambiguity removed</text>
+    <line x1="419.6" y1="68" x2="541.2" y2="68" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="419.6" cy="68" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="541.2" cy="68" r="4.5" fill="currentColor"/>
+    <text class="num" x="410.6" y="72" text-anchor="end">54.9</text>
+    <text class="num" x="550.2" y="72">85.3</text>
+    <text class="dlt" x="694" y="72" text-anchor="end">+30.4</text>
+    <text class="lbl" x="192" y="106" text-anchor="end">BIRD — humans</text>
+    <text class="sub" x="192" y="118" text-anchor="end">evidence note</text>
+    <line x1="489.5" y1="102" x2="571.8" y2="102" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="489.5" cy="102" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="571.8" cy="102" r="4.5" fill="currentColor"/>
+    <text class="num" x="480.5" y="106" text-anchor="end">72.37</text>
+    <text class="num" x="580.8" y="106">92.96</text>
+    <text class="dlt" x="694" y="106" text-anchor="end">+20.6</text>
+    <text class="lbl" x="192" y="140" text-anchor="end">BEAVER</text>
+    <text class="sub" x="192" y="152" text-anchor="end">all subtask hints</text>
+    <line x1="245.6" y1="136" x2="320.4" y2="136" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="245.6" cy="136" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="320.4" cy="136" r="4.5" fill="currentColor"/>
+    <text class="num" x="236.6" y="140" text-anchor="end">11.4</text>
+    <text class="num" x="329.4" y="140">30.1</text>
+    <text class="dlt" x="694" y="140" text-anchor="end">+18.7</text>
+    <text class="lbl" x="192" y="174" text-anchor="end">BIRD — best system</text>
+    <text class="sub" x="192" y="186" text-anchor="end">oracle knowledge</text>
+    <line x1="469.6" y1="170" x2="527.8" y2="170" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="469.6" cy="170" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="527.8" cy="170" r="4.5" fill="currentColor"/>
+    <text class="num" x="460.6" y="174" text-anchor="end">67.41</text>
+    <text class="num" x="536.8" y="174">81.95</text>
+    <text class="dlt" x="694" y="174" text-anchor="end">+14.5</text>
+    <text class="lbl" x="192" y="208" text-anchor="end">LongDA</text>
+    <text class="sub" x="192" y="220" text-anchor="end">doc-search tool</text>
+    <line x1="433.2" y1="204" x2="476.6" y2="204" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="433.2" cy="204" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="476.6" cy="204" r="4.5" fill="currentColor"/>
+    <text class="num" x="424.2" y="208" text-anchor="end">58.3</text>
+    <text class="num" x="485.6" y="208">69.16</text>
+    <text class="dlt" x="694" y="208" text-anchor="end">+10.9</text>
+    <text class="lbl" x="192" y="242" text-anchor="end">ScienceAgentBench</text>
+    <text class="sub" x="192" y="254" text-anchor="end">expert note</text>
+    <line x1="329.6" y1="238" x2="337.2" y2="238" stroke="currentColor" stroke-width="2" opacity=".28"/>
+    <circle cx="329.6" cy="238" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <circle cx="337.2" cy="238" r="4.5" fill="currentColor"/>
+    <text class="num" x="320.6" y="242" text-anchor="end">32.4</text>
+    <text class="num" x="346.2" y="242">34.3</text>
+    <text class="dlt" x="694" y="242" text-anchor="end">+1.9</text>
+    <line x1="200.0" y1="260" x2="600.0" y2="260" stroke="currentColor" opacity=".3"/>
+    <line x1="200.0" y1="260" x2="200.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="200.0" y="276" text-anchor="middle">0</text>
+    <line x1="300.0" y1="260" x2="300.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="300.0" y="276" text-anchor="middle">25</text>
+    <line x1="400.0" y1="260" x2="400.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="400.0" y="276" text-anchor="middle">50</text>
+    <line x1="500.0" y1="260" x2="500.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="500.0" y="276" text-anchor="middle">75</text>
+    <line x1="600.0" y1="260" x2="600.0" y2="264" stroke="currentColor" opacity=".3"/>
+    <text class="ax" x="600.0" y="276" text-anchor="middle">100</text>
+    <text class="ax" x="400.0" y="290" text-anchor="middle">score on that benchmark’s own metric</text>
+    <text class="dlt" x="694" y="276" text-anchor="end">gain</text>
+    </svg>
+    <figcaption><strong>Hollow dot: without. Solid dot: with.</strong> Each row
+    is one benchmark measuring its own with-and-without condition, using its own
+    metric on its own data. <strong>Rows are not comparable to each other</strong>
+    — only the gap within a row means anything, which is why the gain is printed
+    separately. Systems, in row order: DeepSeek-R1 curator; GPT-5.1-Codex; human
+    data engineers and database students; ReFoRCE best config; AskData + GPT-4o;
+    GPT-5 under LongTA; Claude-3.5-Sonnet with self-debug. Dates 2024-11 to
+    2026-08; verified 2026-08-11.</figcaption>
+  </figure>
 
   <p><strong>LongDA is the most relevant result published.</strong> Its
   questions come from real US federal survey publications and are answered
@@ -268,10 +413,58 @@
   11.28, 12.84 and 20.86 points. Only the oldest pipeline reached the original
   figure; every modern one landed between 8 and 13.</p>
 
+  <p>At the other end sits ScienceAgentBench, where an expert note added
+  <strong>1.9 points</strong> — a reminder that supplying <em>something</em>
+  guarantees nothing. The spread from +1.9 to +48.4 is not noise; it tracks how
+  closely what was handed over matched what the task actually required.</p>
+
   <p>So the premium for supplying published knowledge about a public dataset is
   real and appears to be shrinking. The premium for supplying documentation the
   model cannot otherwise reach — LongDA&#x27;s eleven points, measured this year on
   federal codebooks — is not shrinking, because nothing has absorbed it.</p>
+
+  <h2>The wider field</h2>
+
+  <p>The benchmarks above are the ones with results bearing directly on the
+  argument. They are a fraction of what exists. A broader scan turned up more
+  than thirty active evaluations touching data work, and the shape of that set
+  is itself informative — several categories are crowded, and the ones closest
+  to public-statistics practice are nearly empty.</p>
+
+  <figure class="article-figure">
+    <table>
+      <thead>
+        <tr><th>What it measures</th><th>Benchmark</th><th>Best result</th><th>System</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="2">Finding data in a lake or sandbox</td><td>CoDA-Bench</td><td>83.0 / 61.1</td><td>Mini-SWE-agent + GPT-5.5</td><td>2026-06-13</td></tr>
+        <tr><td>LakeQA (9.5 TB, incl. data.gov)</td><td>32.87% exact match</td><td>Claude Sonnet 4.5, 5-tool scaffold</td><td>2026-06</td></tr>
+        <tr><td rowspan="2">Preparing and cleaning</td><td>PrepBench</td><td>54.9% → 85.3%</td><td>GPT-5.1-Codex</td><td>2026-05-09</td></tr>
+        <tr><td>&quot;Can FMs Wrangle Your Data?&quot;</td><td>0.0 → 99.1 F1 (10 examples)</td><td>GPT-3-175B</td><td>2022-12-24</td></tr>
+        <tr><td>Integrating several sources</td><td>MaDI-Bench</td><td>schema match 100 F1 → fusion 84.87</td><td>GPT-5.5 / GPT-5.2 pipeline</td><td>2026-06-29</td></tr>
+        <tr><td rowspan="2">Reasoning over tables</td><td>TableBench (agents)</td><td>75.05 overall, 61.37 on analysis</td><td>WPS AI, base model undisclosed</td><td>2026-07-29</td></tr>
+        <tr><td>MMTU (28,136 questions)</td><td>0.696</td><td>GPT-5, no scaffold</td><td>2026-03-09</td></tr>
+        <tr><td rowspan="2">Whether the conclusion is valid</td><td>P-Bench (is the p-value sound?)</td><td>33.0% strict, hard split</td><td>Fisher-R1-14B, ReAct over R</td><td>2026-08-07</td></tr>
+        <tr><td>StatABench</td><td>68.6% closed-form</td><td>GPT-5.1 via LangChain MCP</td><td>2026-06-22</td></tr>
+        <tr><td>Running a whole analysis</td><td>DataAgentBench</td><td>0.845 pass@1 vs 0.455 bare model</td><td>Sentinel: Fable-5 + Claude-Opus-4.7</td><td>2026-07-20</td></tr>
+        <tr><td>Holding state across turns</td><td>EnterpriseMem-Bench</td><td>0% execution accuracy by turn 3</td><td>all five models tested</td><td>2026-05-25</td></tr>
+      </tbody>
+    </table>
+    <figcaption>A selection, not a ranking — scores are not comparable across
+    rows. Chosen to show which kinds of data work have measurements and which
+    do not. Every figure names the system that produced it; several other
+    benchmarks were excluded because their published numbers could not be
+    attributed to a specific model and scaffold.</figcaption>
+  </figure>
+
+  <p>Two things stand out. Entity matching and schema matching are close to
+  saturated — one entity-matching set of 755,540 pairs is answered at
+  <strong>98.95 F1</strong> by GPT-4o with no scaffold at all — while anything
+  requiring sustained state falls apart: one enterprise benchmark records
+  <strong>0% execution accuracy by the third turn</strong> across every model it
+  tested. And the validity layer is barely explored. Whether a model&#x27;s
+  <em>conclusion</em> is statistically supported, rather than whether its code
+  ran, is measured by two benchmarks, both from this year, both scoring badly.</p>
 
   <h2>What nobody is measuring</h2>
 
