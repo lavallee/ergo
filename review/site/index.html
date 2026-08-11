@@ -14,7 +14,7 @@
   .cov td { text-align: center; }
   .cov td:first-child { text-align: left; }
   .cov td.c { font-size: 1.05em; }
-  .cov td.p { opacity: .55; }
+  .cov td.p { opacity: .8; font-size: 1.05em; }
   .muted { opacity: .68; }
   .gen { font-size: .82em; opacity: .75; letter-spacing: .08em; }
 </style>
@@ -22,7 +22,7 @@
 <body>
 <header class="article-masthead">
   <a class="article-masthead__name" href="index.html">Models and data: what changed, what didn&#x27;t, and what to watch</a>
-  <span class="article-masthead__label">DES public artifact</span>
+  <a class="article-masthead__label" href="../index.html">← ergo</a>
 </header>
 <main class="article">
   <header class="article-header">
@@ -239,22 +239,22 @@
       </thead>
       <tbody>
         <tr><td>DABstep</td><td></td><td></td><td class="c">●</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>BIRD</td><td></td><td></td><td class="c">●</td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>Spider 2.0</td><td></td><td></td><td class="p">◐</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>BEAVER</td><td></td><td></td><td class="p">◐</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>ELT-Bench</td><td class="p">◐</td><td class="c">●</td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>BIRD</td><td></td><td></td><td class="c">●</td><td></td><td class="p">○</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>Spider 2.0</td><td></td><td></td><td class="p">○</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>BEAVER</td><td></td><td></td><td class="p">○</td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>ELT-Bench</td><td class="p">○</td><td class="c">●</td><td class="c">●</td><td class="p">○</td><td></td><td></td><td></td><td></td></tr>
         <tr><td>DCA-Bench</td><td></td><td></td><td class="c">●</td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>LongDA</td><td></td><td></td><td class="c">●</td><td class="p">◐</td><td></td><td class="c">●</td><td class="p">◐</td><td></td></tr>
-        <tr><td>DataGovBench</td><td></td><td></td><td class="p">◐</td><td class="p">◐</td><td class="p">◐</td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>CoDA-Bench, KramaBench, LakeQA</td><td class="c">●</td><td class="p">◐</td><td></td><td></td><td></td><td class="p">◐</td><td></td><td></td></tr>
+        <tr><td>LongDA</td><td></td><td></td><td class="c">●</td><td class="p">○</td><td></td><td class="c">●</td><td class="p">○</td><td></td></tr>
+        <tr><td>DataGovBench</td><td></td><td></td><td class="p">○</td><td class="p">○</td><td class="p">○</td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>CoDA-Bench, KramaBench, LakeQA</td><td class="c">●</td><td class="p">○</td><td></td><td></td><td></td><td class="p">○</td><td></td><td></td></tr>
         <tr><td>PrepBench, Wrangle Your Data</td><td></td><td></td><td></td><td class="c">●</td><td></td><td></td><td></td><td></td></tr>
-        <tr><td>MaDI-Bench, OpenSanctions pairs</td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td><td></td><td></td></tr>
-        <tr><td>TableBench, MMTU, DataAgentBench</td><td></td><td></td><td class="p">◐</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
-        <tr><td>P-Bench, StatQA</td><td></td><td></td><td></td><td></td><td></td><td class="p">◐</td><td class="c">●</td><td></td></tr>
+        <tr><td>MaDI-Bench, OpenSanctions pairs</td><td></td><td></td><td></td><td class="p">○</td><td class="c">●</td><td></td><td></td><td></td></tr>
+        <tr><td>TableBench, MMTU, DataAgentBench</td><td></td><td></td><td class="p">○</td><td></td><td></td><td class="c">●</td><td></td><td></td></tr>
+        <tr><td>P-Bench, StatQA</td><td></td><td></td><td></td><td></td><td></td><td class="p">○</td><td class="c">●</td><td></td></tr>
       </tbody>
     </table>
     <figcaption><strong>●</strong> central to the benchmark ·
-    <strong>◐</strong> tested incidentally · blank, not tested. The two columns
+    <strong>○</strong> tested incidentally · blank, not tested. The two columns
     at the ends are the story: <strong>Find</strong> was unmeasured until 2026,
     and <strong>Publish</strong> is unmeasured still.</figcaption>
   </figure>
@@ -309,48 +309,51 @@
   </figure>
 
   <figure class="article-figure">
-    <svg viewBox="0 0 700 292" role="img" aria-label="Benchmark scores at an earlier and later date" style="width:100%;height:auto">
-    <style>.sl{font:11px system-ui,sans-serif}.slb{font:600 11px system-ui,sans-serif}.n{font-variant-numeric:tabular-nums}.hd{font:600 11px system-ui,sans-serif;opacity:.65}.ax{font:10px system-ui,sans-serif;opacity:.55}</style>
-    <text class="hd" x="250.0" y="26" text-anchor="middle">earlier</text>
-    <text class="hd" x="470.0" y="26" text-anchor="middle">latest, 2026-08-11</text>
-    <line x1="250.0" y1="177.9" x2="470.0" y2="62.8" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
-    <circle cx="250.0" cy="177.9" r="3.6" fill="currentColor" opacity=".8"/>
-    <circle cx="470.0" cy="62.8" r="3.6" fill="currentColor" opacity=".8"/>
-    <text class="sl n" x="240.0" y="181.9" text-anchor="end" opacity=".8">37.0</text>
-    <text class="slb n" x="480.0" y="66.8" opacity=".8">96.0</text>
-    <text class="sl" x="522.0" y="66.8" opacity=".8">ELT-Bench, extract & load</text>
-    <line x1="250.0" y1="74.6" x2="470.0" y2="74.6" stroke="currentColor" stroke-width="1.8" opacity=".28" stroke-dasharray="3 3"/>
-    <circle cx="250.0" cy="74.6" r="3.6" fill="currentColor" opacity=".28"/>
-    <circle cx="470.0" cy="74.6" r="3.6" fill="currentColor" opacity=".28"/>
-    <text class="sl n" x="240.0" y="78.6" text-anchor="end" opacity=".28">89.95</text>
-    <text class="slb n" x="480.0" y="78.6" opacity=".28">89.95</text>
-    <text class="sl" x="522.0" y="78.6" opacity=".28">DABstep, hard (validated)</text>
-    <line x1="250.0" y1="90.2" x2="470.0" y2="90.2" stroke="currentColor" stroke-width="1.8" opacity=".28" stroke-dasharray="3 3"/>
-    <circle cx="250.0" cy="90.2" r="3.6" fill="currentColor" opacity=".28"/>
-    <circle cx="470.0" cy="90.2" r="3.6" fill="currentColor" opacity=".28"/>
-    <text class="sl n" x="240.0" y="94.2" text-anchor="end" opacity=".28">81.95</text>
-    <text class="slb n" x="480.0" y="94.2" opacity=".28">81.95</text>
-    <text class="sl" x="522.0" y="94.2" opacity=".28">BIRD, oracle knowledge</text>
-    <line x1="250.0" y1="132.7" x2="470.0" y2="101.4" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
-    <circle cx="250.0" cy="132.7" r="3.6" fill="currentColor" opacity=".8"/>
-    <circle cx="470.0" cy="101.4" r="3.6" fill="currentColor" opacity=".8"/>
-    <text class="sl n" x="240.0" y="136.7" text-anchor="end" opacity=".8">60.15</text>
-    <text class="slb n" x="480.0" y="105.4" opacity=".8">76.23</text>
-    <text class="sl" x="522.0" y="105.4" opacity=".8">Spider 2.0-Lite</text>
-    <line x1="250.0" y1="99.6" x2="470.0" y2="93.9" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
-    <circle cx="250.0" cy="99.6" r="3.6" fill="currentColor" opacity=".8"/>
-    <circle cx="470.0" cy="93.9" r="3.6" fill="currentColor" opacity=".8"/>
-    <text class="sl n" x="240.0" y="103.6" text-anchor="end" opacity=".8">77.14</text>
-    <text class="slb n" x="480.0" y="97.9" opacity=".8">80.04</text>
-    <text class="sl" x="522.0" y="97.9" opacity=".8">BIRD, single trained model</text>
-    <line x1="250.0" y1="242.4" x2="470.0" y2="205.8" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
-    <circle cx="250.0" cy="242.4" r="3.6" fill="currentColor" opacity=".8"/>
-    <circle cx="470.0" cy="205.8" r="3.6" fill="currentColor" opacity=".8"/>
-    <text class="sl n" x="240.0" y="246.4" text-anchor="end" opacity=".8">3.9</text>
-    <text class="slb n" x="480.0" y="209.8" opacity=".8">22.66</text>
-    <text class="sl" x="522.0" y="209.8" opacity=".8">ELT-Bench, transformation</text>
-    <line x1="180.0" y1="264" x2="510.0" y2="264" stroke="currentColor" opacity=".2"/>
-    <text class="ax" x="180.0" y="280">each line is one benchmark on its own metric — the slope is the story, the height is not</text>
+    <svg viewBox="0 0 760 330" role="img" aria-label="Benchmark scores at an earlier and later date" style="width:100%;height:auto">
+    <style>.sl{font:11px system-ui,sans-serif}.slb{font:600 11px system-ui,sans-serif}.n{font-variant-numeric:tabular-nums}.hd{font:600 11px system-ui,sans-serif;opacity:.6}.ax{font:10px system-ui,sans-serif;opacity:.55}</style>
+    <text class="hd" x="300.0" y="30" text-anchor="middle">earlier</text>
+    <text class="hd" x="470.0" y="30" text-anchor="middle">latest &#183; 2026-08-11</text>
+    <line x1="300.0" y1="206.0" x2="470.0" y2="56.2" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="206.0" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="56.2" r="3.4" fill="currentColor" opacity=".85"/>
+    <text class="sl n" x="278.0" y="209.5" text-anchor="end" opacity=".85">37.0</text>
+    <text class="slb n" x="492.0" y="59.7" opacity=".85">96.0</text>
+    <text class="sl" x="532.0" y="59.7" opacity=".85">ELT-Bench, extract & load</text>
+    <line x1="300.0" y1="71.5" x2="470.0" y2="71.5" stroke="currentColor" stroke-width="1.8" opacity=".3" stroke-dasharray="4 3"/>
+    <circle cx="300.0" cy="71.5" r="3.4" fill="currentColor" opacity=".3"/>
+    <circle cx="470.0" cy="71.5" r="3.4" fill="currentColor" opacity=".3"/>
+    <text class="sl n" x="278.0" y="75.0" text-anchor="end" opacity=".3">89.95</text>
+    <text class="slb n" x="492.0" y="75.0" opacity=".3">89.95</text>
+    <text class="sl" x="532.0" y="75.0" opacity=".3">DABstep, hard (validated)</text>
+    <line x1="300.0" y1="91.8" x2="470.0" y2="91.8" stroke="currentColor" stroke-width="1.8" opacity=".3" stroke-dasharray="4 3"/>
+    <circle cx="300.0" cy="91.8" r="3.4" fill="currentColor" opacity=".3"/>
+    <circle cx="470.0" cy="91.8" r="3.4" fill="currentColor" opacity=".3"/>
+    <text class="sl n" x="278.0" y="95.3" text-anchor="end" opacity=".3">81.95</text>
+    <text class="slb n" x="492.0" y="95.3" opacity=".3">81.95</text>
+    <text class="sl" x="532.0" y="95.3" opacity=".3">BIRD, oracle knowledge</text>
+    <line x1="300.0" y1="147.2" x2="470.0" y2="106.4" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="147.2" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="106.4" r="3.4" fill="currentColor" opacity=".85"/>
+    <line x1="478.0" y1="106.4" x2="488.0" y2="121.8" stroke="currentColor" opacity=".22"/>
+    <text class="sl n" x="278.0" y="150.7" text-anchor="end" opacity=".85">60.15</text>
+    <text class="slb n" x="492.0" y="125.3" opacity=".85">76.23</text>
+    <text class="sl" x="532.0" y="125.3" opacity=".85">Spider 2.0-Lite</text>
+    <line x1="300.0" y1="104.1" x2="470.0" y2="96.7" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="104.1" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="96.7" r="3.4" fill="currentColor" opacity=".85"/>
+    <line x1="292.0" y1="104.1" x2="282.0" y2="106.8" stroke="currentColor" opacity=".22"/>
+    <line x1="478.0" y1="96.7" x2="488.0" y2="106.8" stroke="currentColor" opacity=".22"/>
+    <text class="sl n" x="278.0" y="110.3" text-anchor="end" opacity=".85">77.14</text>
+    <text class="slb n" x="492.0" y="110.3" opacity=".85">80.04</text>
+    <text class="sl" x="532.0" y="110.3" opacity=".85">BIRD, single trained model</text>
+    <line x1="300.0" y1="290.1" x2="470.0" y2="242.4" stroke="currentColor" stroke-width="1.8" opacity=".85"/>
+    <circle cx="300.0" cy="290.1" r="3.4" fill="currentColor" opacity=".85"/>
+    <circle cx="470.0" cy="242.4" r="3.4" fill="currentColor" opacity=".85"/>
+    <text class="sl n" x="278.0" y="293.6" text-anchor="end" opacity=".85">3.9</text>
+    <text class="slb n" x="492.0" y="245.9" opacity=".85">22.66</text>
+    <text class="sl" x="532.0" y="245.9" opacity=".85">ELT-Bench, transformation</text>
+    <line x1="230.0" y1="316" x2="670.0" y2="316" stroke="currentColor" opacity=".15"/>
+    <text class="ax" x="230" y="328">each line is one benchmark on its own metric — read the slope, not the height</text>
     </svg>
     <figcaption><strong>Dashed lines have not moved.</strong> DABstep's validated
     board is frozen because it closed submissions pending a second version;
@@ -386,7 +389,7 @@
   on.</p>
 
   <figure class="article-figure">
-    <svg viewBox="0 0 700 232" role="img" aria-label="BEAVER sub-skill scores from 70.1 down to 20.4" style="width:100%;height:auto">
+    <svg viewBox="0 0 700 250" role="img" aria-label="BEAVER sub-skill scores from 70.1 down to 20.4" style="width:100%;height:auto">
     <style>.bl{font:600 12px system-ui,sans-serif}.bs{font:11px system-ui,sans-serif;opacity:.6}.bn{font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}.bx{font:10px system-ui,sans-serif;opacity:.55}</style>
     <text class="bl" x="242" y="36" text-anchor="end">Table retrieval</text>
     <text class="bs" x="242" y="48" text-anchor="end">find the right table</text>

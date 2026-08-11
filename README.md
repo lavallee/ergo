@@ -105,6 +105,12 @@ practice, agency documentation, agent-readable docs — the same gap everywhere:
 **caveats live in prose.** No existing format makes an issue scoped, typed,
 versioned, and code-linked at once.
 
+**[Models and data](https://lavallee.github.io/ergo/review/)** is the background:
+what the benchmark record actually shows about models doing data work — which
+parts have improved, which have not, what supplying documentation is measurably
+worth, and which stages of a data project nobody is measuring at all. It makes
+no case for ergo; it is the problem space ergo exists inside.
+
 **[docs/distribution.md](docs/distribution.md)** is the open design question:
 how pages get found and contributed when the dataset's publisher will never
 write one, which is nearly always.

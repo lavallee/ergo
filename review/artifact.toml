@@ -3,9 +3,19 @@ slug = "models-and-data"
 title = "Models and data: what changed, what didn't, and what to watch"
 description = "How well models actually do the work of getting data in, cleaning it, joining it and querying it — read from the benchmark record rather than from vibes."
 kind = "research-review"
-status = "draft"
+status = "live"
 created = "2026-08-11"
 updated = "2026-08-11"
+
+[deploy]
+target = "github-pages"
+
+[deploy.github-pages]
+commit = false
+mode = "workflow"
+own_root = false
+publish_dir = "review/site"
+subpath = "review"
 
 [[libraries]]
 name = "artoo-kit"
