@@ -74,15 +74,23 @@ and nothing sits between an agent and the text.
 
 ## Install
 
-The skill is the product, so the shortest path is the plugin:
+The skill is the product, so the shortest path is the plugin. In Claude Code:
 
 ```
 /plugin marketplace add lyra-forge/marketplace
 /plugin install ergo@lyra-forge
 ```
 
+In Codex:
+
+```bash
+codex plugin marketplace add lyra-forge/marketplace
+codex plugin add ergo@lyra-forge
+```
+
 Start a new session. Your agent now knows to look for what is already known
-about a dataset before touching it, and how to write down what it learns.
+about a dataset before touching it, and how to write down what it learns. The
+installed skill is `/ergo:ergo` in Claude Code and `$ergo:ergo` in Codex.
 
 The validator installs separately, and deliberately not as a package — it is a
 single dependency-free file you copy into the repository that holds the pages,
@@ -100,8 +108,9 @@ python3 tools/ergo.py check docs/data --repo .          # gate the corpus
 python3 tools/ergo.py digest docs/data --write docs/data/INDEX.md
 ```
 
-Not using Claude Code? Copy [`skills/ergo/`](skills/ergo/) into whatever your
-agent reads, and plant a two-line pointer in `AGENTS.md` so it finds the pages.
+Not using Claude Code or Codex? Copy [`skills/ergo/`](skills/ergo/) into
+whatever your agent reads, and plant a two-line pointer in `AGENTS.md` so it
+finds the pages.
 
 ## Reading further
 

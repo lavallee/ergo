@@ -24,3 +24,8 @@ Ground rules:
 - Breaking format changes bump the version (§15) and get a CHANGELOG entry.
 - Keep the voice: plain, concrete, quantified. No aspirational fields the
   reference implementation doesn't check.
+- The Claude Code and Codex plugins share one `skills/` tree. Keep
+  `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` at the same
+  version, and run `python3 -m unittest discover tests` before publishing.
+  Publish this repository before updating `lyra-forge/marketplace`; a catalog
+  entry cannot install files that exist only in a local checkout.

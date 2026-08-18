@@ -34,7 +34,8 @@
     <p class="section-kicker">Start</p>
     <h1>Your first data page in ten minutes</h1>
     <p class="lede">From an empty repository to a documented dataset with the check
-      running in CI. Requires Python 3.11 or newer, and nothing else.</p>
+      running in CI. Step one wants Claude Code; everything after it needs Python 3.11
+      and nothing else, and works by hand if you would rather.</p>
     <p class="demo-note">Start with a dataset you already know something about. The point
       of the first page is not to be complete — it is to get the one issue that has
       already cost you a day out of your head and into a file.</p>
@@ -99,11 +100,11 @@
     </li>
 
     <li>
-      <h3>Point the issue at the code, and the code back at the issue</h3>
+      <h3>Link the issue to the code that handles it</h3>
       <p>If you have already worked around it, set <code>status = "mitigated"</code> and
         list the code in <code>handled_by</code>. Then put the anchor comment beside the
-        workaround. One line of <em>why this looks weird</em> next to it is good manners;
-        three lines is a fork of the page.</p>
+        workaround. Add a few words about why the code looks odd if it helps; anything longer
+        belongs on the page, not in the comment.</p>
       <div class="cmd"><code># ergo: my-dataset/my-issue-id — non-numeric rates parse to NULL</code></div>
       <div class="cmd"><code>python3 tools/ergo.py check docs/data --repo .</code></div>
       <p>Now <code>grep -rn "ergo: my-dataset"</code> finds every workaround in the
@@ -113,9 +114,9 @@
 
     <li>
       <h3>Record how you checked it</h3>
-      <p>A <code>[validation]</code> block: the date, the method, and the result with
-        numbers in it. "7 of 7 spot figures match within rounding" beats "we checked",
-        because the number is what lets the <em>next</em> check detect drift.</p>
+      <p>A <code>[validation]</code> block: the date, the method, and the result with numbers
+        in it. Write "7 of 7 spot figures match within rounding" rather than "we checked" —
+        a later reader can re-run the first one and see whether it still holds.</p>
     </li>
 
     <li>
@@ -150,8 +151,7 @@ contract.</code></pre>
 
     <li>
       <h3>Put the check in CI</h3>
-      <p>This is the line that keeps the corpus honest without anyone watching it.
-        <code>--require-manifest</code> closes the directory, so a prose file that quietly
+      <p><code>--require-manifest</code> closes the directory, so a prose file that quietly
         stops being a data page is an error rather than a page that silently disappears
         from the check. Add <code>--strict</code> once you have cleaned the warnings, and
         warnings fail too.</p>
@@ -162,19 +162,22 @@ contract.</code></pre>
 
   <section class="prose">
     <h2>When you're ready for more</h2>
-    <p><strong>Practices.</strong> Once you find yourself explaining <em>why</em> a number
-      is computed the way it is, that is a <code>[practice]</code>, not an issue — see
-      <a href="format.html">the format map</a>. Name the naive move it replaces; if there
-      isn't one, it is documentation rather than a practice.</p>
+    <p><strong>Practices.</strong> When you catch yourself explaining <em>why</em> a number
+      is computed one way and not another, that is a <code>[practice]</code> rather than an
+      issue — see <a href="format.html">the format map</a>. It should name the plausible
+      wrong move it replaces; if nothing is being ruled out, you are writing documentation.</p>
     <p><strong>Publish the bundle.</strong> If the data is public, the documentation
       probably should be too. <code>publish</code> writes a served directory: an
       <code>index.json</code> plus each page's public projection, with your rebuild
       runbooks and repo paths stripped out.</p>
     <div class="cmd"><code>python3 tools/ergo.py publish docs/data --dir site/ergo --base-url https://example.org/ergo/</code></div>
-    <p><strong>Join a directory.</strong> <code>directory --entries-only</code> emits your
-      entries — subject, bundle URL, and recognition signatures — to open as a pull request
-      against someone else's directory file. A directory indexes bundles and never holds
-      page content, so corrections keep flowing to whoever owns the page.</p>
+    <p><strong>Join a directory.</strong> If your repository is public and takes pull
+      requests, <code>directory --entries-only</code> emits your entries — subject, bundle
+      URL, recognition signatures — to open against someone else's directory file, and your
+      page stays yours.</p>
+    <p>If your repository is private, a bundle served out of it is readable by anyone and
+      fixable by nobody. Contribute the page itself instead; the directory becomes its home,
+      and <code>diverge</code> keeps your working copy and the public one in step.</p>
     <p><a href="walkthrough.html">Watch all of this happen with real output →</a></p>
   </section>
 

@@ -20,6 +20,10 @@ to ergo. Changing one of them is a spec change, not a preference.
   `python3 tools/ergo.py check examples templates --strict`, and
   `python3 website/build.py` — the site is derived from the tool and the spec, so
   drift fails its build rather than shipping stale.
+- **Plugin packaging is dual-harness**: `.claude-plugin/plugin.json` and
+  `.codex-plugin/plugin.json` package the same `skills/` tree and keep one
+  version. The public install paths are `/plugin install ergo@lyra-forge` and
+  `codex plugin add ergo@lyra-forge`.
 - **Plain language.** Real terms of art from data work where they are more precise,
   ordinary English otherwise, and nothing invented. No process vocabulary about
   gates, floors, or things being earned. This is why 0.4 renamed `bite` to `pitfall`.

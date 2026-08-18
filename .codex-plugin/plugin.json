@@ -1,0 +1,40 @@
+{
+  "name": "ergo",
+  "version": "0.5.0",
+  "description": "Read and write checkable data pages that preserve dataset pitfalls and sanctioned practices.",
+  "author": {
+    "name": "Marc Lavallee"
+  },
+  "homepage": "https://lavallee.github.io/ergo/",
+  "repository": "https://github.com/lavallee/ergo",
+  "license": "MIT",
+  "keywords": [
+    "data",
+    "datasets",
+    "documentation",
+    "data-journalism",
+    "open-data",
+    "provenance",
+    "etl",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ergo — dataset pitfalls, written down",
+    "shortDescription": "Dataset pitfalls and sanctioned practices",
+    "longDescription": "Check what is already known before touching a dataset, record new pitfalls in a durable format, and preserve the practices that govern honest use.",
+    "developerName": "Marc Lavallee",
+    "category": "Research",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://lavallee.github.io/ergo/",
+    "defaultPrompt": [
+      "Use Ergo to inspect this dataset's known pitfalls.",
+      "Use Ergo to document the data problem I just found.",
+      "Recover an Ergo data page from this existing loader."
+    ]
+  }
+}
