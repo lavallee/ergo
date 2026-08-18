@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A real data page — NJ School Performance Reports</title>
-<meta name="description" content="The example data page shipped in the ergo repository, rendered from its own machine-readable export: the manifest, the pitfall, every issue with its scope and misuse, and the practices that decide what may be computed.">
+<meta name="description" content="The example data page shipped in the ergo repository, rendered from its own machine-readable export: the manifest, the pitfall, every issue with its scope and misuse, the practices that decide what may be computed, and what the publisher said in its own words.">
 <link rel="icon" href="lib/artoo-kit/favicon.svg">
 <link rel="stylesheet" href="lib/artoo-kit/tokens.css">
 <link rel="stylesheet" href="lib/artoo-kit/base.css">
@@ -64,10 +64,28 @@
   <section>
     <p class="section-kicker">The decisions</p>
     <h2>Practices</h2>
-    <p class="lede">Not defects — calls somebody made about what may be computed from this
-      data, and what the naive move would have been. Reached by the question you are
-      answering, not by what is broken.</p>
+    <p class="lede">Calls somebody made about what may legitimately be computed from this
+      data, each naming the plausible wrong move it replaces. You find them by the question
+      you are trying to answer rather than by what is broken.</p>
     <div id="pg-practices"></div>
+  </section>
+
+  <section id="pg-quotes-section">
+    <p class="section-kicker">In their words</p>
+    <h2>Quoted from the publisher</h2>
+    <p class="lede">What the agency itself says, with the URL and the date it was read
+      there. Everything inside the quote is theirs; the note beside it is the page
+      author's, and a reader can always tell which is which.</p>
+    <div id="pg-quotes"></div>
+  </section>
+
+  <section id="pg-references-section">
+    <p class="section-kicker">Prior work</p>
+    <h2>Who else has parsed this</h2>
+    <p class="lede">Pointers to implementations, documentation and articles about the same
+      dataset — with the edition each one serves and whether it is still maintained. A
+      reference records that something exists. It is not an endorsement.</p>
+    <div id="pg-references"></div>
   </section>
 
   <section id="pg-validation-section">
@@ -80,11 +98,13 @@
 
   <section class="prose">
     <h2>What this page costs to keep</h2>
-    <p>Five issues and two practices, in one file, alongside the code that ingests the
-      data. The bulk of it was written at the moment of discovery — the workaround commit
-      and the issue entry are the same change — which is the only authoring discipline in
-      the spec that really matters. An issue discovered but not registered is the next
-      person's rediscovery, and the next reporter's error.</p>
+    <p><span data-count="issues">Five</span> issues, <span data-count="practices">two</span>
+      practices, <span data-count="quotes">one</span> quote and
+      <span data-count="references">one</span> reference, in a single file that sits
+      beside the code ingesting the data. Most of it was written at the moment of discovery,
+      because the workaround commit and the issue entry were the same change. That is the
+      habit the whole format is trying to make cheap: an issue you found and did not write
+      down is one somebody has to find again.</p>
     <p><a href="https://github.com/lavallee/ergo/blob/main/examples/spr.md">Read the raw
       markdown →</a> · <a href="format.html">See the block reference →</a> ·
       <a href="start.html">Start your own →</a></p>

@@ -192,6 +192,89 @@
     issues.forEach(function (issue) { issuesHost.appendChild(renderIssue(issue)); });
   }
 
+  // -- quotes and references ------------------------------------------------
+  // Added in 0.5. Without these the "finished page" showed five of the seven
+  // block kinds, and dropped the one thing on it in the publisher's own words.
+  function renderQuote(quote) {
+    var entry = el("article", "entry");
+    entry.setAttribute("data-kind", "quote");
+    var head = el("div", "entry__head");
+    // Title by host rather than a fixed label: the section heading already says
+    // whose words these are, and the domain is the part a reader wants to check.
+    var host = quote.source ? quote.source.replace(/^https?:\/\//, "").replace(/\/$/, "") : "quoted";
+    head.appendChild(el("h3", "entry__title", host));
+    var chips = el("div", "entry__chips");
+    chips.appendChild(el("span", "eff", "retrieved " + (quote.retrieved || "—")));
+    head.appendChild(chips);
+    entry.appendChild(head);
+
+    var block = el("blockquote", "entry__quote", quote.text || "");
+    entry.appendChild(block);
+
+    if (quote.note) entry.appendChild(field("note", quote.note));
+    if (Array.isArray(quote.supports) && quote.supports.length) {
+      entry.appendChild(field("supports", quote.supports.join(", ")));
+    }
+    if (quote.source) {
+      var src = el("p", "entry__field");
+      src.appendChild(el("span", "k", "source"));
+      var a = el("a", null, quote.source);
+      a.href = quote.source;
+      src.appendChild(a);
+      entry.appendChild(src);
+    }
+    return entry;
+  }
+
+  function renderReference(ref) {
+    var entry = el("article", "entry");
+    entry.setAttribute("data-kind", "reference");
+    var head = el("div", "entry__head");
+    // The URL names the thing; `covers` is a sentence and reads as a field, not a heading.
+    var name = ref.url
+      ? ref.url.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "")
+      : "Reference";
+    head.appendChild(el("h3", "entry__title", name));
+    var chips = el("div", "entry__chips");
+    if (ref.kind) chips.appendChild(el("span", "eff", ref.kind));
+    if (ref.maintenance) chips.appendChild(el("span", "eff", ref.maintenance));
+    head.appendChild(chips);
+    entry.appendChild(head);
+
+    if (ref.covers) entry.appendChild(field("covers", ref.covers));
+    if (ref.url) {
+      var line = el("p", "entry__field");
+      line.appendChild(el("span", "k", "url"));
+      var link = el("a", null, ref.url);
+      link.href = ref.url;
+      line.appendChild(link);
+      entry.appendChild(line);
+    }
+    if (ref.edition) entry.appendChild(field("edition", ref.edition));
+    if (ref.commit) entry.appendChild(field("commit", ref.commit.slice(0, 12)));
+    if (ref.caveat) entry.appendChild(field("caveat", ref.caveat));
+    if (ref.observed) entry.appendChild(field("observed", ref.observed));
+    return entry;
+  }
+
+  var quotesHost = document.getElementById("pg-quotes");
+  var quotesSection = document.getElementById("pg-quotes-section");
+  if (quotesHost) {
+    (page.quotes || []).forEach(function (quote) {
+      quotesHost.appendChild(renderQuote(quote));
+    });
+    if (quotesSection && !(page.quotes || []).length) quotesSection.hidden = true;
+  }
+
+  var refsHost = document.getElementById("pg-references");
+  var refsSection = document.getElementById("pg-references-section");
+  if (refsHost) {
+    (page.references || []).forEach(function (ref) {
+      refsHost.appendChild(renderReference(ref));
+    });
+    if (refsSection && !(page.references || []).length) refsSection.hidden = true;
+  }
+
   var practicesHost = document.getElementById("pg-practices");
   if (practicesHost) {
     (page.practices || []).forEach(function (practice) {
@@ -268,6 +351,18 @@
   } else if (section) {
     section.hidden = true;
   }
+
+  // -- counts ---------------------------------------------------------------
+  // Spelled out of the export rather than typed into the prose, because the last
+  // two blocks added to the format left a hand-written tally behind.
+  var WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
+    "Nine", "Ten", "Eleven", "Twelve"];
+  document.querySelectorAll("[data-count]").forEach(function (node) {
+    var n = (page[node.getAttribute("data-count")] || []).length;
+    var word = WORDS[n] || String(n);
+    // Only the first one in the sentence is capitalised.
+    node.textContent = node.parentNode.firstElementChild === node ? word : word.toLowerCase();
+  });
 
   // -- vintage --------------------------------------------------------------
   var vintage = document.getElementById("pg-vintage");

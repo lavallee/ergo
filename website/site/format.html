@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The format — a data page, opened up</title>
-<meta name="description" content="The five blocks a data page is made of, their required and optional keys, the closed vocabularies the validator enforces, and the life of an issue from registered to resolved.">
+<meta name="description" content="The blocks a data page is made of, their required and optional keys, the closed vocabularies the validator enforces, and the life of an issue from registered to resolved.">
 <link rel="icon" href="lib/artoo-kit/favicon.svg">
 <link rel="stylesheet" href="lib/artoo-kit/tokens.css">
 <link rel="stylesheet" href="lib/artoo-kit/base.css">
@@ -33,7 +33,8 @@
   <header class="wk__lede">
     <p class="section-kicker">The format</p>
     <h1>A data page, opened up</h1>
-    <p class="lede">A page is markdown with five kinds of fenced TOML block in it. This is
+    <p class="lede">A page is markdown with <span data-fact="block-count">seven</span> kinds
+      of fenced TOML block in it. This is
       a way into <a href="https://github.com/lavallee/ergo/blob/main/SPEC.md">SPEC.md</a>,
       not a replacement for it: every key, vocabulary and example below is read out of the
       validator and the demo page at build time, so nothing here can describe a format the
@@ -42,7 +43,7 @@
 
   <section>
     <p class="section-kicker">Anatomy</p>
-    <h2>The five blocks</h2>
+    <h2>The blocks</h2>
     <p class="lede">Pick one. The example beside it is a real block from the page the
       <a href="walkthrough.html">walkthrough</a> builds.</p>
     <div class="map-grid">
@@ -56,7 +57,7 @@
     <h2>What is closed, and what is only recommended</h2>
     <p class="lede">A <strong>closed</strong> vocabulary is an error outside the list —
       that is what makes filtering by it worth doing. A <strong>recommended</strong> one
-      warns, so a project can carry a value the taxonomy hasn't earned yet and propose it
+      warns, so a project can use a word the taxonomy does not list yet and propose it
       upstream once a second independent example turns up.</p>
     <div id="vocabularies"></div>
   </section>
@@ -64,7 +65,8 @@
   <section>
     <p class="section-kicker">Lifecycle</p>
     <h2>The life of an issue</h2>
-    <p class="lede">Six stages, and every one of them is a separate act. An issue that has
+    <p class="lede"><span data-fact="lifecycle-count">Six</span> stages, and each is a
+      separate act. An issue that has
       only been registered is worth something; one that has been anchored and validated is
       worth considerably more, and the difference is visible rather than assumed.</p>
     <div class="rail" id="rail"></div>
@@ -102,7 +104,7 @@
 
   <section>
     <p class="section-kicker">Tooling</p>
-    <h2>Six commands, one file, no dependencies</h2>
+    <h2><span data-fact="command-count">Eight</span> commands, one file, no dependencies</h2>
     <p class="lede">Vendored by copying
       <a href="https://github.com/lavallee/ergo/blob/main/tools/ergo.py"><code>tools/ergo.py</code></a>
       into your repository. Usage lines below are its own <code>--help</code> output at

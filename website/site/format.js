@@ -11,7 +11,21 @@
 
   var el = kit.el;
 
-  // -- the five blocks, as a selectable list --------------------------------
+  // Counts stated in prose come from the data, never from a writer's memory:
+  // blocks and commands have both changed under this page before.
+  var WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+               "eight", "nine", "ten", "eleven", "twelve"];
+  function spell(n) { return WORDS[n] || String(n); }
+  function fill(name, value) {
+    document.querySelectorAll('[data-fact="' + name + '"]').forEach(function (node) {
+      node.textContent = value;
+    });
+  }
+  fill("block-count", spell((fmt.blocks || []).length));
+  fill("command-count", spell((fmt.surface || fmt.commands || []).length));
+  fill("lifecycle-count", spell((fmt.lifecycle || []).length));
+
+  // -- the blocks, as a selectable list --------------------------------------
   var nav = document.getElementById("anatomy");
   var detail = document.getElementById("block-detail");
 
